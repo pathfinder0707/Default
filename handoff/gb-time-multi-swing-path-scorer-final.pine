@@ -388,11 +388,12 @@ f_firstFutureTime(int H, int M, int a, int b, int c, int d) =>
             sh := (sh + 1) % 24
 
         code = f_methodScan(sh, sm, a, b, c, d)
-        if stepOut == 999999 and code > 0
+        if code > 0
             stepOut := i
             oh := sh
             om := sm
             codeOut := code
+            break
 
     [stepOut, f_timeTxt(oh, om), codeOut]
 
@@ -588,7 +589,7 @@ if newSwing
         label.delete(lb)
     array.clear(swingDrawLabels)
 
-    drawCount = math.min(visibleSwingLabels, sz)
+    drawCount = int(math.min(visibleSwingLabels, sz))
     if drawCount > 0
         startDraw = sz - drawCount
         for k = startDraw to sz - 1
@@ -599,7 +600,7 @@ if newSwing
             seqNo = array.get(arrSeq, k)
             a1c = array.get(arrA1Code, k)
             a2c = array.get(arrA2Code, k)
-            bestCode = a1c == 0 ? a2c : a2c == 0 ? a1c : math.min(a1c, a2c)
+            bestCode = a1c == 0 ? a2c : a2c == 0 ? a1c : (a1c < a2c ? a1c : a2c)
 
             side = isH ? "H" : "L"
             prefix = showSwingNumbers ? side + str.tostring(seqNo) : side
@@ -629,7 +630,7 @@ if sz > 0
         prevSwingTxt := array.get(arrNodeTxt, sz - 2) + " · " + f_timeTxt(array.get(arrHour, sz - 2), array.get(arrMinute, sz - 2))
 
     lastThreeTxt := ""
-    startLast3 = math.max(0, sz - 3)
+    startLast3 = int(math.max(0, sz - 3))
     for q = startLast3 to sz - 1
         nodeQ = array.get(arrNodeTxt, q)
         sideQ = array.get(arrIsHigh, q) ? "H" : "L"
@@ -644,6 +645,8 @@ if sz > 0
         if lastA2Idx == -1 and array.get(arrA2Idx, idxBack) >= 0
             lastA2Idx := array.get(arrA2Idx, idxBack)
             lastA2Lab := array.get(arrA2Lab, idxBack)
+        if lastA1Idx >= 0 and lastA2Idx >= 0
+            break
 
 //=============================================================================
 // CANDIDATE NEXT NODES

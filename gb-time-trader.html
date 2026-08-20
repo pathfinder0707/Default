@@ -437,35 +437,6 @@ textarea{resize:vertical;min-height:60px;line-height:1.5;}
 .calc-v{font-family:var(--mono);font-size:16px;font-weight:700;color:var(--ink);}
 .calc-v.big{font-size:24px;color:var(--gold-tx);}
 
-/* ---------- journal ---------- */
-.stat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:9px;}
-@media(max-width:760px){.stat-grid{grid-template-columns:repeat(2,1fr);}}
-.stat{background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:11px;}
-.stat-l{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.9px;color:var(--ink3);}
-.stat-v{font-family:var(--mono);font-size:24px;font-weight:700;color:var(--ink);line-height:1.2;}
-.stat-v.good{color:var(--green-tx);}
-.stat-v.bad{color:var(--red-tx);}
-.stat-s{font-size:10px;color:var(--ink4);font-family:var(--mono);}
-.tbl{width:100%;border-collapse:collapse;font-size:11.5px;}
-.tbl th{
-  text-align:left;font-size:9px;text-transform:uppercase;letter-spacing:.8px;color:var(--ink4);
-  font-weight:700;padding:7px 8px;border-bottom:1px solid var(--line2);white-space:nowrap;
-}
-.tbl td{padding:8px;border-bottom:1px solid var(--line);color:var(--ink2);font-family:var(--mono);white-space:nowrap;}
-.tbl tr:hover td{background:var(--panel2);}
-.tw{color:var(--green-tx);font-weight:700;}
-.tl{color:var(--red-tx);font-weight:700;}
-.tb{color:var(--ink3);font-weight:700;}
-.tbl-scroll{overflow-x:auto;}
-.bkt{display:flex;flex-direction:column;gap:5px;}
-.bktrow{display:grid;grid-template-columns:88px 1fr 76px;gap:9px;align-items:center;font-size:11px;}
-.bkt-l{font-family:var(--mono);color:var(--ink2);overflow:hidden;text-overflow:ellipsis;}
-.bkt-bar{height:15px;background:var(--panel3);border-radius:4px;overflow:hidden;}
-.bkt-f{height:100%;background:var(--green);}
-.bkt-f.lowwr{background:var(--red);}
-.bkt-f.midwr{background:var(--amber);}
-.bkt-n{font-family:var(--mono);color:var(--ink3);text-align:right;font-size:10px;}
-
 /* ---------- toast / banner ---------- */
 #toast{
   position:fixed;left:50%;bottom:22px;transform:translateX(-50%) translateY(120%);
@@ -503,7 +474,6 @@ textarea{resize:vertical;min-height:60px;line-height:1.5;}
       <button class="tab" id="tab-walk" onclick="setTab('walk')">WALK</button>
       <button class="tab" id="tab-ce" onclick="setTab('ce')">CE WALK</button>
       <button class="tab" id="tab-trade" onclick="setTab('trade')">TRADE</button>
-      <button class="tab" id="tab-jrn" onclick="setTab('jrn')">JOURNAL</button>
       <button class="tab" id="tab-set" onclick="setTab('set')">SETTINGS</button>
     </nav>
   </div>
@@ -731,39 +701,6 @@ textarea{resize:vertical;min-height:60px;line-height:1.5;}
         <div class="field"><label class="flabel">Target (optional)</label><input class="mono" id="rTgt" type="number" step="any" placeholder="0" onchange="runCalc()" oninput="runCalc()"></div>
         <div id="calcout"></div>
       </div>
-    </div>
-  </div>
-  <div class="card">
-    <div class="card-h">Log this trade</div>
-    <div class="grid3">
-      <div class="field"><label class="flabel">Direction</label><select id="jDir" class="mono"><option value="long">long</option><option value="short">short</option></select></div>
-      <div class="field"><label class="flabel">Node traded</label><input class="mono" id="jNode" type="text" placeholder="e.g. 17/23"></div>
-      <div class="field"><label class="flabel">Algo</label><select id="jAlgo" class="mono"><option value="1">Algo 1</option><option value="2">Algo 2</option><option value="both">Both / shared</option></select></div>
-    </div>
-    <div class="field"><label class="flabel">Notes</label><textarea id="jNotes" placeholder="What the node did, what confirmed it, what you'd change."></textarea></div>
-    <div class="btn-row">
-      <button class="btn primary" onclick="logTrade('W')">Log win</button>
-      <button class="btn" onclick="logTrade('L')">Log loss</button>
-      <button class="btn" onclick="logTrade('BE')">Log break-even</button>
-    </div>
-    <div class="note" style="margin-top:9px;">Grade, checklist ticks, killzone, node and R are all captured automatically so the Journal can tell you which conditions actually pay.</div>
-  </div>
-</div>
-
-<!-- ==================== JOURNAL ==================== -->
-<div class="panel" id="panel-jrn">
-  <div id="jrn-stats"></div>
-  <div class="card">
-    <div class="card-h">What actually pays <span class="hint">— win rate by condition, your data only</span></div>
-    <div id="jrn-buckets"></div>
-  </div>
-  <div class="card">
-    <div class="card-h">Trades</div>
-    <div class="tbl-scroll" id="jrn-table"></div>
-    <div class="btn-row">
-      <button class="btn" onclick="exportJSON()">Export JSON</button>
-      <button class="btn" onclick="exportCSV()">Export CSV</button>
-      <button class="btn" onclick="wipeJournal()">Wipe journal</button>
     </div>
   </div>
 </div>
@@ -1056,14 +993,13 @@ function setDir(g,d){
   document.querySelectorAll('.dir-btn[data-g="'+g+'"]').forEach(b=>b.classList.toggle('active',b.dataset.d===DIR[g]));
 }
 function dirLabel(g){return DIR[g]==='down'?'▼ low':DIR[g]==='up'?'▲ high':'neutral';}
-const TABS=['live','path','conf','walk','ce','trade','jrn','set'];
+const TABS=['live','path','conf','walk','ce','trade','set'];
 function setTab(t){
   TABS.forEach(x=>{
     const tb=document.getElementById('tab-'+x),pn=document.getElementById('panel-'+x);
     if(tb)tb.classList.toggle('active',x===t);
     if(pn)pn.classList.toggle('active',x===t);
   });
-  if(t==='jrn')renderJournal();
   if(t==='set')renderSettings();
   if(t==='trade'){renderChecklist();runCalc();}
   window.scrollTo({top:0,behavior:'smooth'});
@@ -1980,136 +1916,6 @@ function runCalc(){
 }
 
 /* ============================================================
-   JOURNAL
-   ============================================================ */
-function loadTrades(){try{return JSON.parse(localStorage.getItem('gbt.trades')||'[]');}catch(e){return[];}}
-function saveTrades(t){try{localStorage.setItem('gbt.trades',JSON.stringify(t));}catch(e){}}
-function logTrade(result){
-  const now=zurichNow();
-  const g=gradeNow();
-  const kz=kzAt(now.hh,now.mm);
-  const t={
-    id:Date.now(),
-    date:new Intl.DateTimeFormat('en-CA',{timeZone:'Europe/Zurich'}).format(new Date()),
-    time:pad(now.hh)+':'+pad(now.mm),
-    inst:lastCalc?lastCalc.inst:document.getElementById('rInst').value,
-    dir:document.getElementById('jDir').value,
-    node:document.getElementById('jNode').value||'—',
-    algo:document.getElementById('jAlgo').value,
-    grade:g.g,gradePct:g.pct,
-    kz:kz?kz.n:'none',
-    checks:CK.filter(c=>ckState[c.id]).map(c=>c.id),
-    rr:lastCalc&&lastCalc.rr?Math.round(lastCalc.rr*100)/100:null,
-    lots:lastCalc?Math.round(lastCalc.lots*10000)/10000:null,
-    risk:lastCalc?Math.round(lastCalc.riskAmt*100)/100:null,
-    result,
-    notes:document.getElementById('jNotes').value||'',
-  };
-  const all=loadTrades();all.unshift(t);saveTrades(all);
-  document.getElementById('jNotes').value='';
-  toast('Logged '+result+' · grade '+g.g);
-  renderJournal();
-}
-function delTrade(id){
-  if(!confirm('Delete this trade?'))return;
-  saveTrades(loadTrades().filter(t=>t.id!==id));renderJournal();
-}
-function wipeJournal(){
-  if(!confirm('Delete ALL journal entries? This cannot be undone.'))return;
-  saveTrades([]);renderJournal();toast('Journal wiped');
-}
-function wr(list){
-  const dec=list.filter(t=>t.result!=='BE');
-  if(!dec.length)return null;
-  return Math.round(dec.filter(t=>t.result==='W').length/dec.length*100);
-}
-function expectancy(list){
-  const dec=list.filter(t=>t.result!=='BE'&&t.rr);
-  if(!dec.length)return null;
-  const tot=dec.reduce((a,t)=>a+(t.result==='W'?t.rr:-1),0);
-  return Math.round(tot/dec.length*100)/100;
-}
-function renderJournal(){
-  const all=loadTrades();
-  const st=document.getElementById('jrn-stats');
-  if(!all.length){
-    st.innerHTML='<div class="empty"><b>No trades logged yet.</b><br><br>Log from the TRADE tab. Grade, checklist, killzone and node are captured automatically — that is what lets this tell you which conditions actually pay.</div>';
-    document.getElementById('jrn-buckets').innerHTML='<div class="note">Nothing to break down yet.</div>';
-    document.getElementById('jrn-table').innerHTML='';
-    return;
-  }
-  const w=all.filter(t=>t.result==='W').length,l=all.filter(t=>t.result==='L').length,b=all.filter(t=>t.result==='BE').length;
-  const rate=wr(all),exp=expectancy(all);
-  st.innerHTML='<div class="stat-grid">'+
-    '<div class="stat"><div class="stat-l">Trades</div><div class="stat-v">'+all.length+'</div><div class="stat-s">'+w+'W / '+l+'L / '+b+'BE</div></div>'+
-    '<div class="stat"><div class="stat-l">Win rate</div><div class="stat-v '+(rate===null?'':rate>=50?'good':'bad')+'">'+(rate===null?'—':rate+'%')+'</div><div class="stat-s">excl. break-even</div></div>'+
-    '<div class="stat"><div class="stat-l">Expectancy</div><div class="stat-v '+(exp===null?'':exp>0?'good':'bad')+'">'+(exp===null?'—':(exp>0?'+':'')+exp+'R')+'</div><div class="stat-s">per trade</div></div>'+
-    '<div class="stat"><div class="stat-l">A / A+ share</div><div class="stat-v">'+Math.round(all.filter(t=>t.grade==='A'||t.grade==='A+').length/all.length*100)+'%</div><div class="stat-s">of all trades</div></div>'+
-    '</div>';
-
-  const bucket=(label,keyFn)=>{
-    const m={};
-    all.forEach(t=>{const k=keyFn(t);if(k===null||k===undefined)return;(m[k]=m[k]||[]).push(t);});
-    const rows=Object.keys(m).map(k=>({k,list:m[k],r:wr(m[k])}))
-      .filter(x=>x.r!==null).sort((a,b)=>b.r-a.r);
-    if(!rows.length)return'';
-    return'<div style="margin-bottom:15px;"><div class="flabel">'+label+'</div><div class="bkt">'+rows.map(x=>{
-      const cls=x.r>=60?'':x.r>=45?'midwr':'lowwr';
-      return'<div class="bktrow"><span class="bkt-l" title="'+esc(x.k)+'">'+esc(x.k)+'</span>'+
-        '<span class="bkt-bar"><span class="bkt-f '+cls+'" style="width:'+x.r+'%"></span></span>'+
-        '<span class="bkt-n">'+x.r+'% · n='+x.list.length+'</span></div>';
-    }).join('')+'</div></div>';
-  };
-  const ckBucket=()=>{
-    const rows=CK.map(c=>{
-      const on=all.filter(t=>(t.checks||[]).includes(c.id));
-      return{k:c.t,list:on,r:wr(on)};
-    }).filter(x=>x.r!==null&&x.list.length>=2).sort((a,b)=>b.r-a.r);
-    if(!rows.length)return'';
-    return'<div style="margin-bottom:15px;"><div class="flabel">When this condition was true (n ≥ 2)</div><div class="bkt">'+rows.map(x=>{
-      const cls=x.r>=60?'':x.r>=45?'midwr':'lowwr';
-      return'<div class="bktrow"><span class="bkt-l" title="'+esc(x.k)+'">'+esc(x.k)+'</span>'+
-        '<span class="bkt-bar"><span class="bkt-f '+cls+'" style="width:'+x.r+'%"></span></span>'+
-        '<span class="bkt-n">'+x.r+'% · n='+x.list.length+'</span></div>';
-    }).join('')+'</div></div>';
-  };
-  document.getElementById('jrn-buckets').innerHTML=
-    bucket('By grade',t=>t.grade)+
-    bucket('By node',t=>t.node)+
-    bucket('By killzone',t=>t.kz)+
-    bucket('By algo',t=>'Algo '+t.algo)+
-    bucket('By instrument',t=>t.inst)+
-    ckBucket()+
-    '<div class="note">Small samples lie. Treat anything under n=20 as a hint, not a rule.</div>';
-
-  document.getElementById('jrn-table').innerHTML='<table class="tbl"><thead><tr>'+
-    '<th>Date</th><th>Time</th><th>Inst</th><th>Dir</th><th>Node</th><th>Algo</th><th>KZ</th><th>Grade</th><th>R</th><th>Result</th><th>Notes</th><th></th>'+
-    '</tr></thead><tbody>'+all.map(t=>
-      '<tr><td>'+esc(t.date)+'</td><td>'+esc(t.time)+'</td><td>'+esc(t.inst)+'</td><td>'+esc(t.dir)+'</td>'+
-      '<td>'+esc(t.node)+'</td><td>'+esc(t.algo)+'</td><td>'+esc(t.kz)+'</td><td>'+esc(t.grade)+'</td>'+
-      '<td>'+(t.rr?t.rr:'—')+'</td>'+
-      '<td class="'+(t.result==='W'?'tw':t.result==='L'?'tl':'tb')+'">'+esc(t.result)+'</td>'+
-      '<td style="max-width:260px;overflow:hidden;text-overflow:ellipsis;font-family:var(--sans);">'+esc(t.notes)+'</td>'+
-      '<td><button class="sw-x" onclick="delTrade('+t.id+')">×</button></td></tr>').join('')+
-    '</tbody></table>';
-}
-function download(name,content,type){
-  const b=new Blob([content],{type});
-  const u=URL.createObjectURL(b);
-  const a=document.createElement('a');a.href=u;a.download=name;document.body.appendChild(a);a.click();
-  document.body.removeChild(a);URL.revokeObjectURL(u);
-}
-function exportJSON(){download('gb-journal.json',JSON.stringify(loadTrades(),null,2),'application/json');}
-function exportCSV(){
-  const all=loadTrades();
-  if(!all.length){toast('Nothing to export');return;}
-  const cols=['date','time','inst','dir','node','algo','kz','grade','gradePct','rr','lots','risk','result','notes'];
-  const esc2=v=>'"'+String(v==null?'':v).replace(/"/g,'""')+'"';
-  const csv=[cols.join(',')].concat(all.map(t=>cols.map(c=>esc2(t[c])).join(','))).join('\n');
-  download('gb-journal.csv',csv,'text/csv');
-}
-
-/* ============================================================
    SETTINGS
    ============================================================ */
 function renderSettings(){
@@ -2166,7 +1972,7 @@ setInterval(renderLive,1000);
 document.addEventListener('click',primeAudio,{once:true});
 window.addEventListener('keydown',e=>{
   if(e.target.tagName==='INPUT'||e.target.tagName==='TEXTAREA')return;
-  const map={'1':'live','2':'path','3':'conf','4':'walk','5':'ce','6':'trade','7':'jrn','8':'set'};
+  const map={'1':'live','2':'path','3':'conf','4':'walk','5':'ce','6':'trade','7':'set'};
   if(map[e.key])setTab(map[e.key]);
 });
 </script>
