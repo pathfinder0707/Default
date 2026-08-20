@@ -1,0 +1,4 @@
+
+# backtest data (large, redistributable from HistData)
+backtest/data/
+*.pkl
