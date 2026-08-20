@@ -1,0 +1,843 @@
+//@version=6
+indicator("GB-Time · Multi-Swing Path Scorer", overlay = true, max_labels_count = 300, max_lines_count = 50, max_bars_back = 1000)
+
+//=============================================================================
+// PURPOSE
+//=============================================================================
+// This is NOT a global node scanner.
+// It detects confirmed swing highs/lows, maps those swing times to GB-time nodes,
+// scores Algo 1 vs Algo 2 across multiple previous swing nodes, then projects the
+// next minimum node from the most likely active path.
+//
+// Default output is intentionally clean:
+//   • only confirmed swing-node labels, limited by setting
+//   • one primary next-node vertical line
+//   • optional alternate next-node line
+//   • compact path table
+//=============================================================================
+
+//=============================================================================
+// CORE SETTINGS
+//=============================================================================
+grpCore = "1 · Core"
+tzStr = input.string("Europe/Zurich", "Timezone", options = ["Europe/Zurich", "America/New_York", "UTC"], group = grpCore)
+show00 = input.bool(true, "Include 00 node", group = grpCore)
+resetAfterTerminal = input.bool(true, "Mark terminal as path complete", group = grpCore)
+
+//=============================================================================
+// SWING DETECTION / HISTORY
+//=============================================================================
+grpSwing = "2 · Swing Detection / History"
+leftBars = input.int(2, "Left buffer candles", minval = 1, maxval = 20, group = grpSwing)
+rightBars = input.int(2, "Right buffer candles", minval = 1, maxval = 20, group = grpSwing)
+historyDepth = input.int(8, "Algo ID history depth", minval = 2, maxval = 20, group = grpSwing)
+visibleSwingLabels = input.int(5, "Visible swing-node labels", minval = 0, maxval = 20, group = grpSwing)
+showRejectedSwings = input.bool(false, "Show non-node swing markers", group = grpSwing)
+showSwingNumbers = input.bool(true, "Show swing number badges", group = grpSwing)
+showMethodOnSwing = input.bool(false, "Show method on swing labels", group = grpSwing)
+
+//=============================================================================
+// ALGO IDENTIFICATION SCORING
+//=============================================================================
+grpScore = "3 · Algo Identification"
+allowSkippedNodes = input.bool(true, "Allow skipped-node path ID", group = grpScore)
+maxSkipDistance = input.int(3, "Max skip distance", minval = 1, maxval = 5, group = grpScore)
+minimumEvidence = input.int(2, "Minimum valid steps to lock path", minval = 1, maxval = 10, group = grpScore)
+scoreMarginToLock = input.int(2, "Score margin to lock", minval = 0, maxval = 20, group = grpScore)
+useHLAlternation = input.bool(false, "Require high/low alternation for scoring", group = grpScore)
+penalizeWrongDirection = input.bool(true, "Penalize wrong path direction", group = grpScore)
+
+//=============================================================================
+// METHOD SETTINGS
+//=============================================================================
+grpMethods = "4 · Method Reads"
+mmTol = input.int(0, "MM tolerance for swing ID", minval = 0, maxval = 3, group = grpMethods)
+secondaryTol = input.int(1, "HH+MM / |HH-MM| tolerance for swing ID", minval = 0, maxval = 3, group = grpMethods)
+useSecondaryForSwingID = input.bool(true, "Allow secondary methods for swing ID", group = grpMethods)
+nextTol = input.int(1, "Next-node scan tolerance", minval = 0, maxval = 3, group = grpMethods)
+nextUsesSecondary = input.bool(true, "Next-node scan uses secondary methods", group = grpMethods)
+
+//=============================================================================
+// NEXT NODE PROJECTION
+//=============================================================================
+grpNext = "5 · Next Node Projection"
+showPrimaryLine = input.bool(true, "Show primary next line", group = grpNext)
+showAlternateLine = input.bool(true, "Show alternate next line", group = grpNext)
+showOnlyMinimumWhenAmbiguous = input.bool(false, "Ambiguous: show only minimum", group = grpNext)
+scanMinutes = input.int(240, "Forward scan minutes", minval = 30, maxval = 720, group = grpNext)
+lineStyleInput = input.string("Dotted", "Line style", options = ["Dotted", "Dashed", "Solid"], group = grpNext)
+primaryLineOpacity = input.int(45, "Primary line opacity", minval = 0, maxval = 95, group = grpNext)
+alternateLineOpacity = input.int(72, "Alternate line opacity", minval = 0, maxval = 95, group = grpNext)
+
+//=============================================================================
+// ALERTS
+//=============================================================================
+grpAlerts = "6 · Alerts"
+enableAlerts = input.bool(false, "Enable alert conditions", group = grpAlerts)
+alertBeforeMinutes = input.int(2, "Alert N minutes before primary node", minval = 1, maxval = 30, group = grpAlerts)
+
+//=============================================================================
+// VISUALS
+//=============================================================================
+grpVisual = "7 · Visuals"
+theme = input.string("GB Dark", "Theme", options = ["GB Dark", "Gold only", "Neutral", "Custom"], group = grpVisual)
+customSwingHigh = input.color(#1d2023, "Custom swing-high label", group = grpVisual)
+customSwingLow = input.color(#1d2023, "Custom swing-low label", group = grpVisual)
+customPrimary = input.color(#d4a13a, "Custom primary line", group = grpVisual)
+customAlternate = input.color(#9aa0a4, "Custom alternate line", group = grpVisual)
+labelSizeInput = input.string("tiny", "Label size", options = ["tiny", "small", "normal"], group = grpVisual)
+labelOpacity = input.int(8, "Swing label opacity", minval = 0, maxval = 95, group = grpVisual)
+atrSpacing = input.float(0.10, "Swing label spacing ATR multiple", minval = 0.0, maxval = 1.0, step = 0.01, group = grpVisual)
+
+//=============================================================================
+// TABLE
+//=============================================================================
+grpTable = "8 · Table"
+showTable = input.bool(true, "Show table", group = grpTable)
+tablePositionInput = input.string("Top right", "Table position", options = ["Top right", "Top left", "Bottom right", "Bottom left"], group = grpTable)
+tableSizeInput = input.string("small", "Table size", options = ["tiny", "small", "normal"], group = grpTable)
+showLastThreeInTable = input.bool(true, "Show last 3 swing nodes", group = grpTable)
+
+//=============================================================================
+// THEME VALUES
+//=============================================================================
+swingHighColor = theme == "Custom" ? customSwingHigh : theme == "Gold only" ? #d4a13a : theme == "Neutral" ? #2a2e31 : #1d2023
+swingLowColor  = theme == "Custom" ? customSwingLow  : theme == "Gold only" ? #d4a13a : theme == "Neutral" ? #2a2e31 : #1d2023
+primaryColor   = theme == "Custom" ? customPrimary   : #d4a13a
+alternateColor = theme == "Custom" ? customAlternate : #9aa0a4
+
+tableBg = #16181a
+tableHeadBg = #221c0e
+tableText = #e8eaec
+tableSoft = #9aa0a4
+tableGold = #f0d89a
+tableGreen = #8fd49c
+tableAmber = #f0c074
+tableRed = #f0a094
+
+lblSize = labelSizeInput == "tiny" ? size.tiny : labelSizeInput == "normal" ? size.normal : size.small
+tblSize = tableSizeInput == "tiny" ? size.tiny : tableSizeInput == "normal" ? size.normal : size.small
+tblPos = tablePositionInput == "Top left" ? position.top_left : tablePositionInput == "Bottom right" ? position.bottom_right : tablePositionInput == "Bottom left" ? position.bottom_left : position.top_right
+lnStyle = lineStyleInput == "Dashed" ? line.style_dashed : lineStyleInput == "Solid" ? line.style_solid : line.style_dotted
+
+//=============================================================================
+// TIME HELPERS
+//=============================================================================
+hh = hour(time, tzStr)
+mm = minute(time, tzStr)
+
+f_pad2(int n) =>
+    n < 10 ? "0" + str.tostring(n) : str.tostring(n)
+
+f_timeTxt(int h, int m) =>
+    f_pad2(h) + ":" + f_pad2(m)
+
+//=============================================================================
+// METHOD LOGIC
+//=============================================================================
+f_exact(int v, int a, int b, int c, int d) =>
+    bool r = v == a
+    r := r or (b >= 0 and v == b)
+    r := r or (c >= 0 and v == c)
+    r := r or (d >= 0 and v == d)
+    r
+
+f_near(int v, int a, int b, int c, int d, int tolerance) =>
+    bool r = math.abs(v - a) <= tolerance
+    r := r or (b >= 0 and math.abs(v - b) <= tolerance)
+    r := r or (c >= 0 and math.abs(v - c) <= tolerance)
+    r := r or (d >= 0 and math.abs(v - d) <= tolerance)
+    r
+
+// 1 = MM exact, 2 = MM tolerance, 3 = HH+MM, 4 = |HH-MM|, 0 = none.
+f_method(int H, int M, int a, int b, int c, int d) =>
+    int add = H + M
+    int dif = math.abs(H - M)
+    int code = 0
+
+    if f_exact(M, a, b, c, d)
+        code := 1
+    else if mmTol > 0 and f_near(M, a, b, c, d, mmTol)
+        code := 2
+    else if useSecondaryForSwingID and f_near(add, a, b, c, d, secondaryTol)
+        code := 3
+    else if useSecondaryForSwingID and f_near(dif, a, b, c, d, secondaryTol)
+        code := 4
+
+    code
+
+f_methodScan(int H, int M, int a, int b, int c, int d) =>
+    int add = H + M
+    int dif = math.abs(H - M)
+    int code = 0
+
+    if f_exact(M, a, b, c, d)
+        code := 1
+    else if f_near(M, a, b, c, d, nextTol)
+        code := 2
+    else if nextUsesSecondary and f_near(add, a, b, c, d, nextTol)
+        code := 3
+    else if nextUsesSecondary and f_near(dif, a, b, c, d, nextTol)
+        code := 4
+
+    code
+
+f_methodName(int code) =>
+    code == 1 ? "MM" : code == 2 ? "MM±" : code == 3 ? "H+M" : code == 4 ? "|H-M|" : "—"
+
+f_methodQuality(int code) =>
+    code == 1 ? 3 : code == 2 ? 2 : code == 3 or code == 4 ? 1 : 0
+
+//=============================================================================
+// GB NODE MAPPING
+//=============================================================================
+// Algo 1 index order:
+// 0 = 00
+// 1 = 11/14
+// 2 = 41/44
+// 3 = 03/7
+// 4 = 17/23
+// 5 = 29/35 or 71/77 terminal
+//
+// Algo 2 reverse index order:
+// 5 = 29/35
+// 4 = 47/53
+// 3 = 11/14
+// 2 = 17/23
+// 1 = 59/65
+// 0 = 03/7 terminal
+
+f_a1Hit(int H, int M) =>
+    int idx = -1
+    int code = 0
+    string lab = ""
+
+    c00 = show00 ? f_method(H, M, 0, -1, -1, -1) : 0
+    if c00 > 0 and (code == 0 or c00 < code)
+        idx := 0
+        code := c00
+        lab := "00"
+
+    c11 = f_method(H, M, 11, 14, -1, -1)
+    if c11 > 0 and (code == 0 or c11 < code)
+        idx := 1
+        code := c11
+        lab := "11/14"
+
+    c41 = f_method(H, M, 41, 44, -1, -1)
+    if c41 > 0 and (code == 0 or c41 < code)
+        idx := 2
+        code := c41
+        lab := "41/44"
+
+    c03 = f_method(H, M, 3, 7, -1, -1)
+    if c03 > 0 and (code == 0 or c03 < code)
+        idx := 3
+        code := c03
+        lab := "03/7"
+
+    c17 = f_method(H, M, 17, 23, -1, -1)
+    if c17 > 0 and (code == 0 or c17 < code)
+        idx := 4
+        code := c17
+        lab := "17/23"
+
+    c71 = f_method(H, M, 71, 77, -1, -1)
+    if c71 > 0 and (code == 0 or c71 < code)
+        idx := 5
+        code := c71
+        lab := "71/77"
+
+    c29 = f_method(H, M, 29, 35, -1, -1)
+    if c29 > 0 and (code == 0 or c29 < code)
+        idx := 5
+        code := c29
+        lab := "29/35"
+
+    [idx, lab, code]
+
+f_a2Hit(int H, int M) =>
+    int idx = -1
+    int code = 0
+    string lab = ""
+
+    c29 = f_method(H, M, 29, 35, -1, -1)
+    if c29 > 0 and (code == 0 or c29 < code)
+        idx := 5
+        code := c29
+        lab := "29/35"
+
+    c47 = f_method(H, M, 47, 50, 53, 56)
+    if c47 > 0 and (code == 0 or c47 < code)
+        idx := 4
+        code := c47
+        lab := "47/53"
+
+    c11 = f_method(H, M, 11, 14, -1, -1)
+    if c11 > 0 and (code == 0 or c11 < code)
+        idx := 3
+        code := c11
+        lab := "11/14"
+
+    c17 = f_method(H, M, 17, 23, -1, -1)
+    if c17 > 0 and (code == 0 or c17 < code)
+        idx := 2
+        code := c17
+        lab := "17/23"
+
+    c59 = f_method(H, M, 59, 65, -1, -1)
+    if c59 > 0 and (code == 0 or c59 < code)
+        idx := 1
+        code := c59
+        lab := "59/65"
+
+    c03 = f_method(H, M, 3, 7, -1, -1)
+    if c03 > 0 and (code == 0 or c03 < code)
+        idx := 0
+        code := c03
+        lab := "03/7"
+
+    [idx, lab, code]
+
+f_nextNode(int algo, int idx) =>
+    int nidx = -1
+    string lab = ""
+    int a = -1
+    int b = -1
+    int c = -1
+    int d = -1
+    bool terminal = false
+
+    if algo == 1 and idx >= 0 and idx < 5
+        nidx := idx + 1
+
+    if algo == 2 and idx > 0
+        nidx := idx - 1
+
+    if algo == 1
+        if nidx == 0
+            lab := "00"
+            a := 0
+        else if nidx == 1
+            lab := "11/14"
+            a := 11
+            b := 14
+        else if nidx == 2
+            lab := "41/44"
+            a := 41
+            b := 44
+        else if nidx == 3
+            lab := "03/7"
+            a := 3
+            b := 7
+        else if nidx == 4
+            lab := "17/23"
+            a := 17
+            b := 23
+        else if nidx == 5
+            lab := "A1 term"
+            a := 29
+            b := 35
+            c := 71
+            d := 77
+            terminal := true
+
+    if algo == 2
+        if nidx == 5
+            lab := "29/35"
+            a := 29
+            b := 35
+        else if nidx == 4
+            lab := "47/53"
+            a := 47
+            b := 50
+            c := 53
+            d := 56
+        else if nidx == 3
+            lab := "11/14"
+            a := 11
+            b := 14
+        else if nidx == 2
+            lab := "17/23"
+            a := 17
+            b := 23
+        else if nidx == 1
+            lab := "59/65"
+            a := 59
+            b := 65
+        else if nidx == 0
+            lab := "03/7"
+            a := 3
+            b := 7
+            terminal := true
+
+    [nidx, lab, a, b, c, d, terminal]
+
+f_firstFutureTime(int H, int M, int a, int b, int c, int d) =>
+    int sh = H
+    int sm = M
+    int stepOut = 999999
+    int oh = 0
+    int om = 0
+    int codeOut = 0
+
+    for i = 1 to scanMinutes
+        sm += 1
+        if sm > 59
+            sm := 0
+            sh := (sh + 1) % 24
+
+        code = f_methodScan(sh, sm, a, b, c, d)
+        if stepOut == 999999 and code > 0
+            stepOut := i
+            oh := sh
+            om := sm
+            codeOut := code
+
+    [stepOut, f_timeTxt(oh, om), codeOut]
+
+//=============================================================================
+// SWING DETECTION
+//=============================================================================
+atr14 = ta.atr(14)
+ph = ta.pivothigh(high, leftBars, rightBars)
+pl = ta.pivotlow(low, leftBars, rightBars)
+
+newHigh = not na(ph)
+newLow = not na(pl)
+newSwing = newHigh or newLow
+
+swingIsHigh = newHigh
+swingPrice = newHigh ? ph : pl
+swingBar = newSwing ? bar_index - rightBars : na
+swingH = newSwing ? hour(time[rightBars], tzStr) : 0
+swingM = newSwing ? minute(time[rightBars], tzStr) : 0
+
+[currA1Idx, currA1Lab, currA1Code] = f_a1Hit(swingH, swingM)
+[currA2Idx, currA2Lab, currA2Code] = f_a2Hit(swingH, swingM)
+currHasNode = currA1Idx >= 0 or currA2Idx >= 0
+
+//=============================================================================
+// HISTORY ARRAYS
+//=============================================================================
+var int swingSeq = 0
+var int[] arrBar = array.new_int()
+var float[] arrPrice = array.new_float()
+var bool[] arrIsHigh = array.new_bool()
+var int[] arrHour = array.new_int()
+var int[] arrMinute = array.new_int()
+var int[] arrA1Idx = array.new_int()
+var string[] arrA1Lab = array.new_string()
+var int[] arrA1Code = array.new_int()
+var int[] arrA2Idx = array.new_int()
+var string[] arrA2Lab = array.new_string()
+var int[] arrA2Code = array.new_int()
+var string[] arrNodeTxt = array.new_string()
+var int[] arrSeq = array.new_int()
+
+var label[] swingDrawLabels = array.new_label()
+var label[] rejectedDrawLabels = array.new_label()
+
+//=============================================================================
+// INGEST NEW CONFIRMED SWING
+//=============================================================================
+if newSwing and currHasNode
+    swingSeq += 1
+
+    nodeTxt = ""
+    if currA1Idx >= 0 and currA2Idx >= 0
+        nodeTxt := currA1Lab == currA2Lab ? currA1Lab + " · A1+A2" : currA1Lab + " A1 / " + currA2Lab + " A2"
+    else if currA1Idx >= 0
+        nodeTxt := currA1Lab + " · A1"
+    else
+        nodeTxt := currA2Lab + " · A2"
+
+    array.push(arrBar, swingBar)
+    array.push(arrPrice, swingPrice)
+    array.push(arrIsHigh, swingIsHigh)
+    array.push(arrHour, swingH)
+    array.push(arrMinute, swingM)
+    array.push(arrA1Idx, currA1Idx)
+    array.push(arrA1Lab, currA1Lab)
+    array.push(arrA1Code, currA1Code)
+    array.push(arrA2Idx, currA2Idx)
+    array.push(arrA2Lab, currA2Lab)
+    array.push(arrA2Code, currA2Code)
+    array.push(arrNodeTxt, nodeTxt)
+    array.push(arrSeq, swingSeq)
+    while array.size(arrBar) > historyDepth
+        array.shift(arrBar)
+        array.shift(arrPrice)
+        array.shift(arrIsHigh)
+        array.shift(arrHour)
+        array.shift(arrMinute)
+        array.shift(arrA1Idx)
+        array.shift(arrA1Lab)
+        array.shift(arrA1Code)
+        array.shift(arrA2Idx)
+        array.shift(arrA2Lab)
+        array.shift(arrA2Code)
+        array.shift(arrNodeTxt)
+        array.shift(arrSeq)
+
+if newSwing and not currHasNode and showRejectedSwings
+    rejY = swingIsHigh ? swingPrice + atr14 * atrSpacing : swingPrice - atr14 * atrSpacing
+    rejStyle = swingIsHigh ? label.style_label_down : label.style_label_up
+    rejLab = label.new(swingBar, rejY, swingIsHigh ? "H · no GB" : "L · no GB", style = rejStyle, color = color.new(#5f656a, 78), textcolor = tableSoft, size = size.tiny, yloc = yloc.price)
+    array.push(rejectedDrawLabels, rejLab)
+    while array.size(rejectedDrawLabels) > visibleSwingLabels
+        oldRej = array.shift(rejectedDrawLabels)
+        label.delete(oldRej)
+
+//=============================================================================
+// SCORE PATHS ACROSS HISTORY
+//=============================================================================
+sz = array.size(arrBar)
+
+int a1Score = 0
+int a2Score = 0
+int a1Evidence = 0
+int a2Evidence = 0
+int a1Bad = 0
+int a2Bad = 0
+
+if sz >= 2
+    for i = 1 to sz - 1
+        prevHigh = array.get(arrIsHigh, i - 1)
+        currHigh = array.get(arrIsHigh, i)
+        pairOK = not useHLAlternation or prevHigh != currHigh
+
+        if pairOK
+            p1 = array.get(arrA1Idx, i - 1)
+            c1 = array.get(arrA1Idx, i)
+            p1Code = array.get(arrA1Code, i - 1)
+            c1Code = array.get(arrA1Code, i)
+            if p1 >= 0 and c1 >= 0
+                move1 = c1 - p1
+                valid1 = move1 > 0 and (move1 == 1 or (allowSkippedNodes and move1 <= maxSkipDistance))
+                if valid1
+                    a1Evidence += 1
+                    a1Score += move1 == 1 ? 6 : 3
+                    a1Score += f_methodQuality(p1Code) + f_methodQuality(c1Code)
+                else if penalizeWrongDirection and move1 < 0
+                    a1Bad += 1
+                    a1Score -= 3
+
+            p2 = array.get(arrA2Idx, i - 1)
+            c2 = array.get(arrA2Idx, i)
+            p2Code = array.get(arrA2Code, i - 1)
+            c2Code = array.get(arrA2Code, i)
+            if p2 >= 0 and c2 >= 0
+                move2 = p2 - c2
+                valid2 = move2 > 0 and (move2 == 1 or (allowSkippedNodes and move2 <= maxSkipDistance))
+                if valid2
+                    a2Evidence += 1
+                    a2Score += move2 == 1 ? 6 : 3
+                    a2Score += f_methodQuality(p2Code) + f_methodQuality(c2Code)
+                else if penalizeWrongDirection and move2 < 0
+                    a2Bad += 1
+                    a2Score -= 3
+
+//=============================================================================
+// ACTIVE PATH DECISION
+//=============================================================================
+int activeAlgo = 0
+string pathStatus = "waiting"
+string pathStrength = "need more swing nodes"
+
+if sz >= 1
+    lastArrA1 = array.get(arrA1Idx, sz - 1)
+    lastArrA2 = array.get(arrA2Idx, sz - 1)
+    a1AtTerminal = lastArrA1 == 5
+    a2AtTerminal = lastArrA2 == 0
+
+    if resetAfterTerminal and ((a1Evidence >= minimumEvidence and a1AtTerminal and a1Score >= a2Score) or (a2Evidence >= minimumEvidence and a2AtTerminal and a2Score >= a1Score))
+        activeAlgo := 0
+        pathStatus := "terminal reached"
+        pathStrength := "fresh sequence next"
+    else if a1Evidence >= minimumEvidence and a1Score >= a2Score + scoreMarginToLock
+        activeAlgo := 1
+        pathStatus := "Algo 1 locked"
+        pathStrength := str.tostring(a1Evidence) + " valid steps · score " + str.tostring(a1Score)
+    else if a2Evidence >= minimumEvidence and a2Score >= a1Score + scoreMarginToLock
+        activeAlgo := 2
+        pathStatus := "Algo 2 locked"
+        pathStrength := str.tostring(a2Evidence) + " valid steps · score " + str.tostring(a2Score)
+    else if a1Evidence >= minimumEvidence and a2Evidence >= minimumEvidence
+        activeAlgo := 0
+        pathStatus := "ambiguous A1/A2"
+        pathStrength := "A1 " + str.tostring(a1Score) + " / A2 " + str.tostring(a2Score)
+    else if a1Evidence > a2Evidence
+        activeAlgo := 0
+        pathStatus := "A1 leaning"
+        pathStrength := str.tostring(a1Evidence) + " valid step(s)"
+    else if a2Evidence > a1Evidence
+        activeAlgo := 0
+        pathStatus := "A2 leaning"
+        pathStrength := str.tostring(a2Evidence) + " valid step(s)"
+    else
+        activeAlgo := 0
+        pathStatus := "unlocked"
+        pathStrength := "wait for clearer sequence"
+
+//=============================================================================
+// REDRAW LIMITED SWING LABELS
+//=============================================================================
+if newSwing
+    for lb in swingDrawLabels
+        label.delete(lb)
+    array.clear(swingDrawLabels)
+
+    drawCount = math.min(visibleSwingLabels, sz)
+    if drawCount > 0
+        startDraw = sz - drawCount
+        for k = startDraw to sz - 1
+            bIdx = array.get(arrBar, k)
+            prc = array.get(arrPrice, k)
+            isH = array.get(arrIsHigh, k)
+            nodeLabel = array.get(arrNodeTxt, k)
+            seqNo = array.get(arrSeq, k)
+            a1c = array.get(arrA1Code, k)
+            a2c = array.get(arrA2Code, k)
+            bestCode = a1c == 0 ? a2c : a2c == 0 ? a1c : math.min(a1c, a2c)
+
+            side = isH ? "H" : "L"
+            prefix = showSwingNumbers ? side + str.tostring(seqNo) : side
+            methodPart = showMethodOnSwing ? " · " + f_methodName(bestCode) : ""
+            swingLabelTxt = prefix + " · " + nodeLabel + methodPart
+
+            yVal = isH ? prc + atr14 * atrSpacing : prc - atr14 * atrSpacing
+            labStyle = isH ? label.style_label_down : label.style_label_up
+            labCol = isH ? swingHighColor : swingLowColor
+            newLab = label.new(bIdx, yVal, swingLabelTxt, style = labStyle, color = color.new(labCol, labelOpacity), textcolor = tableText, size = lblSize, yloc = yloc.price)
+            array.push(swingDrawLabels, newLab)
+
+//=============================================================================
+// LAST VALID NODE PER ALGO
+//=============================================================================
+int lastA1Idx = -1
+string lastA1Lab = ""
+int lastA2Idx = -1
+string lastA2Lab = ""
+string lastSwingTxt = "—"
+string prevSwingTxt = "—"
+string lastThreeTxt = "—"
+
+if sz > 0
+    lastSwingTxt := array.get(arrNodeTxt, sz - 1) + " · " + f_timeTxt(array.get(arrHour, sz - 1), array.get(arrMinute, sz - 1))
+    if sz > 1
+        prevSwingTxt := array.get(arrNodeTxt, sz - 2) + " · " + f_timeTxt(array.get(arrHour, sz - 2), array.get(arrMinute, sz - 2))
+
+    lastThreeTxt := ""
+    startLast3 = math.max(0, sz - 3)
+    for q = startLast3 to sz - 1
+        nodeQ = array.get(arrNodeTxt, q)
+        sideQ = array.get(arrIsHigh, q) ? "H" : "L"
+        piece = sideQ + " " + nodeQ
+        lastThreeTxt := lastThreeTxt == "" ? piece : lastThreeTxt + "  |  " + piece
+
+    for r = 0 to sz - 1
+        idxBack = sz - 1 - r
+        if lastA1Idx == -1 and array.get(arrA1Idx, idxBack) >= 0
+            lastA1Idx := array.get(arrA1Idx, idxBack)
+            lastA1Lab := array.get(arrA1Lab, idxBack)
+        if lastA2Idx == -1 and array.get(arrA2Idx, idxBack) >= 0
+            lastA2Idx := array.get(arrA2Idx, idxBack)
+            lastA2Lab := array.get(arrA2Lab, idxBack)
+
+//=============================================================================
+// CANDIDATE NEXT NODES
+//=============================================================================
+int candA1Step = 999999
+string candA1Time = ""
+string candA1Lab = ""
+int candA1Code = 0
+bool candA1Term = false
+
+int candA2Step = 999999
+string candA2Time = ""
+string candA2Lab = ""
+int candA2Code = 0
+bool candA2Term = false
+
+if lastA1Idx >= 0
+    [nidx1, nlab1, a1, b1, c1, d1, term1] = f_nextNode(1, lastA1Idx)
+    if nidx1 >= 0
+        [st1, tm1, cd1] = f_firstFutureTime(hh, mm, a1, b1, c1, d1)
+        candA1Step := st1
+        candA1Time := tm1
+        candA1Lab := nlab1
+        candA1Code := cd1
+        candA1Term := term1
+
+if lastA2Idx >= 0
+    [nidx2, nlab2, a2, b2, c2, d2, term2] = f_nextNode(2, lastA2Idx)
+    if nidx2 >= 0
+        [st2, tm2, cd2] = f_firstFutureTime(hh, mm, a2, b2, c2, d2)
+        candA2Step := st2
+        candA2Time := tm2
+        candA2Lab := nlab2
+        candA2Code := cd2
+        candA2Term := term2
+
+// Select primary and alternate.
+int primaryAlgo = 0
+int primaryStep = 999999
+string primaryTime = ""
+string primaryLab = ""
+int primaryCode = 0
+bool primaryTerm = false
+
+int alternateAlgo = 0
+int alternateStep = 999999
+string alternateTime = ""
+string alternateLab = ""
+int alternateCode = 0
+bool alternateTerm = false
+
+if activeAlgo == 1
+    primaryAlgo := 1
+    primaryStep := candA1Step
+    primaryTime := candA1Time
+    primaryLab := candA1Lab
+    primaryCode := candA1Code
+    primaryTerm := candA1Term
+    alternateAlgo := 2
+    alternateStep := candA2Step
+    alternateTime := candA2Time
+    alternateLab := candA2Lab
+    alternateCode := candA2Code
+    alternateTerm := candA2Term
+else if activeAlgo == 2
+    primaryAlgo := 2
+    primaryStep := candA2Step
+    primaryTime := candA2Time
+    primaryLab := candA2Lab
+    primaryCode := candA2Code
+    primaryTerm := candA2Term
+    alternateAlgo := 1
+    alternateStep := candA1Step
+    alternateTime := candA1Time
+    alternateLab := candA1Lab
+    alternateCode := candA1Code
+    alternateTerm := candA1Term
+else
+    if candA1Step <= candA2Step
+        primaryAlgo := 1
+        primaryStep := candA1Step
+        primaryTime := candA1Time
+        primaryLab := candA1Lab
+        primaryCode := candA1Code
+        primaryTerm := candA1Term
+        alternateAlgo := 2
+        alternateStep := candA2Step
+        alternateTime := candA2Time
+        alternateLab := candA2Lab
+        alternateCode := candA2Code
+        alternateTerm := candA2Term
+    else
+        primaryAlgo := 2
+        primaryStep := candA2Step
+        primaryTime := candA2Time
+        primaryLab := candA2Lab
+        primaryCode := candA2Code
+        primaryTerm := candA2Term
+        alternateAlgo := 1
+        alternateStep := candA1Step
+        alternateTime := candA1Time
+        alternateLab := candA1Lab
+        alternateCode := candA1Code
+        alternateTerm := candA1Term
+
+if showOnlyMinimumWhenAmbiguous and activeAlgo == 0
+    alternateStep := 999999
+
+//=============================================================================
+// DRAW NEXT LINES
+//=============================================================================
+var line primaryLine = na
+var label primaryLabel = na
+var line alternateLine = na
+var label alternateLabel = na
+
+if barstate.islast
+    if not na(primaryLine)
+        line.delete(primaryLine)
+        primaryLine := na
+    if not na(primaryLabel)
+        label.delete(primaryLabel)
+        primaryLabel := na
+    if not na(alternateLine)
+        line.delete(alternateLine)
+        alternateLine := na
+    if not na(alternateLabel)
+        label.delete(alternateLabel)
+        alternateLabel := na
+
+    if showPrimaryLine and primaryStep < 999999
+        futTime = time + primaryStep * 60000
+        primaryLine := line.new(futTime, low, futTime, high, xloc = xloc.bar_time, extend = extend.both, color = color.new(primaryColor, primaryLineOpacity), style = lnStyle, width = 1)
+        algoTxt = primaryAlgo == 1 ? "A1" : primaryAlgo == 2 ? "A2" : "—"
+        termTxt = primaryTerm ? " T" : ""
+        primaryLabelTxt = "PRIMARY\n" + primaryLab + termTxt + " · " + algoTxt + "\n" + primaryTime + " · " + f_methodName(primaryCode)
+        primaryLabel := label.new(futTime, high, primaryLabelTxt, xloc = xloc.bar_time, style = label.style_label_down, color = color.new(tableHeadBg, 0), textcolor = primaryColor, size = size.tiny)
+
+    if showAlternateLine and alternateStep < 999999
+        futAlt = time + alternateStep * 60000
+        alternateLine := line.new(futAlt, low, futAlt, high, xloc = xloc.bar_time, extend = extend.both, color = color.new(alternateColor, alternateLineOpacity), style = line.style_dotted, width = 1)
+        altAlgoTxt = alternateAlgo == 1 ? "A1" : alternateAlgo == 2 ? "A2" : "—"
+        altTermTxt = alternateTerm ? " T" : ""
+        alternateLabelTxt = "ALT\n" + alternateLab + altTermTxt + " · " + altAlgoTxt + "\n" + alternateTime + " · " + f_methodName(alternateCode)
+        alternateLabel := label.new(futAlt, low, alternateLabelTxt, xloc = xloc.bar_time, style = label.style_label_up, color = color.new(tableBg, 0), textcolor = alternateColor, size = size.tiny)
+
+//=============================================================================
+// ALERT CONDITIONS
+//=============================================================================
+primarySoon = enableAlerts and primaryStep == alertBeforeMinutes
+primaryDue = enableAlerts and primaryStep == 1
+alertcondition(primarySoon, title = "GB primary node soon", message = "GB-Time: primary next node is approaching.")
+alertcondition(primaryDue, title = "GB primary node due", message = "GB-Time: primary next node is due on the next candle.")
+
+//=============================================================================
+// TABLE
+//=============================================================================
+var table t = table.new(tblPos, 2, 11, border_width = 1, border_color = color.new(#3a3f43, 35))
+
+if showTable and barstate.islast
+    table.cell(t, 0, 0, "GB Path", text_color = tableGold, bgcolor = tableHeadBg, text_size = tblSize)
+    table.cell(t, 1, 0, tzStr == "Europe/Zurich" ? "Zurich" : tzStr, text_color = tableSoft, bgcolor = tableHeadBg, text_size = tblSize)
+
+    table.cell(t, 0, 1, "Now", text_color = tableSoft, bgcolor = tableBg, text_size = tblSize)
+    table.cell(t, 1, 1, f_timeTxt(hh, mm), text_color = tableText, bgcolor = tableBg, text_size = tblSize)
+
+    table.cell(t, 0, 2, "Path", text_color = tableSoft, bgcolor = tableBg, text_size = tblSize)
+    pathCol = activeAlgo == 1 or activeAlgo == 2 ? tableGreen : pathStatus == "ambiguous A1/A2" ? tableAmber : pathStatus == "terminal reached" ? tableGold : tableSoft
+    table.cell(t, 1, 2, pathStatus, text_color = pathCol, bgcolor = tableBg, text_size = tblSize)
+
+    table.cell(t, 0, 3, "Strength", text_color = tableSoft, bgcolor = tableBg, text_size = tblSize)
+    table.cell(t, 1, 3, pathStrength, text_color = pathCol, bgcolor = tableBg, text_size = tblSize)
+
+    table.cell(t, 0, 4, "Scores", text_color = tableSoft, bgcolor = tableBg, text_size = tblSize)
+    scoreTxt = "A1 " + str.tostring(a1Score) + " (" + str.tostring(a1Evidence) + ")  /  A2 " + str.tostring(a2Score) + " (" + str.tostring(a2Evidence) + ")"
+    table.cell(t, 1, 4, scoreTxt, text_color = tableText, bgcolor = tableBg, text_size = tblSize)
+
+    table.cell(t, 0, 5, "Last swing", text_color = tableSoft, bgcolor = tableBg, text_size = tblSize)
+    table.cell(t, 1, 5, lastSwingTxt, text_color = tableGold, bgcolor = tableBg, text_size = tblSize)
+
+    table.cell(t, 0, 6, "Prev swing", text_color = tableSoft, bgcolor = tableBg, text_size = tblSize)
+    table.cell(t, 1, 6, prevSwingTxt, text_color = tableSoft, bgcolor = tableBg, text_size = tblSize)
+
+    table.cell(t, 0, 7, "Primary", text_color = tableGreen, bgcolor = tableBg, text_size = tblSize)
+    primaryTxt = primaryStep < 999999 ? primaryLab + (primaryTerm ? " T" : "") + " @ " + primaryTime + " · A" + str.tostring(primaryAlgo) : "—"
+    table.cell(t, 1, 7, primaryTxt, text_color = tableGreen, bgcolor = tableBg, text_size = tblSize)
+
+    table.cell(t, 0, 8, "Alternate", text_color = tableSoft, bgcolor = tableBg, text_size = tblSize)
+    alternateTxt = alternateStep < 999999 ? alternateLab + (alternateTerm ? " T" : "") + " @ " + alternateTime + " · A" + str.tostring(alternateAlgo) : "—"
+    table.cell(t, 1, 8, alternateTxt, text_color = tableSoft, bgcolor = tableBg, text_size = tblSize)
+
+    table.cell(t, 0, 9, "History", text_color = tableSoft, bgcolor = tableBg, text_size = tblSize)
+    histTxt = "using " + str.tostring(sz) + "/" + str.tostring(historyDepth) + " swings"
+    table.cell(t, 1, 9, histTxt, text_color = tableSoft, bgcolor = tableBg, text_size = tblSize)
+
+    table.cell(t, 0, 10, "Last 3", text_color = tableSoft, bgcolor = tableBg, text_size = tblSize)
+    table.cell(t, 1, 10, showLastThreeInTable ? lastThreeTxt : "hidden", text_color = tableSoft, bgcolor = tableBg, text_size = tblSize)

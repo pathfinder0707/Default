@@ -1,0 +1,1010 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GB Sequencer — XAUUSD</title>
+<style>
+:root{
+  --bg:#0d0f0e;--panel:#16181a;--panel2:#1d2023;--line:#2a2e31;--line2:#3a3f43;
+  --ink:#e8eaec;--ink2:#9aa0a4;--ink3:#5f656a;
+  --gold:#d4a13a;--gold-dim:#5a4a1f;--gold-tx:#f0d89a;--gold-bg:#221c0e;
+  --green:#5aa86a;--green-bg:#0e2414;--green-dim:#1e4a28;--green-tx:#8fd49c;
+  --amber:#d98e2b;--amber-bg:#2a1d0a;--amber-dim:#5a3f15;--amber-tx:#f0c074;
+  --red:#d65a4a;--red-bg:#2a1410;--red-dim:#5a2820;--red-tx:#f0a094;
+  --mono:'SF Mono',ui-monospace,'Cascadia Code',Menlo,monospace;
+  --sans:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+  --r:11px;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);color:var(--ink);font-family:var(--sans);padding:22px 16px;max-width:640px;margin:0 auto;line-height:1.5;}
+
+.hdr{display:flex;align-items:baseline;justify-content:space-between;padding-bottom:13px;border-bottom:1px solid var(--line);margin-bottom:0;}
+.hdr h1{font-size:15px;font-weight:600;}
+.hdr .tag{font-size:11px;color:var(--ink3);font-family:var(--mono);}
+
+.tabs{display:flex;margin-bottom:18px;border-bottom:1px solid var(--line);}
+.tab{font-size:13px;font-weight:600;padding:11px 18px;color:var(--ink3);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;transition:all .12s;}
+.tab:hover{color:var(--ink2);}
+.tab.active{color:var(--gold-tx);border-bottom-color:var(--gold);}
+
+.intro{font-size:12px;color:var(--ink2);margin-bottom:14px;line-height:1.6;}
+.intro .seq{color:var(--ink3);font-family:var(--mono);font-size:11px;}
+
+/* INPUTS */
+.inputs{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:16px;margin-bottom:14px;}
+.mode-row{display:flex;gap:6px;margin-bottom:14px;}
+.mode-btn{flex:1;font-size:12px;font-weight:600;padding:9px 0;border-radius:8px;border:1px solid var(--line2);background:var(--panel2);color:var(--ink3);cursor:pointer;text-align:center;transition:all .12s;}
+.mode-btn:hover{color:var(--ink);}
+.mode-btn.active{background:var(--gold-bg);border-color:var(--gold-dim);color:var(--gold-tx);}
+.swings{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px;}
+.swings.one{grid-template-columns:1fr;}
+.swing-box{background:var(--panel2);border:1px solid var(--line2);border-radius:9px;padding:13px;}
+.swing-cap{font-size:11px;color:var(--ink2);font-weight:600;margin-bottom:9px;}
+.swing-cap .sub{color:var(--ink3);font-weight:400;}
+.clock{display:flex;align-items:center;gap:3px;margin-bottom:10px;}
+.clock input{width:52px;height:42px;font-size:21px;font-family:var(--mono);text-align:center;background:var(--panel);border:1px solid var(--line2);border-radius:8px;color:var(--ink);font-weight:600;}
+.clock input:focus{outline:none;border-color:var(--gold);}
+.clock .sep{font-size:21px;color:var(--ink3);font-weight:600;}
+.clock .tz{font-size:10px;color:var(--ink3);font-family:var(--mono);margin-left:5px;}
+.btn-now{font-size:11px;color:var(--ink3);background:transparent;border:none;padding:2px 0 9px;cursor:pointer;display:block;}
+.btn-now:hover{color:var(--ink2);}
+.dir-row{display:flex;gap:6px;}
+.dir-btn{flex:1;font-size:12px;font-weight:600;font-family:var(--mono);padding:7px 0;border-radius:7px;border:1px solid var(--line2);background:var(--panel);color:var(--ink3);cursor:pointer;text-align:center;user-select:none;transition:all .1s;}
+.dir-btn:hover{color:var(--ink);}
+.dir-btn.down.active{background:var(--red-bg);border-color:var(--red-dim);color:var(--red);}
+.dir-btn.up.active{background:var(--green-bg);border-color:var(--green-dim);color:var(--green);}
+.go-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+button.go{background:var(--gold);border:none;color:#1a1408;font-weight:700;font-size:14px;border-radius:9px;padding:12px 26px;cursor:pointer;transition:all .12s;}
+button.go:hover{background:#e0ad42;}
+button.go:active{transform:translateY(1px);}
+.go-hint{font-size:11px;color:var(--ink3);}
+
+/* VERDICT (confluence) */
+.verdict{border-radius:var(--r);padding:18px;margin-bottom:14px;border:1px solid var(--line);}
+.verdict.agree{background:var(--green-bg);border-color:var(--green-dim);}
+.verdict.conflict{background:var(--red-bg);border-color:var(--red-dim);}
+.verdict.partial{background:var(--amber-bg);border-color:var(--amber-dim);}
+.v-tag{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;margin-bottom:10px;display:flex;align-items:center;gap:8px;}
+.v-tag.agree{color:var(--green-tx);}.v-tag.conflict{color:var(--red-tx);}.v-tag.partial{color:var(--amber-tx);}
+.v-dot{width:9px;height:9px;border-radius:50%;}
+.v-dot.agree{background:var(--green);}.v-dot.conflict{background:var(--red);}.v-dot.partial{background:var(--amber);}
+.v-headline{font-size:16px;font-weight:600;margin-bottom:6px;line-height:1.35;}
+.v-sub{font-size:13px;color:var(--ink2);}
+.v-level{font-family:var(--mono);font-weight:700;color:var(--ink);}
+
+/* FLOOR */
+.floor{background:var(--panel);border:1px solid var(--gold-dim);border-left:3px solid var(--gold);border-radius:var(--r);padding:14px 16px;margin-bottom:14px;}
+.floor-label{font-size:10px;text-transform:uppercase;letter-spacing:.1em;color:var(--gold);margin-bottom:8px;font-weight:600;}
+.floor-main{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;margin-bottom:6px;}
+.floor-node{font-size:23px;font-weight:700;font-family:var(--mono);color:var(--gold-tx);}
+.floor-at{font-size:14px;color:var(--ink2);}
+.floor-at b{color:var(--ink);font-family:var(--mono);font-weight:700;}
+.floor-via{font-size:11px;color:var(--ink3);font-family:var(--mono);background:var(--panel2);padding:2px 8px;border-radius:5px;}
+.floor-sub{font-size:12px;color:var(--ink2);}
+.floor-sub b{color:var(--ink);}
+
+/* ALGO COLUMNS (confluence) */
+.compare{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px;}
+.acol{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:14px;}
+.acol-head{font-size:11px;font-weight:700;font-family:var(--mono);text-transform:uppercase;letter-spacing:.06em;color:var(--ink2);margin-bottom:3px;}
+.acol-flow{font-size:10px;color:var(--ink3);font-family:var(--mono);margin-bottom:11px;}
+.acol-label{font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:var(--ink3);margin-bottom:5px;}
+.acol-node{font-size:18px;font-weight:700;font-family:var(--mono);}
+.acol-via{font-size:11px;color:var(--ink3);margin-bottom:11px;}
+.acol-none{font-size:14px;color:var(--ink3);font-style:italic;margin-bottom:11px;}
+.acol-times{display:flex;flex-direction:column;gap:5px;}
+.acol-time{font-family:var(--mono);font-size:12px;font-weight:600;padding:5px 9px;border-radius:6px;background:var(--panel2);border:1px solid var(--line2);color:var(--ink);}
+.acol-time .mv{font-size:9px;font-weight:400;color:var(--ink3);margin-left:4px;}
+
+/* PATH-ID candidates (walk front end) */
+.pathid{margin-bottom:14px;}
+.pathid-label{font-size:10px;text-transform:uppercase;letter-spacing:.1em;color:var(--ink3);margin-bottom:8px;}
+.cand{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:14px 16px;margin-bottom:8px;cursor:pointer;transition:all .12s;}
+.cand:hover{border-color:var(--line2);background:var(--panel2);}
+.cand.active{border-color:var(--gold);background:var(--gold-bg);}
+.cand-top{display:flex;align-items:baseline;gap:10px;margin-bottom:6px;}
+.cand-algo{font-size:11px;font-weight:700;font-family:var(--mono);text-transform:uppercase;letter-spacing:.06em;color:var(--ink2);}
+.cand-conf{margin-left:auto;font-size:10px;font-family:var(--mono);padding:2px 8px;border-radius:5px;}
+.cand-conf.ok{background:var(--green-bg);color:var(--green-tx);}
+.cand-conf.skip{background:var(--amber-bg);color:var(--amber-tx);}
+.cand-nodes{font-size:12px;color:var(--ink3);font-family:var(--mono);}
+.cand-nodes b{color:var(--ink2);}
+.cand-go{font-size:11px;color:var(--gold);margin-top:6px;}
+.cand.active .cand-go{color:var(--gold-tx);font-weight:600;}
+
+/* WALK STEPS */
+.wstep{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:14px 16px;margin-bottom:10px;}
+.wstep.start{border-color:var(--line2);background:var(--panel2);}
+.wstep-head{display:flex;align-items:center;gap:10px;margin-bottom:10px;}
+.wstep-num{width:22px;height:22px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;background:var(--gold-dim);color:var(--gold-tx);font-family:var(--mono);}
+.wstep-verdict{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--gold-tx);}
+.wstep-verdict.done{color:var(--ink3);text-transform:none;letter-spacing:0;font-weight:500;font-size:13px;}
+.wstep-verdict.plain{color:var(--ink2);}
+.wstep-time{margin-left:auto;font-size:13px;color:var(--ink);font-family:var(--mono);font-weight:700;}
+.wstart-nodes{font-size:13px;color:var(--ink2);font-family:var(--mono);}
+.wstep-node{font-size:25px;font-weight:700;font-family:var(--mono);color:var(--ink);margin-bottom:12px;}
+.wstep-node .gb{font-size:13px;color:var(--ink3);font-weight:400;}
+.wt-label{font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:var(--ink3);margin-bottom:7px;}
+.wt-row{display:flex;flex-wrap:wrap;gap:6px;}
+.wt{font-family:var(--mono);font-size:13px;font-weight:600;padding:6px 11px;border-radius:7px;background:var(--panel2);border:1px solid var(--line2);color:var(--ink);}
+.wt.first{background:var(--gold-bg);border-color:var(--gold-dim);color:var(--gold-tx);}
+.wt-via{display:block;font-size:9px;font-weight:400;color:var(--ink3);margin-top:1px;}
+.walt{font-size:11px;color:var(--ink3);margin-top:10px;padding-top:9px;border-top:.5px solid var(--line);}
+.wstep-actions{display:flex;gap:8px;margin-top:14px;}
+.wbtn{font-size:13px;font-weight:600;padding:10px 20px;border-radius:8px;border:1px solid var(--line2);background:var(--panel2);color:var(--ink);cursor:pointer;}
+.wbtn:hover{background:#262a2e;}
+.wbtn.primary{background:var(--gold);border-color:var(--gold);color:#1a1408;}
+.wbtn.primary:hover{background:#e0ad42;}
+
+/* Section structure */
+.section-divider{border:none;border-top:1px solid var(--line);margin:28px 0 20px;}
+.section-head{display:flex;align-items:baseline;gap:10px;margin-bottom:12px;flex-wrap:wrap;}
+.section-num{width:22px;height:22px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;background:var(--gold-dim);color:var(--gold-tx);font-family:var(--mono);flex-shrink:0;}
+.section-title{font-size:14px;font-weight:600;color:var(--ink);}
+.section-sub{font-size:11px;color:var(--ink3);}
+
+/* Algo path display (section 2 — full walk) */
+.s2-algo{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:16px;margin-bottom:12px;}
+.s2-algo-head{display:flex;align-items:center;gap:10px;margin-bottom:12px;}
+.s2-algo-name{font-size:12px;font-weight:700;font-family:var(--mono);text-transform:uppercase;letter-spacing:.06em;color:var(--ink2);}
+.s2-algo-flow{font-size:10px;color:var(--ink3);font-family:var(--mono);}
+.s2-path{display:flex;align-items:center;flex-wrap:wrap;gap:0;margin-bottom:10px;}
+.s2n{position:relative;font-family:var(--mono);font-size:12px;font-weight:500;padding:7px 11px;border-radius:7px;border:1px solid var(--line2);background:var(--panel2);color:var(--ink3);cursor:pointer;transition:all .12s;white-space:nowrap;margin-bottom:6px;}
+.s2n:hover{border-color:#5a6066;color:var(--ink);}
+.s2n.cursor{border:2px solid var(--gold);color:var(--gold-tx);background:var(--gold-bg);font-weight:700;box-shadow:0 0 0 1px var(--gold-dim);}
+.s2n.conf{background:var(--gold);border-color:var(--gold);color:#1a1408;font-weight:700;}
+.s2n.conf.react-s{background:var(--green-bg);border-color:var(--green-dim);color:var(--green-tx);}
+.s2n.conf.react-r{background:var(--red-bg);border-color:var(--red-dim);color:var(--red-tx);}
+.s2n.conf.react-b{background:var(--panel);border-color:var(--line2);color:var(--ink3);text-decoration:line-through;}
+.s2n.future{opacity:.45;}
+.s2n.term::after{content:' ⊣';opacity:.6;}
+.s2n .badge{position:absolute;top:-7px;right:-5px;font-size:8px;background:var(--gold);color:#1a1408;border-radius:8px;min-width:14px;text-align:center;padding:1px 3px;font-weight:700;}
+.s2arr{color:var(--ink3);font-size:12px;padding:0 5px;font-family:var(--mono);margin-bottom:6px;}
+.s2-legend{display:flex;gap:14px;font-size:10px;color:var(--ink3);flex-wrap:wrap;margin-bottom:12px;}
+.s2-legend span{display:flex;align-items:center;gap:4px;}
+.lg-d{width:9px;height:9px;border-radius:3px;}
+.lg-d.s{background:var(--green);}.lg-d.r{background:var(--red);}.lg-d.b{background:var(--ink3);}
+/* Next node panel */
+.s2-next{background:var(--panel2);border:1px solid var(--line2);border-radius:8px;padding:16px;margin-bottom:14px;}
+.s2nx-top{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:10px;}
+.s2nx-label{font-size:10px;text-transform:uppercase;letter-spacing:.1em;color:var(--ink3);}
+.s2nx-pos{font-size:10px;color:var(--ink3);font-family:var(--mono);}
+.s2nx-node{font-size:28px;font-weight:700;font-family:var(--mono);color:var(--ink);margin-bottom:12px;line-height:1;}
+.s2nx-tlabel{font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:var(--ink3);margin-bottom:8px;}
+.s2nx-times{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:16px;}
+.s2t{font-family:var(--mono);font-size:13px;font-weight:600;padding:6px 11px;border-radius:7px;background:var(--panel);border:1px solid var(--line2);color:var(--ink);}
+.s2t.first{background:var(--gold-bg);border-color:var(--gold-dim);color:var(--gold-tx);}
+.s2t-via{display:block;font-size:9px;font-weight:400;color:var(--ink3);margin-top:1px;}
+.s2nx-rlabel{font-size:11px;color:var(--ink2);margin-bottom:8px;}
+.s2nx-rbts{display:flex;gap:6px;margin-bottom:14px;flex-wrap:wrap;}
+.s2rb{flex:1;min-width:100px;font-size:12px;font-weight:600;padding:8px 0;border-radius:7px;border:1px solid var(--line2);background:var(--panel);cursor:pointer;text-align:center;transition:all .1s;}
+.s2rb.sel-s{background:var(--green-bg);border-color:var(--green-dim);color:var(--green-tx);}
+.s2rb.sel-r{background:var(--red-bg);border-color:var(--red-dim);color:var(--red-tx);}
+.s2rb.sel-b{background:var(--panel2);border-color:var(--line2);color:var(--ink2);}
+.s2rb:not(.sel-s):not(.sel-r):not(.sel-b){color:var(--ink3);}
+.s2rb:not(.sel-s):not(.sel-r):not(.sel-b):hover{color:var(--ink);}
+.s2nx-done{font-size:15px;font-weight:600;color:var(--gold-tx);margin-bottom:8px;}
+.s2nx-donesub{font-size:12px;color:var(--ink3);}
+.s2-detail{background:var(--panel2);border:1px solid var(--line2);border-radius:8px;padding:16px;margin-bottom:14px;}
+.s2d-top{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:4px;}
+.s2d-label{font-size:10px;text-transform:uppercase;letter-spacing:.1em;color:var(--ink3);}
+.s2d-algo{font-size:11px;color:var(--ink2);font-family:var(--mono);}
+.s2d-node{font-size:26px;font-weight:700;font-family:var(--mono);color:var(--ink);margin-bottom:14px;}
+.s2d-tlabel{font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:var(--ink3);margin-bottom:8px;}
+.s2d-times{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px;}
+.s2arr{color:var(--ink3);font-size:12px;padding:0 4px;font-family:var(--mono);margin-bottom:6px;}
+
+/* METHOD READS (shared, collapsible) */
+.reads-toggle{font-size:11px;color:var(--ink3);background:transparent;border:none;cursor:pointer;padding:6px 0;text-decoration:underline;}
+.reads-toggle:hover{color:var(--ink2);}
+.reads-box{display:none;background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:14px;margin-bottom:14px;}
+.reads-box.show{display:block;}
+.reads-swing-cap{font-size:10px;text-transform:uppercase;letter-spacing:.1em;color:var(--ink3);font-family:var(--mono);margin:8px 0 6px;}
+.method-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;}
+.method-card{background:var(--panel2);border:1px solid var(--line);border-radius:7px;padding:9px 10px;}
+.method-card.has{border-color:var(--gold-dim);}
+.mc-top{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:2px;}
+.mc-name{font-size:9px;color:var(--ink3);text-transform:uppercase;font-family:var(--mono);}
+.mc-pri{color:var(--gold);font-size:8px;}
+.mc-val{font-size:16px;font-weight:600;font-family:var(--mono);}
+.mc-nodes{display:flex;flex-direction:column;gap:2px;margin-top:4px;}
+.mn{font-family:var(--mono);font-size:10px;font-weight:600;color:var(--gold-tx);background:var(--gold-bg);border-radius:4px;padding:1px 5px;}
+.mn-none{font-size:10px;color:var(--ink3);font-style:italic;}
+
+.empty{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:20px;text-align:center;color:var(--ink3);font-size:13px;margin-bottom:14px;}
+.empty b{color:var(--ink2);}
+
+.foot{font-size:11px;color:var(--ink3);line-height:1.8;border-top:1px solid var(--line);padding-top:14px;margin-top:8px;}
+.foot b{color:var(--ink2);}
+.sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0);}
+</style>
+</head>
+<body>
+<h2 class="sr-only">Goldbach time sequencer for XAUUSD — confluence, walk, and CE tabs</h2>
+
+<div class="hdr">
+  <h1>GB Sequencer</h1>
+  <span class="tag">both algos · Zurich 24h · ±1</span>
+</div>
+
+<div class="tabs">
+  <div class="tab active" id="tab-conf" onclick="setTab('conf')">Confluence</div>
+  <div class="tab" id="tab-walk" onclick="setTab('walk')">Walk</div>
+  <div class="tab" id="tab-ce" onclick="setTab('ce')">CE walk</div>
+</div>
+
+<!-- ============ CONFLUENCE ============ -->
+<div id="panel-conf">
+  <div class="intro">One or two swings → where each algo's next node sits, and whether they agree, conflict, or set a floor.</div>
+  <div class="inputs">
+    <div class="mode-row">
+      <div class="mode-btn active" id="cm2" onclick="setConfMode('two')">Two swings</div>
+      <div class="mode-btn" id="cm1" onclick="setConfMode('one')">One swing</div>
+    </div>
+    <div class="swings" id="cswings">
+      <div class="swing-box">
+        <div class="swing-cap" id="ccap1">First swing <span class="sub">— earlier</span></div>
+        <div class="clock">
+          <input type="number" id="ch1" value="6" min="0" max="23"><span class="sep">:</span><input type="number" id="cn1" value="48" min="0" max="59"><span class="tz">ZRH</span>
+        </div>
+        <button class="btn-now" onclick="setNow('ch1','cn1')">use now</button>
+        <div class="dir-row">
+          <div class="dir-btn down" data-g="c1" data-d="down" onclick="setDir('c1','down')">▼ low</div>
+          <div class="dir-btn up" data-g="c1" data-d="up" onclick="setDir('c1','up')">▲ high</div>
+        </div>
+      </div>
+      <div class="swing-box" id="cbox2">
+        <div class="swing-cap">Second swing <span class="sub">— later</span></div>
+        <div class="clock">
+          <input type="number" id="ch2" value="7" min="0" max="23"><span class="sep">:</span><input type="number" id="cn2" value="11" min="0" max="59"><span class="tz">ZRH</span>
+        </div>
+        <button class="btn-now" onclick="setNow('ch2','cn2')">use now</button>
+        <div class="dir-row">
+          <div class="dir-btn down" data-g="c2" data-d="down" onclick="setDir('c2','down')">▼ low</div>
+          <div class="dir-btn up" data-g="c2" data-d="up" onclick="setDir('c2','up')">▲ high</div>
+        </div>
+      </div>
+    </div>
+    <div class="go-row">
+      <button class="go" onclick="runConf()">Check confluence</button>
+      <span class="go-hint">▼ low · ▲ high</span>
+    </div>
+  </div>
+  <div id="conf-out"></div>
+</div>
+
+<!-- ============ WALK ============ -->
+<div id="panel-walk" style="display:none;">
+
+  <!-- SECTION 1: MINIMUM TRAVEL -->
+  <div class="section-head">
+    <span class="section-num">1</span>
+    <span class="section-title">Minimum travel</span>
+    <span class="section-sub">Two swings → identify path → follow the nearest node at each step</span>
+  </div>
+  <div class="intro">Identify which algo your two swings sit on, then chain forward — always picking the nearest node in time across both algos.</div>
+  <div class="inputs">
+    <div class="swings">
+      <div class="swing-box">
+        <div class="swing-cap">First swing <span class="sub">— earlier</span></div>
+        <div class="clock">
+          <input type="number" id="wh1" value="6" min="0" max="23"><span class="sep">:</span><input type="number" id="wn1" value="48" min="0" max="59"><span class="tz">ZRH</span>
+        </div>
+        <button class="btn-now" onclick="setNow('wh1','wn1')">use now</button>
+      </div>
+      <div class="swing-box">
+        <div class="swing-cap">Second swing <span class="sub">— later</span></div>
+        <div class="clock">
+          <input type="number" id="wh2" value="7" min="0" max="23"><span class="sep">:</span><input type="number" id="wn2" value="11" min="0" max="59"><span class="tz">ZRH</span>
+        </div>
+        <button class="btn-now" onclick="setNow('wh2','wn2')">use now</button>
+      </div>
+    </div>
+    <div class="go-row">
+      <button class="go" onclick="runWalkID()">Identify path</button>
+      <span class="go-hint">finds the algo, then walk it</span>
+    </div>
+  </div>
+  <div id="walk-id"></div>
+  <div id="walk-out"></div>
+
+  <!-- SECTION 2: WALK A PATH -->
+  <div class="section-divider"></div>
+  <div class="section-head">
+    <span class="section-num">2</span>
+    <span class="section-title">Walk a path</span>
+    <span class="section-sub">Full algo sequence — log each node's reaction, then advance</span>
+  </div>
+  <div class="intro">After identifying a path above, click <b>Walk this path →</b> on a candidate to load it here. Or pick an algo and starting node manually below.</div>
+  <div class="inputs" id="s2-manual-input">
+    <div class="swings">
+      <div class="swing-box">
+        <div class="swing-cap">Starting node time</div>
+        <div class="clock">
+          <input type="number" id="s2h" value="7" min="0" max="23"><span class="sep">:</span><input type="number" id="s2n" value="11" min="0" max="59"><span class="tz">ZRH</span>
+        </div>
+        <button class="btn-now" onclick="setNow('s2h','s2n')">use now</button>
+      </div>
+      <div class="swing-box">
+        <div class="swing-cap">Algo</div>
+        <div class="dir-row" style="margin-top:6px;">
+          <div class="dir-btn up" id="s2-pick1" onclick="s2manualStart(1)" style="font-size:13px;">Algo 1</div>
+          <div class="dir-btn up" id="s2-pick2" onclick="s2manualStart(2)" style="font-size:13px;">Algo 2</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="s2-walk"></div>
+
+</div>
+
+<!-- ============ CE WALK ============ -->
+<div id="panel-ce" style="display:none;">
+  <div class="intro">CE-to-CE chain. Enter a start time → each step is the nearest CE alternate in clock time across both algos.<br><span class="seq">Algo 1 CE: 14 → 44 → 7 → 23 → 35 &nbsp;·&nbsp; Algo 2 CE (rev): 35 → 50/56 → 14 → 23 → 65 → 7</span></div>
+  <div class="inputs">
+    <div class="swing-box" style="max-width:220px;">
+      <div class="swing-cap">Start time</div>
+      <div class="clock">
+        <input type="number" id="eh" value="6" min="0" max="23"><span class="sep">:</span><input type="number" id="en" value="14" min="0" max="59"><span class="tz">ZRH</span>
+      </div>
+      <button class="btn-now" onclick="setNow('eh','en')">use now</button>
+    </div>
+    <div class="go-row" style="margin-top:14px;">
+      <button class="go" onclick="ceStart()">Start CE walk</button>
+    </div>
+  </div>
+  <div id="ce-out"></div>
+</div>
+
+<div class="foot">
+  <b>Reads.</b> All three methods are checked — MM (minute), HH+MM, |HH−MM| — each within ±1. A hit by any method counts; <b>MM wins the label</b> when more than one hits. Nodes are decision levels (price reacts as support/resistance or breaks), so this maps where and when levels sit — not a guaranteed direction.
+</div>
+
+<script>
+const GB=new Set([3,11,17,29,41,47,53,59,71,83,89,97]);
+const CE=new Set([7,14,23,35,44,50,56,65,77]);
+const TOL=1;
+
+// Full node paths. Algo 1 forward, Algo 2 reverse (terminal at index 0).
+const A={
+  1:[
+    {l:'00',v:[0],term:false},
+    {l:'11/14',v:[11,14],term:false},
+    {l:'41/44',v:[41,44],term:false},
+    {l:'03/7',v:[3,7],term:false},
+    {l:'17/23',v:[17,23],term:false},
+    {l:'71/77 · 29/35',v:[71,77,29,35],term:true,groups:[{l:'71/77',v:[71,77]},{l:'29/35',v:[29,35]}]},
+  ],
+  2:[
+    {l:'03/7',v:[3,7],term:true},
+    {l:'59/65',v:[59,65],term:false},
+    {l:'17/23',v:[17,23],term:false},
+    {l:'11/14',v:[11,14],term:false},
+    {l:'47/53',v:[47,50,53,56],term:false},
+    {l:'29/35',v:[29,35],term:false},
+  ],
+};
+// CE-only chains (the CE alternate at each node)
+const CEA={
+  1:[
+    {ce:[14],l:'14',gb:'11'},
+    {ce:[44],l:'44',gb:'41'},
+    {ce:[7],l:'7',gb:'03'},
+    {ce:[23],l:'23',gb:'17'},
+    {ce:[35],l:'35',gb:'29/71',term:true},
+  ],
+  2:[
+    {ce:[7],l:'7',gb:'03',term:true},
+    {ce:[65],l:'65',gb:'59'},
+    {ce:[23],l:'23',gb:'17'},
+    {ce:[14],l:'14',gb:'11'},
+    {ce:[50,56],l:'50/56',gb:'47/53'},
+    {ce:[35],l:'35',gb:'29'},
+  ],
+};
+
+function pad(n){return String(n).padStart(2,'0');}
+function kind(n){if(n===0)return'start';if(GB.has(n))return'GB';if(CE.has(n))return'CE';return null;}
+// THE central rule: all three methods, MM is primary (listed first → wins label on tie)
+function methods(hh,mm){return[
+  {name:'MM',val:mm,pri:true},
+  {name:'HH+MM',val:hh+mm,pri:false},
+  {name:'|HH−MM|',val:Math.abs(hh-mm),pri:false},
+];}
+
+// match a set of values (node.v or ce list) against a time, across all methods.
+// returns {d, method, val} for the BEST hit — MM preferred, then smallest distance.
+function hitValues(hh,mm,vals){
+  const ms=methods(hh,mm);
+  let best=null;
+  ms.forEach(m=>{
+    vals.forEach(target=>{
+      const d=Math.abs(m.val-target);
+      if(d<=TOL){
+        if(best===null || (m.pri&&!best.method.pri) || (m.pri===best.method.pri&&d<best.d)){
+          best={d,method:m,val:target};
+        }
+      }
+    });
+  });
+  return best;
+}
+function labelForValue(node,val){
+  if(node&&node.groups&&val!==undefined&&val!==null){
+    const g=node.groups.find(x=>x.v.includes(val));
+    if(g)return g.l;
+  }
+  return node?node.l:'';
+}
+function nodeHitLabel(hit){return hit?labelForValue(hit.node,hit.h&&hit.h.val):'';}
+function dirLabel(g){return DIR[g]==='down'?'▼ low':DIR[g]==='up'?'▲ high':'neutral';}
+function minByStep(a,b){return (a.step||9999)-(b.step||9999);}
+
+// ---------- shared input helpers ----------
+function setNow(hId,nId){
+  const t=new Intl.DateTimeFormat('en-GB',{timeZone:'Europe/Zurich',hour:'2-digit',minute:'2-digit',hour12:false}).format(new Date());
+  const[h,m]=t.split(':');
+  document.getElementById(hId).value=parseInt(h,10);
+  document.getElementById(nId).value=parseInt(m,10);
+}
+function getT(hId,nId){
+  let hh=parseInt(document.getElementById(hId).value,10);
+  let mm=parseInt(document.getElementById(nId).value,10);
+  if(isNaN(hh))hh=0;if(isNaN(mm))mm=0;
+  hh=Math.max(0,Math.min(23,hh));mm=Math.max(0,Math.min(59,mm));
+  document.getElementById(hId).value=hh;document.getElementById(nId).value=pad(mm);
+  return{hh,mm};
+}
+const DIR={};
+function setDir(g,d){
+  DIR[g]=DIR[g]===d?null:d;
+  document.querySelectorAll(`.dir-btn[data-g="${g}"]`).forEach(b=>b.classList.toggle('active',b.dataset.d===DIR[g]));
+}
+
+function setTab(t){
+  ['conf','walk','ce'].forEach(x=>{
+    document.getElementById('tab-'+x).classList.toggle('active',x===t);
+    document.getElementById('panel-'+x).style.display=x===t?'block':'none';
+  });
+}
+
+// ---------- node identification (full nodes) ----------
+function nodeAt(hh,mm,algoNum){
+  let best=null;
+  A[algoNum].forEach((node,i)=>{
+    const h=hitValues(hh,mm,node.v);
+    if(h&&(best===null || (h.method.pri&&!best.h.method.pri) || (h.method.pri===best.h.method.pri&&h.d<best.h.d))){
+      best={idx:i,node,h};
+    }
+  });
+  return best;
+}
+function nextNode(algoNum,idx,from){
+  const arr=A[algoNum];
+  let ni;
+  if(algoNum===1){if(arr[idx].term||idx>=arr.length-1)return{done:true};ni=idx+1;}
+  else{if(arr[idx].term||idx<=0)return{done:true};ni=idx-1;}
+  return{done:false,nextIdx:ni,node:arr[ni],times:solveTimes(arr[ni].v,from)};
+}
+// watch-times for a value set: every time where ANY method hits, labelled MM-priority
+function solveTimes(vals,from){
+  const out=[];let h=from.hh,m=from.mm;
+  for(let s=0;s<90&&out.length<8;s++){
+    m++;if(m>59){m=0;h=(h+1)%24;}
+    const ms=methods(h,m);const via=[];let best=null;
+    // collect every method that hits, MM first; store the best target for labels
+    ms.forEach(mt=>{
+      let hit=null,hitVal=null;
+      vals.forEach(t=>{
+        const d=Math.abs(mt.val-t);
+        if(d<=TOL&&(hit===null||d<hit)){hit=d;hitVal=t;}
+        if(d<=TOL&&(best===null || (mt.pri&&!best.method.pri) || (mt.pri===best.method.pri&&d<best.d))){
+          best={d,method:mt,val:t};
+        }
+      });
+      if(hit!==null)via.push(mt.name+(hit>0?'±'+hit:''));
+    });
+    if(via.length)out.push({time:pad(h)+':'+pad(m),via:via.join(', '),val:best?best.val:null,step:s+1});
+  }
+  return out;
+}
+
+// =================== CONFLUENCE ===================
+let confMode='two';
+function setConfMode(m){
+  confMode=m;
+  document.getElementById('cm2').classList.toggle('active',m==='two');
+  document.getElementById('cm1').classList.toggle('active',m==='one');
+  document.getElementById('cswings').classList.toggle('one',m==='one');
+  document.getElementById('cbox2').style.display=m==='one'?'none':'block';
+  document.getElementById('ccap1').innerHTML=m==='one'?'The swing':'First swing <span class="sub">— earlier</span>';
+  document.getElementById('conf-out').innerHTML='';
+}
+
+function pathCandidates(t1,t2){
+  const h1a1=nodeAt(t1.hh,t1.mm,1),h1a2=nodeAt(t1.hh,t1.mm,2);
+  const h2a1=nodeAt(t2.hh,t2.mm,1),h2a2=nodeAt(t2.hh,t2.mm,2);
+  const cands=[];
+  if(h1a1&&h2a1){
+    if(h2a1.idx===h1a1.idx+1)cands.push({algo:1,i1:h1a1.idx,i2:h2a1.idx,skip:false,h1:h1a1,h2:h2a1});
+    else if(h2a1.idx>h1a1.idx)cands.push({algo:1,i1:h1a1.idx,i2:h2a1.idx,skip:true,gap:h2a1.idx-h1a1.idx,h1:h1a1,h2:h2a1});
+  }
+  if(h1a2&&h2a2){
+    if(h2a2.idx===h1a2.idx-1)cands.push({algo:2,i1:h1a2.idx,i2:h2a2.idx,skip:false,h1:h1a2,h2:h2a2});
+    else if(h2a2.idx<h1a2.idx)cands.push({algo:2,i1:h1a2.idx,i2:h2a2.idx,skip:true,gap:h1a2.idx-h2a2.idx,h1:h1a2,h2:h2a2});
+  }
+  return{cands,h1a1,h1a2,h2a1,h2a2};
+}
+function confStrength(a1,a2){
+  if(!(a1&&a2))return{cls:'partial',txt:'low',why:'one algo only'};
+  const q=h=>h.h.method.pri?(h.h.d===0?3:2):1;
+  const q1=q(a1),q2=q(a2);
+  if(q1===3&&q2===3)return{cls:'agree',txt:'strong',why:'MM exact on both algos'};
+  if(q1>=2&&q2>=2)return{cls:'partial',txt:'medium',why:'MM tolerance on one/both algos'};
+  return{cls:'partial',txt:'medium',why:'secondary-method confirmation'};
+}
+function confPathHTML(pc){
+  if(confMode!=='two')return'';
+  if(pc.cands.length){
+    return pc.cands.map(c=>`<div class="verdict ${c.skip?'partial':'agree'}" style="padding:12px 14px;margin-bottom:10px;"><div class="v-tag ${c.skip?'partial':'agree'}"><span class="v-dot ${c.skip?'partial':'agree'}"></span>Swing cross-check</div><div class="v-headline">Algo ${c.algo}${c.algo===2?' reverse':''}: ${labelForValue(A[c.algo][c.i1],c.h1.h.val)} → ${labelForValue(A[c.algo][c.i2],c.h2.h.val)}</div><div class="v-sub">${c.skip?'Valid order, but skipped '+(c.gap-1)+' node(s).':'Consecutive nodes on the same algo.'} Direction tags: ${dirLabel('c1')} → ${dirLabel('c2')}.</div></div>`).join('');
+  }
+  const s1=[pc.h1a1?`A1 ${nodeHitLabel(pc.h1a1)}`:null,pc.h1a2?`A2 ${nodeHitLabel(pc.h1a2)}`:null].filter(Boolean).join(', ')||'no node';
+  const s2=[pc.h2a1?`A1 ${nodeHitLabel(pc.h2a1)}`:null,pc.h2a2?`A2 ${nodeHitLabel(pc.h2a2)}`:null].filter(Boolean).join(', ')||'no node';
+  return`<div class="verdict conflict" style="padding:12px 14px;margin-bottom:10px;"><div class="v-tag conflict"><span class="v-dot conflict"></span>Swing cross-check failed</div><div class="v-headline">The two swings do not form an ordered path.</div><div class="v-sub">Swing 1: ${s1}. Swing 2: ${s2}. Direction tags: ${dirLabel('c1')} → ${dirLabel('c2')}.</div></div>`;
+}
+function runConf(){
+  const t1=getT('ch1','cn1');
+  const tL=confMode==='two'?getT('ch2','cn2'):t1;
+  const pc=confMode==='two'?pathCandidates(t1,tL):{cands:[],h1a1:null,h1a2:null,h2a1:null,h2a2:null};
+  const a1=nodeAt(tL.hh,tL.mm,1), a2=nodeAt(tL.hh,tL.mm,2);
+  const out=document.getElementById('conf-out');
+  if(!a1&&!a2){out.innerHTML=`${confPathHTML(pc)}<div class="empty"><b>No node match.</b><br><br>${pad(tL.hh)}:${pad(tL.mm)} doesn't land on a node in either algo within ±${TOL}.</div>`;return;}
+  const n1=a1?nextNode(1,a1.idx,tL):null;
+  const n2=a2?nextNode(2,a2.idx,tL):null;
+  const l1=n1?(n1.done?'TERM':n1.node.l):null;
+  const l2=n2?(n2.done?'TERM':n2.node.l):null;
+  const sameNext=(l1&&l2&&l1===l2&&l1!=='TERM');
+  const strength=confStrength(a1,a2);
+
+  let vc,vt,vh,vs;
+  if(a1&&a2&&l1&&l2){
+    if(sameNext){const ov=overlap(n1.times,n2.times);vc='agree';vt='Both algos agree';vh=`Next level: <span class="v-level">${l1}</span>`;vs=ov?`Both converge here. Strongest read — watch <span class="v-level">${ov}</span>.`:`Both point to the same node.`;}
+    else if(l1==='TERM'&&l2==='TERM'){vc='agree';vt='Both complete';vh='Both paths at terminal';vs='Fresh sequence starts if price continues.';}
+    else{vc='conflict';vt='Algos conflict';vh=`Algo 1 → <span class="v-level">${l1}</span> · Algo 2 → <span class="v-level">${l2}</span>`;vs='Different next levels — see floor below for the minimum move.';}
+  }else{const w=a1?'Algo 1':'Algo 2';const lab=a1?l1:l2;vc='partial';vt='Partial — one algo';vh=`${w} → <span class="v-level">${lab||'no next'}</span>`;vs=`Only ${w} reads here. Lower confidence.`;}
+
+  const verdict=`<div class="verdict ${vc}"><div class="v-tag ${vc}"><span class="v-dot ${vc}"></span>${vt} · strength ${strength.txt}</div><div class="v-headline">${vh}</div><div class="v-sub">${vs} <span style="color:var(--ink3);">(${strength.why})</span></div></div>`;
+
+  const fl=floor(n1,n2);
+  let floorB='';
+  if(fl){
+    confChain={
+      a1idx:a1?(n1&&!n1.done?n1.nextIdx:null):null,
+      a2idx:a2?(n2&&!n2.done?n2.nextIdx:null):null,
+      from:(()=>{const[h,m]=fl.time.split(':').map(Number);return{hh:h,mm:m};})(),
+      steps:[],
+      history:[]
+    };
+    floorB=`<div class="floor"><div class="floor-label">Minimum expected move — reaches first</div><div class="floor-main"><span class="floor-node">${fl.node}</span><span class="floor-at">at <b>${fl.time}</b></span><span class="floor-via">via ${fl.via}</span></div><div class="floor-sub">${sameNext?'Both algos point here.':`Algo ${fl.algo}'s next node comes first in time — price should at least reach <b>${fl.node}</b>.`}</div></div><div class="wstep-actions"><button class="wbtn primary" onclick="confChainNext()">Next minimum →</button><button class="wbtn" onclick="confChainReset()">Reset</button></div><div id="conf-chain"></div>`;
+  }
+
+  const compare=`<div class="compare">${col(1,a1,n1)}${col(2,a2,n2)}</div>`;
+  const dirNote=confMode==='one'?`Direction tag: ${dirLabel('c1')} — annotation only; nodes are decision levels.`:`Direction tags: Swing 1 ${dirLabel('c1')} · Swing 2 ${dirLabel('c2')} — annotation only; nodes are decision levels.`;
+  let readsInner=`<div class="reads-swing-cap">${confMode==='one'?'Swing':'Swing 2'} · ${pad(tL.hh)}:${pad(tL.mm)}</div>${methodCards(tL.hh,tL.mm)}`;
+  if(confMode==='two')readsInner=`<div class="reads-swing-cap">Swing 1 · ${pad(t1.hh)}:${pad(t1.mm)}</div>${methodCards(t1.hh,t1.mm)}`+readsInner;
+  const reads=`<div style="font-size:11px;color:var(--ink3);margin:4px 0 8px;">${dirNote}</div><button class="reads-toggle" onclick="this.nextElementSibling.classList.toggle('show')">show / hide method reads</button><div class="reads-box">${readsInner}</div>`;
+  out.innerHTML=verdict+confPathHTML(pc)+floorB+compare+reads;
+}
+function overlap(t1,t2){if(!t1||!t2)return null;const s=new Set(t2.map(x=>x.time));const h=t1.find(x=>s.has(x.time));return h?h.time:null;}
+function firstVia(t){const p=t.via.split(', ');return p.find(x=>x.startsWith('MM'))||p[0];}
+function floor(n1,n2){
+  const c=[];
+  if(n1&&!n1.done&&n1.times.length)c.push({algo:1,node:labelForValue(n1.node,n1.times[0].val),time:n1.times[0].time,via:firstVia(n1.times[0]),step:n1.times[0].step});
+  if(n2&&!n2.done&&n2.times.length)c.push({algo:2,node:labelForValue(n2.node,n2.times[0].val),time:n2.times[0].time,via:firstVia(n2.times[0]),step:n2.times[0].step});
+  if(!c.length)return null;
+  c.sort(minByStep);
+  return c[0];
+}
+function col(num,a,n){
+  const flow=num===1?'00 → terminal':'terminal ← 00 (rev)';
+  if(!a)return`<div class="acol"><div class="acol-head">Algo ${num}</div><div class="acol-flow">${flow}</div><div class="acol-label">This swing</div><div class="acol-none">no node</div></div>`;
+  let nb;
+  if(n.done)nb=`<div class="acol-label">Next</div><div class="acol-node" style="color:var(--gold-tx);font-size:15px;">terminal</div>`;
+  else{const tt=n.times.length?n.times.map(t=>`<div class="acol-time">${t.time}<span class="mv">${t.via}</span></div>`).join(''):`<div class="acol-none">no time 90m</div>`;nb=`<div class="acol-label">Next node</div><div class="acol-node">${n.node.l}</div><div class="acol-via">watch:</div><div class="acol-times">${tt}</div>`;}
+  return`<div class="acol"><div class="acol-head">Algo ${num}</div><div class="acol-flow">${flow}</div><div class="acol-label">This swing = node</div><div class="acol-node" style="font-size:16px;">${nodeHitLabel(a)}</div><div class="acol-via">via ${a.h.method.name}${a.h.d>0?` ±${a.h.d}`:''}</div>${nb}</div>`;
+}
+function methodCards(hh,mm){
+  const ms=methods(hh,mm);
+  return`<div class="method-grid">`+ms.map(m=>{
+    const k=kind(m.val);const nodes=[];
+    [1,2].forEach(a=>A[a].forEach(node=>{const d=Math.min(...node.v.map(v=>Math.abs(m.val-v)));if(d<=TOL)nodes.push(`A${a} ${labelForValue(node,m.val)}${d>0?` ±${d}`:''}`);}));
+    const ns=nodes.length?nodes.map(x=>`<span class="mn">${x}</span>`).join(''):`<span class="mn-none">no node</span>`;
+    return`<div class="method-card ${nodes.length?'has':''}"><div class="mc-top"><span class="mc-name">${m.name}${m.pri?' <span class="mc-pri">•</span>':''}</span><span class="mc-val">${m.val}</span></div><div class="mc-nodes">${ns}</div></div>`;
+  }).join('')+`</div>`;
+}
+
+// ---- confluence chain (chains forward from the floor) ----
+let confChain=null;
+
+function confChainNext(){
+  if(!confChain)return;
+  const c=[];
+  if(confChain.a1idx!==null&&confChain.a1idx<A[1].length){
+    const n=nextNode(1,confChain.a1idx,confChain.from);
+    if(!n.done&&n.times.length)c.push({algo:1,ni:n.nextIdx,node:n.node,times:n.times,time:n.times[0].time,step:n.times[0].step,nodeLabel:labelForValue(n.node,n.times[0].val)});
+    else if(n.done)c.push({algo:1,done:true});
+  }
+  if(confChain.a2idx!==null&&confChain.a2idx>=0){
+    const n=nextNode(2,confChain.a2idx,confChain.from);
+    if(!n.done&&n.times.length)c.push({algo:2,ni:n.nextIdx,node:n.node,times:n.times,time:n.times[0].time,step:n.times[0].step,nodeLabel:labelForValue(n.node,n.times[0].val)});
+    else if(n.done)c.push({algo:2,done:true});
+  }
+  const live=c.filter(x=>!x.done&&x.time);
+  if(!live.length){confChain.history.push({a1idx:confChain.a1idx,a2idx:confChain.a2idx,from:{...confChain.from},stepsLen:confChain.steps.length});confChain.steps.push({exhausted:true});confChainRender();return;}
+  live.sort(minByStep);
+  const p=live[0],alt=live[1]||null;
+  // save history for Back
+  confChain.history.push({a1idx:confChain.a1idx,a2idx:confChain.a2idx,from:{...confChain.from},stepsLen:confChain.steps.length});
+  if(p.algo===1)confChain.a1idx=p.ni;else confChain.a2idx=p.ni;
+  const[h,m]=p.time.split(':').map(Number);confChain.from={hh:h,mm:m};
+  confChain.steps.push({algo:p.algo,node:p.nodeLabel||p.node.l,times:p.times,time:p.time,alt:alt?{algo:alt.algo,node:alt.nodeLabel||alt.node.l,time:alt.time}:null,stepNum:confChain.steps.length+1});
+  const reached=p.algo===1?confChain.a1idx:confChain.a2idx;
+  if(A[p.algo][reached].term){if(p.algo===1)confChain.a1idx=null;else confChain.a2idx=null;}
+  confChainRender();
+}
+function confChainBack(){
+  if(!confChain||!confChain.history.length)return;
+  const prev=confChain.history.pop();
+  confChain.a1idx=prev.a1idx;confChain.a2idx=prev.a2idx;confChain.from=prev.from;
+  confChain.steps.splice(prev.stepsLen);
+  confChainRender();
+}
+function confChainReset(){confChain=null;const el=document.getElementById('conf-chain');if(el)el.innerHTML='';}
+function confChainRender(){
+  const el=document.getElementById('conf-chain');if(!el)return;
+  let html=confChain.steps.map((s,i)=>{
+    if(s.exhausted)return`<div class="wstep"><div class="wstep-verdict done">Both paths at terminal. Fresh sequence starts here.</div></div>`;
+    const tl=s.times.map((t,j)=>`<span class="wt ${j===0?'first':''}">${t.time}<span class="wt-via">${t.via}</span></span>`).join('');
+    const alt=s.alt?`<div class="walt">Other path: Algo ${s.alt.algo} → ${s.alt.node} @ ${s.alt.time}</div>`:'';
+    return`<div class="wstep"><div class="wstep-head"><span class="wstep-num">${s.stepNum}</span><span class="wstep-verdict">min travel · Algo ${s.algo}${s.algo===2?' rev':''}</span><span class="wstep-time">${s.time}</span></div><div class="wstep-node">${s.node}</div><div class="wt-label">all method times (MM first):</div><div class="wt-row">${tl}</div>${alt}</div>`;
+  }).join('');
+  const last=confChain.steps[confChain.steps.length-1];
+  const done=last&&last.exhausted;
+  if(confChain.steps.length>0){
+    html+=`<div class="wstep-actions">${done?`<button class="wbtn" disabled style="opacity:.5;">Complete</button>`:`<button class="wbtn primary" onclick="confChainNext()">Next minimum →</button>`}<button class="wbtn" onclick="confChainBack()">← Back</button></div>`;
+  }
+  el.innerHTML=html;
+}
+
+// =================== WALK (path-ID front end + walk) ===================
+let walkCands=[],walkActive=-1,walkStates=[];
+function runWalkID(){
+  const t1=getT('wh1','wn1'), t2=getT('wh2','wn2');
+  const pc=pathCandidates(t1,t2);
+  const {cands,h1a1,h1a2,h2a1,h2a2}=pc;
+  walkCands=cands;walkActive=-1;walkStates=[];
+  window.__wt2=t2;
+  const idEl=document.getElementById('walk-id');
+  document.getElementById('walk-out').innerHTML='';
+  if(!cands.length){
+    const s1=[h1a1?`A1 ${nodeHitLabel(h1a1)}`:null,h1a2?`A2 ${nodeHitLabel(h1a2)}`:null].filter(Boolean).join(', ')||'no node';
+    const s2=[h2a1?`A1 ${nodeHitLabel(h2a1)}`:null,h2a2?`A2 ${nodeHitLabel(h2a2)}`:null].filter(Boolean).join(', ')||'no node';
+    idEl.innerHTML=`<div class="empty"><b>No path found.</b><br><br>Swing 1: ${s1}<br>Swing 2: ${s2}<br><br>The two swings aren't in order on one algo. Check the times.</div>`;
+    return;
+  }
+  // build a walk state per candidate
+  walkStates=cands.map(c=>({c,a1idx:c.algo===1?c.i2:null,a2idx:c.algo===2?c.i2:null,from:{hh:t2.hh,mm:t2.mm},steps:[{start:true,time:pad(t2.hh)+':'+pad(t2.mm),startNodes:`${labelForValue(A[c.algo][c.i1],c.h1.h.val)} → ${labelForValue(A[c.algo][c.i2],c.h2.h.val)}`}]}));
+  renderWalkID();
+  activateWalk(0);
+}
+function renderWalkID(){
+  const el=document.getElementById('walk-id');
+  el.innerHTML=`<div class="pathid"><div class="pathid-label">Path identified — pick one to walk</div>`+walkCands.map((c,i)=>{
+    const active=i===walkActive;
+    return`<div class="cand ${active?'active':''}" onclick="activateWalk(${i})">
+      <div class="cand-top"><span class="cand-algo">Algo ${c.algo}${c.algo===2?' · reverse':''}</span><span class="cand-conf ${c.skip?'skip':'ok'}">${c.skip?'~ '+c.gap+' apart':'✓ consecutive'}</span></div>
+      <div class="cand-nodes"><b>${labelForValue(A[c.algo][c.i1],c.h1.h.val)}</b> → <b>${labelForValue(A[c.algo][c.i2],c.h2.h.val)}</b> · via ${c.h1.h.method.name} / ${c.h2.h.method.name}</div>
+      <div style="display:flex;align-items:center;gap:10px;margin-top:8px;">
+        <div class="cand-go" style="flex:1;">${active?'● walking this':'Walk §1 minimum →'}</div>
+        <span onclick="s2fromCand(${i});event.stopPropagation();" style="font-size:11px;color:var(--green-tx);cursor:pointer;font-weight:600;padding:3px 10px;background:var(--green-bg);border-radius:6px;border:1px solid var(--green-dim);white-space:nowrap;">Walk path §2 →</span>
+      </div></div>`;
+  }).join('')+`</div>`;
+}
+function activateWalk(i){walkActive=i;renderWalkID();renderWalk();}
+function walkMin(st){
+  const cands=[];
+  if(st.a1idx!==null){const n=nextNode(1,st.a1idx,st.from);if(!n.done&&n.times.length)cands.push({algo:1,ni:n.nextIdx,node:n.node,times:n.times,time:n.times[0].time,step:n.times[0].step,nodeLabel:labelForValue(n.node,n.times[0].val)});else if(n.done)cands.push({algo:1,done:true});}
+  if(st.a2idx!==null){const n=nextNode(2,st.a2idx,st.from);if(!n.done&&n.times.length)cands.push({algo:2,ni:n.nextIdx,node:n.node,times:n.times,time:n.times[0].time,step:n.times[0].step,nodeLabel:labelForValue(n.node,n.times[0].val)});else if(n.done)cands.push({algo:2,done:true});}
+  const live=cands.filter(c=>!c.done&&c.time);
+  if(!live.length)return{exhausted:true};
+  live.sort(minByStep);
+  return{pick:live[0],alt:live[1]||null};
+}
+function walkNext(){
+  const st=walkStates[walkActive];
+  const mt=walkMin(st);
+  if(mt.exhausted){if(!st.history)st.history=[];st.history.push({a1idx:st.a1idx,a2idx:st.a2idx,from:{...st.from},stepsLen:st.steps.length});st.steps.push({exhausted:true});renderWalk();return;}
+  const p=mt.pick;
+  // save to history for Back
+  if(!st.history)st.history=[];
+  st.history.push({a1idx:st.a1idx,a2idx:st.a2idx,from:{...st.from},stepsLen:st.steps.length});
+  if(p.algo===1)st.a1idx=p.ni;else st.a2idx=p.ni;
+  const[h,m]=p.time.split(':').map(Number);st.from={hh:h,mm:m};
+  st.steps.push({algo:p.algo,node:p.nodeLabel||p.node.l,times:p.times,time:p.time,alt:mt.alt?{algo:mt.alt.algo,node:mt.alt.nodeLabel||mt.alt.node.l,time:mt.alt.time}:null});
+  const reached=p.algo===1?st.a1idx:st.a2idx;
+  if(A[p.algo][reached].term){if(p.algo===1)st.a1idx=null;else st.a2idx=null;}
+  renderWalk();
+}
+function walkBack(){
+  const st=walkStates[walkActive];
+  if(!st||!st.history||!st.history.length)return;
+  const prev=st.history.pop();
+  st.a1idx=prev.a1idx;st.a2idx=prev.a2idx;st.from=prev.from;
+  st.steps.splice(prev.stepsLen);
+  renderWalk();
+}
+function walkReset(){runWalkID();}
+function renderWalk(){
+  if(walkActive<0)return;
+  const st=walkStates[walkActive];
+  const out=document.getElementById('walk-out');
+  out.innerHTML=st.steps.map((s,i)=>stepHTML(s,i)).join('')+walkActions(st);
+}
+function stepHTML(s,i){
+  if(s.start)return`<div class="wstep start"><div class="wstep-head"><span class="wstep-num">0</span><span class="wstep-verdict plain">start</span><span class="wstep-time">${s.time}</span></div><div class="wstart-nodes">${s.startNodes}</div></div>`;
+  if(s.exhausted)return`<div class="wstep"><div class="wstep-verdict done">Path complete — terminal reached. Re-identify from the next two swings to continue.</div></div>`;
+  const tl=s.times.map((t,j)=>`<span class="wt ${j===0?'first':''}">${t.time}<span class="wt-via">${t.via}</span></span>`).join('');
+  const alt=s.alt?`<div class="walt">Other path: Algo ${s.alt.algo} → ${s.alt.node} @ ${s.alt.time} (later)</div>`:'';
+  return`<div class="wstep"><div class="wstep-head"><span class="wstep-num">${i}</span><span class="wstep-verdict">min travel · Algo ${s.algo}${s.algo===2?' rev':''}</span><span class="wstep-time">${s.time}</span></div><div class="wstep-node">${s.node}</div><div class="wt-label">all method times (MM first):</div><div class="wt-row">${tl}</div>${alt}</div>`;
+}
+function walkActions(st){
+  const last=st.steps[st.steps.length-1];
+  const done=last&&last.exhausted;
+  const hasHistory=st.history&&st.history.length>0;
+  return`<div class="wstep-actions">${done?`<button class="wbtn" disabled style="opacity:.5;">Complete</button>`:`<button class="wbtn primary" onclick="walkNext()">Next minimum →</button>`}${hasHistory?`<button class="wbtn" onclick="walkBack()">← Back</button>`:''}<button class="wbtn" onclick="walkReset()">Reset</button></div>`;
+}
+
+// =================== SECTION 2: WALK A PATH ===================
+// One algo at a time. Full path visual with confirmed/cursor/future nodes.
+// Reactions per node. Position indicator. Fed from Section 1 candidates.
+let s2w=null;
+// s2w = {
+//   algo: 1|2, confirmedOrder:[idx,...], reactions:{idx:'s'|'r'|'b'},
+//   cursorIdx: number|'done', from:{hh,mm}, history:[{cursorIdx,from,confirmedOrder,reactions}]
+// }
+let s2pendingReact=null; // reaction selected before advancing
+
+function s2getT(){return getT('s2h','s2n');}
+
+// Start from a candidate identified in Section 1
+function s2fromCand(i){
+  const c=walkCands[i];
+  if(!c)return;
+  const t=window.__wt2||{hh:7,mm:11};
+  s2w={
+    algo:c.algo,
+    confirmedOrder:[c.i1,c.i2],
+    reactions:{},
+    cursorIdx:null,
+    from:{hh:t.hh,mm:t.mm},
+    history:[]
+  };
+  // cursor = next after i2
+  s2w.cursorIdx=s2nextIdx(c.algo,c.i2);
+  s2pendingReact=null;
+  document.getElementById('s2-walk').scrollIntoView({behavior:'smooth',block:'start'});
+  s2wRender();
+}
+
+// Start manually from a time input + algo selection
+function s2manualStart(algo){
+  const t=s2getT();
+  const hit=nodeAt(t.hh,t.mm,algo);
+  if(!hit){
+    document.getElementById('s2-walk').innerHTML=`<div class="empty"><b>No node match.</b><br>${pad(t.hh)}:${pad(t.mm)} doesn't land on a node for Algo ${algo} within ±${TOL}. Try adjusting the time.</div>`;
+    return;
+  }
+  s2w={
+    algo,
+    confirmedOrder:[hit.idx],
+    reactions:{},
+    cursorIdx:s2nextIdx(algo,hit.idx),
+    from:{hh:t.hh,mm:t.mm},
+    history:[]
+  };
+  s2pendingReact=null;
+  s2wRender();
+}
+
+function s2nextIdx(algo,idx){
+  const arr=A[algo];
+  if(algo===1){return(arr[idx].term||idx>=arr.length-1)?'done':idx+1;}
+  else{return(arr[idx].term||idx<=0)?'done':idx-1;}
+}
+
+function s2pickReact(r){
+  s2pendingReact=s2pendingReact===r?null:r;
+  s2wRender();
+}
+
+function s2advance(){
+  if(!s2w||s2w.cursorIdx==='done')return;
+  // save pristine state before mutating, so Back restores exactly one step
+  s2w.history.push({cursorIdx:s2w.cursorIdx,from:{...s2w.from},confirmedOrder:[...s2w.confirmedOrder],reactions:{...s2w.reactions},pendingReact:s2pendingReact});
+  const idx=s2w.cursorIdx;
+  if(s2pendingReact)s2w.reactions[idx]=s2pendingReact;
+  if(!s2w.confirmedOrder.includes(idx))s2w.confirmedOrder.push(idx);
+  const nd=A[s2w.algo][idx];
+  const ts=solveTimes(nd.v,s2w.from);
+  if(ts.length){const[h,m]=ts[0].time.split(':').map(Number);s2w.from={hh:h,mm:m};}
+  s2w.cursorIdx=nd.term?'done':s2nextIdx(s2w.algo,idx);
+  s2pendingReact=null;
+  s2wRender();
+}
+
+function s2wBack(){
+  if(!s2w||!s2w.history.length)return;
+  const prev=s2w.history.pop();
+  s2w.cursorIdx=prev.cursorIdx;
+  s2w.from=prev.from;
+  s2w.confirmedOrder=[...prev.confirmedOrder];
+  s2w.reactions={...prev.reactions};
+  s2pendingReact=prev.pendingReact||null;
+  s2wRender();
+}
+
+function s2wReset(){s2w=null;s2pendingReact=null;document.getElementById('s2-walk').innerHTML='';}
+
+function s2wRender(){
+  const el=document.getElementById('s2-walk');
+  if(!el)return;
+  if(!s2w){el.innerHTML='';return;}
+  const algo=s2w.algo,arr=A[algo];
+  const flow=algo===1?'00 → terminal · forward':'terminal ← 00 · reverse';
+  const reactCl={s:'react-s',r:'react-r',b:'react-b'};
+
+  // path display
+  const orderedConf=[...new Set(s2w.confirmedOrder)];
+  const pathHTML=arr.map((nd,i)=>{
+    const isConf=orderedConf.includes(i);
+    const isCursor=i===s2w.cursorIdx;
+    const isFuture=!isConf&&!isCursor;
+    let cl='s2n';
+    if(nd.term)cl+=' term';
+    if(isConf){cl+=' conf';const r=s2w.reactions[i];if(r)cl+=' '+reactCl[r];}
+    else if(isCursor)cl+=' cursor';
+    else cl+=' future';
+    const oi=orderedConf.indexOf(i);
+    const badge=isConf&&oi>=0?`<span class="badge">${oi+1}</span>`:'';
+    const arr2=i>0?`<span class="s2arr">→</span>`:'';
+    return`${arr2}<span class="${cl}">${badge}${nd.l}</span>`;
+  }).join('');
+
+  // position
+  const total=arr.length;
+  const curPos=s2w.cursorIdx==='done'?total:(algo===1?s2w.cursorIdx+1:arr.length-s2w.cursorIdx);
+  const posStr=s2w.cursorIdx==='done'?`complete`:`node ${curPos} of ${total}`;
+
+  // next node panel
+  let nextHTML='';
+  if(s2w.cursorIdx==='done'){
+    nextHTML=`<div class="s2-next">
+      <div class="s2nx-top"><span class="s2nx-label">Path complete</span><span class="s2nx-pos">${posStr}</span></div>
+      <div class="s2nx-done">Terminal reached</div>
+      <div class="s2nx-donesub">If price continues, the next sequence starts fresh. Go back to Section 1 to identify the next path from your new swing.</div>
+    </div>`;
+  }else{
+    const nd=arr[s2w.cursorIdx];
+    const ts=solveTimes(nd.v,s2w.from);
+    const tlist=ts.length?ts.map((t,j)=>`<span class="s2t ${j===0?'first':''}">${t.time}<span class="s2t-via">${t.via}</span></span>`).join(''):`<span style="color:var(--ink3);font-size:13px;">No time in next 90 min</span>`;
+    const pr=s2pendingReact;
+    const rBtns=['s','r','b'].map(r=>{
+      const lbls={s:'held support',r:'held resistance',b:'broke through'};
+      const sel=pr===r?` sel-${r}`:'';
+      return`<div class="s2rb${sel}" onclick="s2pickReact('${r}')">${lbls[r]}</div>`;
+    }).join('');
+    nextHTML=`<div class="s2-next">
+      <div class="s2nx-top"><span class="s2nx-label">Next node — watching for</span><span class="s2nx-pos">${posStr}</span></div>
+      <div class="s2nx-node">${ts.length?labelForValue(nd,ts[0].val):nd.l}${nd.term?' <span style="font-size:14px;color:var(--ink3);">terminal</span>':''}</div>
+      <div class="s2nx-tlabel">All method times to watch (MM first):</div>
+      <div class="s2nx-times">${tlist}</div>
+      <div class="s2nx-rlabel">When it prints, how did price react at this level?</div>
+      <div class="s2nx-rbts">${rBtns}</div>
+    </div>`;
+  }
+
+  const canBack=s2w.history.length>0;
+  el.innerHTML=`<div class="s2-algo">
+    <div class="s2-algo-head">
+      <span class="s2-algo-name">Algo ${algo}${algo===2?' · reverse':''}</span>
+      <span class="s2-algo-flow">${flow}</span>
+      <button class="wbtn" onclick="s2wReset()" style="margin-left:auto;padding:5px 12px;font-size:11px;">Reset</button>
+    </div>
+    <div class="s2-path">${pathHTML}</div>
+    <div class="s2-legend">
+      <span><span class="lg-d s"></span>support</span>
+      <span><span class="lg-d r"></span>resistance</span>
+      <span><span class="lg-d b"></span>broke through</span>
+    </div>
+  </div>
+  ${nextHTML}
+  <div class="wstep-actions">
+    ${s2w.cursorIdx!=='done'?`<button class="wbtn primary" onclick="s2advance()">Advance →</button>`:`<button class="wbtn" disabled style="opacity:.4;">Complete</button>`}
+    ${canBack?`<button class="wbtn" onclick="s2wBack()">← Back</button>`:''}
+  </div>`;
+}
+
+// =================== CE WALK ===================
+let ceState=null;
+let ceHistory=[];
+function ceNodeAt(hh,mm,algoNum){
+  let best=null;
+  CEA[algoNum].forEach((node,i)=>{
+    const h=hitValues(hh,mm,node.ce);
+    if(h&&(best===null || (h.method.pri&&!best.h.method.pri) || (h.method.pri===best.h.method.pri&&h.d<best.h.d)))best={idx:i,node,h};
+  });
+  return best;
+}
+function ceNext(algoNum,idx,from){
+  const arr=CEA[algoNum];let ni;
+  if(algoNum===1){if(arr[idx].term||idx>=arr.length-1)return{done:true};ni=idx+1;}
+  else{if(arr[idx].term||idx<=0)return{done:true};ni=idx-1;}
+  return{done:false,ni,node:arr[ni],times:solveTimes(arr[ni].ce,from)};
+}
+function ceStart(){
+  const t=getT('eh','en');
+  const a1=ceNodeAt(t.hh,t.mm,1),a2=ceNodeAt(t.hh,t.mm,2);
+  const out=document.getElementById('ce-out');
+  if(!a1&&!a2){out.innerHTML=`<div class="empty"><b>No CE match.</b><br><br>${pad(t.hh)}:${pad(t.mm)} doesn't land on a CE alternate in either algo within ±${TOL}.</div>`;ceState=null;return;}
+  ceState={a1idx:a1?a1.idx:null,a2idx:a2?a2.idx:null,from:{hh:t.hh,mm:t.mm},steps:[{start:true,time:pad(t.hh)+':'+pad(t.mm),startNodes:[a1?`A1 CE ${a1.node.l}`:null,a2?`A2 CE ${a2.node.l}`:null].filter(Boolean).join(' · ')}]};
+  ceHistory=[];
+  ceRender();
+}
+function ceBack(){
+  if(!ceHistory.length)return;
+  const prev=ceHistory.pop();
+  ceState.a1idx=prev.a1idx;ceState.a2idx=prev.a2idx;ceState.from=prev.from;
+  ceState.steps.splice(prev.stepsLen);
+  ceRender();
+}
+function ceMin(){
+  const c=[];
+  if(ceState.a1idx!==null){const n=ceNext(1,ceState.a1idx,ceState.from);if(!n.done&&n.times.length)c.push({algo:1,ni:n.ni,node:n.node,times:n.times,time:n.times[0].time,step:n.times[0].step});else if(n.done)c.push({algo:1,done:true});}
+  if(ceState.a2idx!==null){const n=ceNext(2,ceState.a2idx,ceState.from);if(!n.done&&n.times.length)c.push({algo:2,ni:n.ni,node:n.node,times:n.times[0].time,step:n.times[0].step});else if(n.done)c.push({algo:2,done:true});}
+  const live=c.filter(x=>!x.done&&x.time);
+  if(!live.length)return{exhausted:true};
+  live.sort(minByStep);
+  return{pick:live[0],alt:live[1]||null};
+}
+function ceStep(){
+  const mt=ceMin();
+  if(mt.exhausted){ceHistory.push({a1idx:ceState.a1idx,a2idx:ceState.a2idx,from:{...ceState.from},stepsLen:ceState.steps.length});ceState.steps.push({exhausted:true});ceRender();return;}
+  const p=mt.pick;
+  ceHistory.push({a1idx:ceState.a1idx,a2idx:ceState.a2idx,from:{...ceState.from},stepsLen:ceState.steps.length});
+  if(p.algo===1)ceState.a1idx=p.ni;else ceState.a2idx=p.ni;
+  const[h,m]=p.time.split(':').map(Number);ceState.from={hh:h,mm:m};
+  ceState.steps.push({algo:p.algo,node:p.node.l,gb:p.node.gb,times:p.times,time:p.time,alt:mt.alt?{algo:mt.alt.algo,node:mt.alt.node.l,time:mt.alt.time}:null});
+  const reached=p.algo===1?ceState.a1idx:ceState.a2idx;
+  if(CEA[p.algo][reached].term){if(p.algo===1)ceState.a1idx=null;else ceState.a2idx=null;}
+  ceRender();
+}
+function ceReset(){ceState=null;document.getElementById('ce-out').innerHTML='';}
+function ceRender(){
+  const out=document.getElementById('ce-out');
+  let html=ceState.steps.map((s,i)=>{
+    if(s.start)return`<div class="wstep start"><div class="wstep-head"><span class="wstep-num">0</span><span class="wstep-verdict plain">start CE</span><span class="wstep-time">${s.time}</span></div><div class="wstart-nodes">${s.startNodes}</div></div>`;
+    if(s.exhausted)return`<div class="wstep"><div class="wstep-verdict done">Both CE chains complete.</div></div>`;
+    const tl=s.times.map((t,j)=>`<span class="wt ${j===0?'first':''}">${t.time}<span class="wt-via">${t.via}</span></span>`).join('');
+    const alt=s.alt?`<div class="walt">Other CE: Algo ${s.alt.algo} → ${s.alt.node} @ ${s.alt.time} (later)</div>`:'';
+    return`<div class="wstep"><div class="wstep-head"><span class="wstep-num">${i}</span><span class="wstep-verdict">min CE · Algo ${s.algo}${s.algo===2?' rev':''}</span><span class="wstep-time">${s.time}</span></div><div class="wstep-node">CE ${s.node} <span class="gb">(GB ${s.gb})</span></div><div class="wt-label">all method times (MM first):</div><div class="wt-row">${tl}</div>${alt}</div>`;
+  }).join('');
+  const last=ceState.steps[ceState.steps.length-1];
+  const done=last&&last.exhausted;
+  html+=`<div class="wstep-actions">${done?`<button class="wbtn" disabled style="opacity:.5;">Complete</button>`:`<button class="wbtn primary" onclick="ceStep()">Next CE →</button>`}${ceHistory.length?`<button class="wbtn" onclick="ceBack()">← Back</button>`:''}<button class="wbtn" onclick="ceReset()">Reset</button></div>`;
+  out.innerHTML=html;
+}
+</script>
+</body>
+</html>

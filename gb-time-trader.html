@@ -1,0 +1,2174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>GB-Time Trader</title>
+<style>
+:root{
+  --bg:#0d0f0e; --panel:#16181a; --panel2:#1c1f21; --panel3:#232729;
+  --line:#2a2e31; --line2:#363b3e;
+  --ink:#e8e6e1; --ink2:#9aa0a3; --ink3:#666d71; --ink4:#464d51;
+  --gold:#d4a13a; --gold-dim:#4a3a17; --gold-bg:#241d0d; --gold-tx:#e8bd58;
+  --slate:#7d8b96; --slate-bg:#1a2126; --slate-dim:#2f3d47;
+  --graph:#8a8f93; --graph-bg:#1f2224;
+  --green:#5aa86a; --green-bg:#152018; --green-dim:#2c4a34; --green-tx:#77c489;
+  --red:#d65a4a; --red-bg:#221312; --red-dim:#4d2620; --red-tx:#e5806f;
+  --amber:#c98b3a; --amber-bg:#231a0f;
+  --mono:ui-monospace,"SF Mono",Menlo,Consolas,"Roboto Mono",monospace;
+  --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+html,body{margin:0;padding:0;}
+body{
+  background:var(--bg); color:var(--ink); font-family:var(--sans);
+  font-size:14px; line-height:1.45; padding-bottom:60px;
+  -webkit-font-smoothing:antialiased;
+}
+.mono{font-family:var(--mono);}
+.wrap{max-width:1180px;margin:0 auto;padding:0 16px;}
+
+/* ---------- header ---------- */
+header{
+  position:sticky;top:0;z-index:60;background:rgba(13,15,14,.94);
+  backdrop-filter:blur(12px);border-bottom:1px solid var(--line);
+}
+.hrow{display:flex;align-items:center;gap:14px;padding:9px 0;flex-wrap:wrap;}
+.brand{font-weight:700;font-size:14px;letter-spacing:.5px;white-space:nowrap;}
+.brand span{color:var(--gold);}
+.hclock{
+  font-family:var(--mono);font-size:19px;font-weight:700;color:var(--gold-tx);
+  letter-spacing:1px;font-variant-numeric:tabular-nums;
+}
+.hclock .sec{font-size:12px;color:var(--ink3);font-weight:500;}
+.htz{font-size:10px;color:var(--ink3);text-transform:uppercase;letter-spacing:.7px;}
+.hkz{
+  font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;
+  padding:3px 9px;border-radius:20px;border:1px solid var(--line2);color:var(--ink2);
+  white-space:nowrap;
+}
+.hkz.live{background:var(--gold-bg);border-color:var(--gold-dim);color:var(--gold-tx);}
+.hspacer{flex:1;}
+.hbtn{
+  background:var(--panel2);border:1px solid var(--line2);color:var(--ink2);
+  font-size:11px;font-weight:600;padding:5px 11px;border-radius:7px;cursor:pointer;
+  font-family:var(--sans);white-space:nowrap;
+}
+.hbtn:hover{border-color:var(--ink4);color:var(--ink);}
+.hbtn.on{background:var(--gold-bg);border-color:var(--gold-dim);color:var(--gold-tx);}
+
+/* ---------- tabs ---------- */
+nav{display:flex;gap:2px;overflow-x:auto;border-bottom:1px solid var(--line);scrollbar-width:none;}
+nav::-webkit-scrollbar{display:none;}
+.tab{
+  background:none;border:none;border-bottom:2px solid transparent;color:var(--ink3);
+  font-family:var(--sans);font-size:12px;font-weight:600;padding:10px 14px;
+  cursor:pointer;white-space:nowrap;letter-spacing:.3px;
+}
+.tab:hover{color:var(--ink2);}
+.tab.active{color:var(--gold-tx);border-bottom-color:var(--gold);}
+.panel{display:none;padding:18px 0 40px;}
+.panel.active{display:block;}
+
+/* ---------- generic blocks ---------- */
+.card{background:var(--panel);border:1px solid var(--line);border-radius:11px;padding:15px;margin-bottom:13px;}
+.card.tight{padding:12px;}
+.card-h{
+  font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1.1px;
+  color:var(--ink3);margin-bottom:11px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;
+}
+.card-h .hint{text-transform:none;letter-spacing:0;font-weight:500;color:var(--ink4);font-size:10px;}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:13px;}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;}
+@media(max-width:860px){.grid2,.grid3{grid-template-columns:1fr;}}
+.empty{
+  color:var(--ink3);font-size:13px;text-align:center;padding:26px 16px;
+  border:1px dashed var(--line2);border-radius:10px;line-height:1.7;
+}
+.empty b{color:var(--ink2);}
+.note{font-size:11px;color:var(--ink3);line-height:1.6;}
+.sep{height:1px;background:var(--line);margin:13px 0;}
+
+/* ---------- inputs ---------- */
+.field{margin-bottom:11px;}
+.flabel{
+  font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.9px;
+  color:var(--ink3);margin-bottom:5px;display:block;
+}
+.timein{display:flex;align-items:center;gap:5px;}
+.timein input{
+  width:58px;background:var(--panel3);border:1px solid var(--line2);color:var(--ink);
+  font-family:var(--mono);font-size:19px;font-weight:700;text-align:center;
+  padding:7px 4px;border-radius:8px;outline:none;
+}
+.timein input:focus{border-color:var(--gold-dim);}
+.timein .colon{font-family:var(--mono);font-size:19px;color:var(--ink3);font-weight:700;}
+input[type=text],input[type=number],select,textarea{
+  background:var(--panel3);border:1px solid var(--line2);color:var(--ink);
+  font-family:var(--sans);font-size:13px;padding:7px 9px;border-radius:8px;
+  outline:none;width:100%;
+}
+input.mono,select.mono{font-family:var(--mono);}
+input:focus,select:focus,textarea:focus{border-color:var(--gold-dim);}
+textarea{resize:vertical;min-height:60px;line-height:1.5;}
+.btn{
+  background:var(--panel3);border:1px solid var(--line2);color:var(--ink2);
+  font-family:var(--sans);font-size:12px;font-weight:600;padding:8px 15px;
+  border-radius:8px;cursor:pointer;
+}
+.btn:hover{border-color:var(--ink4);color:var(--ink);}
+.btn.primary{background:var(--gold-bg);border-color:var(--gold-dim);color:var(--gold-tx);}
+.btn.primary:hover{background:#2e2410;}
+.btn.wide{width:100%;}
+.btn:disabled{opacity:.4;cursor:default;}
+.btn-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;}
+.mini{
+  background:var(--panel3);border:1px solid var(--line2);color:var(--ink3);
+  font-size:10px;font-weight:600;padding:4px 9px;border-radius:6px;cursor:pointer;
+  font-family:var(--sans);
+}
+.mini:hover{color:var(--ink);border-color:var(--ink4);}
+.mini.on{background:var(--gold-bg);border-color:var(--gold-dim);color:var(--gold-tx);}
+.dir-btn{
+  background:var(--panel3);border:1px solid var(--line2);color:var(--ink3);
+  font-size:11px;font-weight:600;padding:6px 11px;border-radius:7px;cursor:pointer;
+  font-family:var(--mono);
+}
+.dir-btn.active{background:var(--slate-bg);border-color:var(--slate-dim);color:var(--ink);}
+.seg{display:inline-flex;background:var(--panel3);border:1px solid var(--line2);border-radius:8px;overflow:hidden;}
+.seg button{
+  background:none;border:none;color:var(--ink3);font-family:var(--sans);font-size:11px;
+  font-weight:600;padding:6px 13px;cursor:pointer;
+}
+.seg button.active{background:var(--gold-bg);color:var(--gold-tx);}
+.chk{display:flex;align-items:center;gap:7px;font-size:12px;color:var(--ink2);cursor:pointer;user-select:none;}
+.chk input{width:auto;}
+
+/* ---------- LIVE tab ---------- */
+.livegrid{display:grid;grid-template-columns:1.15fr 1fr;gap:13px;}
+@media(max-width:900px){.livegrid{grid-template-columns:1fr;}}
+.nowbox{
+  background:linear-gradient(160deg,var(--panel2),var(--panel));
+  border:1px solid var(--line2);border-radius:13px;padding:17px;text-align:center;
+}
+.nowclock{
+  font-family:var(--mono);font-size:52px;font-weight:700;letter-spacing:2px;
+  color:var(--ink);line-height:1;font-variant-numeric:tabular-nums;
+}
+.nowclock .s{font-size:22px;color:var(--ink3);}
+.nowsub{font-size:10px;color:var(--ink3);text-transform:uppercase;letter-spacing:1.3px;margin-top:6px;}
+.nowstate{
+  margin-top:13px;padding:9px 13px;border-radius:9px;font-size:13px;font-weight:700;
+  border:1px solid var(--line2);background:var(--panel3);color:var(--ink2);
+}
+.nowstate.onnode{background:var(--gold-bg);border-color:var(--gold-dim);color:var(--gold-tx);}
+.nowstate .ns-sub{display:block;font-size:11px;font-weight:500;color:var(--ink3);margin-top:3px;}
+
+.mrow{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:13px;}
+.mcell{background:var(--panel3);border:1px solid var(--line);border-radius:9px;padding:9px 7px;}
+.mcell.hit{border-color:var(--gold-dim);background:var(--gold-bg);}
+.mcell.pri .mc-n{color:var(--gold-tx);}
+.mc-n{font-size:9px;font-weight:700;color:var(--ink3);text-transform:uppercase;letter-spacing:.7px;font-family:var(--mono);}
+.mc-v{font-family:var(--mono);font-size:22px;font-weight:700;color:var(--ink);margin:2px 0;}
+.mc-h{font-size:9px;color:var(--ink3);font-family:var(--mono);min-height:12px;}
+.mcell.hit .mc-h{color:var(--gold-tx);}
+
+.ntimer{
+  background:var(--panel);border:1px solid var(--line2);border-radius:13px;padding:17px;
+}
+.nt-lab{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1.1px;color:var(--ink3);}
+.nt-node{font-family:var(--mono);font-size:34px;font-weight:700;color:var(--gold-tx);line-height:1.15;margin:5px 0 2px;}
+.nt-at{font-family:var(--mono);font-size:14px;color:var(--ink2);}
+.nt-cd{
+  font-family:var(--mono);font-size:42px;font-weight:700;color:var(--ink);
+  font-variant-numeric:tabular-nums;line-height:1;margin:11px 0 3px;
+}
+.nt-cd.soon{color:var(--amber);}
+.nt-cd.due{color:var(--gold-tx);}
+.nt-cdl{font-size:10px;color:var(--ink3);text-transform:uppercase;letter-spacing:1.1px;}
+.nt-meta{margin-top:11px;padding-top:11px;border-top:1px solid var(--line);font-size:11px;color:var(--ink3);line-height:1.7;}
+.nt-meta b{color:var(--ink2);}
+
+.qbadge{
+  display:inline-block;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;
+  padding:2px 7px;border-radius:5px;vertical-align:middle;
+}
+.q-strong{background:var(--gold-bg);color:var(--gold-tx);border:1px solid var(--gold-dim);}
+.q-medium{background:var(--slate-bg);color:var(--slate);border:1px solid var(--slate-dim);}
+.q-weak{background:var(--graph-bg);color:var(--ink3);border:1px solid var(--line2);}
+
+.uplist{display:flex;flex-direction:column;gap:6px;}
+.uprow{
+  display:flex;align-items:center;gap:10px;background:var(--panel2);
+  border:1px solid var(--line);border-radius:9px;padding:9px 11px;
+}
+.uprow.next{border-color:var(--gold-dim);background:var(--gold-bg);}
+.up-t{font-family:var(--mono);font-size:15px;font-weight:700;color:var(--ink);min-width:52px;}
+.uprow.next .up-t{color:var(--gold-tx);}
+.up-n{font-family:var(--mono);font-size:13px;color:var(--ink2);flex:1;}
+.up-a{font-size:9px;font-family:var(--mono);color:var(--ink3);}
+.up-in{font-family:var(--mono);font-size:11px;color:var(--ink3);min-width:44px;text-align:right;}
+
+/* ---------- path / verdict ---------- */
+.verdict{border-radius:11px;padding:14px 15px;margin-bottom:12px;border:1px solid var(--line2);background:var(--panel2);}
+.verdict.agree{background:var(--gold-bg);border-color:var(--gold-dim);}
+.verdict.conflict{background:var(--panel2);border-color:var(--line2);}
+.verdict.partial{background:var(--slate-bg);border-color:var(--slate-dim);}
+.v-tag{
+  display:flex;align-items:center;gap:6px;font-size:10px;font-weight:700;
+  text-transform:uppercase;letter-spacing:1px;color:var(--ink3);margin-bottom:7px;
+}
+.v-dot{width:6px;height:6px;border-radius:50%;background:var(--ink3);}
+.v-dot.agree{background:var(--gold);}
+.v-dot.partial{background:var(--slate);}
+.v-dot.conflict{background:var(--graph);}
+.v-head{font-size:16px;font-weight:700;color:var(--ink);line-height:1.35;}
+.v-level{font-family:var(--mono);color:var(--gold-tx);}
+.v-sub{font-size:12px;color:var(--ink3);margin-top:5px;line-height:1.55;}
+
+.confmeter{display:flex;align-items:center;gap:9px;margin-top:10px;}
+.cm-bar{flex:1;height:5px;background:var(--panel3);border-radius:3px;overflow:hidden;}
+.cm-fill{height:100%;background:var(--gold);border-radius:3px;transition:width .3s;}
+.cm-txt{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--gold-tx);min-width:52px;text-align:right;}
+
+.scoregrid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:11px;}
+.scard{background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:12px;}
+.scard.win{border-color:var(--gold-dim);background:var(--gold-bg);}
+.sc-h{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.9px;color:var(--ink3);}
+.sc-v{font-family:var(--mono);font-size:28px;font-weight:700;color:var(--ink);line-height:1.1;}
+.scard.win .sc-v{color:var(--gold-tx);}
+.sc-m{font-size:10px;color:var(--ink3);margin-top:3px;font-family:var(--mono);}
+
+.swingrow{
+  display:flex;align-items:center;gap:8px;background:var(--panel2);border:1px solid var(--line);
+  border-radius:9px;padding:8px 10px;margin-bottom:7px;flex-wrap:wrap;
+}
+.sw-i{font-family:var(--mono);font-size:11px;color:var(--ink3);min-width:18px;}
+.sw-map{font-family:var(--mono);font-size:11px;color:var(--ink3);flex:1;min-width:150px;}
+.sw-map b{color:var(--ink2);}
+.sw-x{background:none;border:none;color:var(--ink4);font-size:16px;cursor:pointer;padding:0 4px;line-height:1;}
+.sw-x:hover{color:var(--red-tx);}
+
+.steplist{display:flex;flex-direction:column;gap:5px;margin-top:10px;}
+.steprow{
+  display:grid;grid-template-columns:1fr auto auto;gap:9px;align-items:center;
+  background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:7px 10px;
+  font-family:var(--mono);font-size:11px;
+}
+.st-n{color:var(--ink2);}
+.st-s{font-weight:700;min-width:60px;text-align:right;}
+.st-ok{color:var(--gold-tx);}
+.st-bad{color:var(--ink4);}
+
+/* ---------- walk ---------- */
+.floor{
+  background:var(--gold-bg);border:1px solid var(--gold-dim);border-radius:11px;
+  padding:14px 15px;margin-bottom:12px;
+}
+.floor-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--gold);margin-bottom:7px;}
+.floor-main{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;}
+.floor-node{font-family:var(--mono);font-size:26px;font-weight:700;color:var(--gold-tx);}
+.floor-at{font-family:var(--mono);font-size:14px;color:var(--ink2);}
+.floor-via{font-family:var(--mono);font-size:11px;color:var(--ink3);}
+.floor-sub{font-size:12px;color:var(--ink3);margin-top:6px;line-height:1.55;}
+
+.compare{display:grid;grid-template-columns:1fr 1fr;gap:11px;margin-top:12px;}
+@media(max-width:700px){.compare{grid-template-columns:1fr;}}
+.acol{background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:13px;}
+.acol-head{font-size:11px;font-weight:700;color:var(--ink2);letter-spacing:.5px;}
+.acol-flow{font-family:var(--mono);font-size:9px;color:var(--ink4);margin-bottom:9px;}
+.acol-label{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.9px;color:var(--ink3);margin-top:9px;}
+.acol-node{font-family:var(--mono);font-size:18px;font-weight:700;color:var(--ink);}
+.acol-via{font-family:var(--mono);font-size:10px;color:var(--ink3);margin-top:2px;}
+.acol-none{font-size:12px;color:var(--ink4);font-style:italic;}
+.acol-times{display:flex;flex-direction:column;gap:3px;margin-top:5px;}
+.acol-time{font-family:var(--mono);font-size:12px;color:var(--ink2);}
+.acol-time .mv{color:var(--ink4);font-size:9px;margin-left:6px;}
+
+.wstep{background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:12px 13px;margin-bottom:8px;}
+.wstep.start{border-style:dashed;}
+.wstep-head{display:flex;align-items:center;gap:9px;margin-bottom:6px;flex-wrap:wrap;}
+.wstep-num{
+  font-family:var(--mono);font-size:10px;font-weight:700;background:var(--panel3);
+  color:var(--ink3);width:19px;height:19px;border-radius:50%;display:flex;
+  align-items:center;justify-content:center;
+}
+.wstep-verdict{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.9px;color:var(--gold);}
+.wstep-verdict.plain{color:var(--ink3);}
+.wstep-verdict.done{color:var(--ink2);text-transform:none;letter-spacing:0;font-size:12px;font-weight:600;}
+.wstep-time{margin-left:auto;font-family:var(--mono);font-size:14px;font-weight:700;color:var(--ink);}
+.wstep-node{font-family:var(--mono);font-size:19px;font-weight:700;color:var(--gold-tx);margin-bottom:7px;}
+.wstart-nodes{font-family:var(--mono);font-size:13px;color:var(--ink2);}
+.wt-label{font-size:9px;text-transform:uppercase;letter-spacing:.8px;color:var(--ink4);margin-bottom:4px;}
+.wt-row{display:flex;flex-wrap:wrap;gap:5px;}
+.wt{
+  font-family:var(--mono);font-size:11px;background:var(--panel3);border:1px solid var(--line);
+  border-radius:6px;padding:3px 7px;color:var(--ink2);
+}
+.wt.first{border-color:var(--gold-dim);background:var(--gold-bg);color:var(--gold-tx);}
+.wt-via{color:var(--ink4);font-size:9px;margin-left:5px;}
+.wt.first .wt-via{color:var(--gold);}
+.walt{font-size:11px;color:var(--ink4);margin-top:7px;font-family:var(--mono);}
+.wstep-actions{display:flex;gap:8px;margin:11px 0;flex-wrap:wrap;}
+.wbtn{
+  background:var(--panel3);border:1px solid var(--line2);color:var(--ink2);
+  font-family:var(--sans);font-size:12px;font-weight:600;padding:8px 15px;
+  border-radius:8px;cursor:pointer;
+}
+.wbtn:hover{border-color:var(--ink4);color:var(--ink);}
+.wbtn.primary{background:var(--gold-bg);border-color:var(--gold-dim);color:var(--gold-tx);}
+
+.pathid{margin-bottom:12px;}
+.pathid-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--ink3);margin-bottom:8px;}
+.cand{background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:12px;margin-bottom:8px;cursor:pointer;}
+.cand:hover{border-color:var(--line2);}
+.cand.active{border-color:var(--gold-dim);background:var(--gold-bg);}
+.cand-top{display:flex;align-items:center;gap:9px;margin-bottom:5px;}
+.cand-algo{font-size:12px;font-weight:700;color:var(--ink);}
+.cand-conf{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.7px;padding:2px 7px;border-radius:5px;}
+.cand-conf.ok{background:var(--gold-bg);color:var(--gold-tx);border:1px solid var(--gold-dim);}
+.cand-conf.skip{background:var(--graph-bg);color:var(--ink3);border:1px solid var(--line2);}
+.cand-nodes{font-family:var(--mono);font-size:12px;color:var(--ink2);}
+.cand-go{font-size:11px;font-weight:600;color:var(--gold-tx);}
+
+.s2-algo{background:var(--panel2);border:1px solid var(--line);border-radius:11px;padding:14px;margin-bottom:11px;}
+.s2-algo-head{display:flex;align-items:center;gap:11px;margin-bottom:11px;flex-wrap:wrap;}
+.s2-algo-name{font-size:13px;font-weight:700;color:var(--ink);}
+.s2-algo-flow{font-family:var(--mono);font-size:10px;color:var(--ink4);}
+.s2-path{display:flex;flex-wrap:wrap;align-items:center;gap:4px;}
+.s2n{
+  font-family:var(--mono);font-size:12px;font-weight:700;padding:6px 10px;border-radius:7px;
+  border:1px solid var(--line);background:var(--panel3);color:var(--ink3);position:relative;
+}
+.s2n.future{opacity:.42;}
+.s2n.cursor{border-color:var(--gold);background:var(--gold-bg);color:var(--gold-tx);box-shadow:0 0 0 2px rgba(212,161,58,.16);}
+.s2n.conf{border-color:var(--line2);background:var(--panel3);color:var(--ink2);}
+.s2n.react-s{border-color:var(--green-dim);background:var(--green-bg);color:var(--green-tx);}
+.s2n.react-r{border-color:var(--red-dim);background:var(--red-bg);color:var(--red-tx);}
+.s2n.react-b{color:var(--ink4);text-decoration:line-through;}
+.s2n.term::after{content:'⊣';margin-left:4px;color:var(--ink4);font-size:10px;}
+.s2n .badge{
+  position:absolute;top:-6px;left:-6px;background:var(--panel);border:1px solid var(--line2);
+  color:var(--ink3);font-size:8px;width:15px;height:15px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;font-weight:700;
+}
+.s2arr{color:var(--ink4);font-size:11px;}
+.s2-legend{display:flex;gap:13px;margin-top:10px;font-size:10px;color:var(--ink4);flex-wrap:wrap;}
+.lg-d{width:7px;height:7px;border-radius:50%;display:inline-block;margin-right:4px;}
+.lg-d.s{background:var(--green);}
+.lg-d.r{background:var(--red);}
+.lg-d.b{background:var(--ink4);}
+.s2-next{background:var(--panel2);border:1px solid var(--line2);border-radius:11px;padding:14px;}
+.s2nx-top{display:flex;align-items:center;gap:10px;margin-bottom:7px;flex-wrap:wrap;}
+.s2nx-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--ink3);}
+.s2nx-pos{margin-left:auto;font-family:var(--mono);font-size:10px;color:var(--ink4);}
+.s2nx-node{font-family:var(--mono);font-size:28px;font-weight:700;color:var(--gold-tx);line-height:1.15;}
+.s2nx-done{font-family:var(--mono);font-size:22px;font-weight:700;color:var(--ink2);}
+.s2nx-donesub{font-size:12px;color:var(--ink3);margin-top:5px;line-height:1.55;}
+.s2nx-tlabel,.s2nx-rlabel{font-size:9px;text-transform:uppercase;letter-spacing:.8px;color:var(--ink4);margin:10px 0 5px;}
+.s2nx-times{display:flex;flex-wrap:wrap;gap:5px;}
+.s2t{font-family:var(--mono);font-size:12px;background:var(--panel3);border:1px solid var(--line);border-radius:6px;padding:4px 8px;color:var(--ink2);}
+.s2t.first{border-color:var(--gold-dim);background:var(--gold-bg);color:var(--gold-tx);}
+.s2t-via{color:var(--ink4);font-size:9px;margin-left:5px;}
+.s2nx-rbts{display:flex;gap:7px;flex-wrap:wrap;}
+.s2rb{
+  font-size:11px;font-weight:600;padding:7px 12px;border-radius:8px;cursor:pointer;
+  border:1px solid var(--line2);background:var(--panel3);color:var(--ink3);
+}
+.s2rb:hover{color:var(--ink2);}
+.s2rb.sel-s{background:var(--green-bg);border-color:var(--green-dim);color:var(--green-tx);}
+.s2rb.sel-r{background:var(--red-bg);border-color:var(--red-dim);color:var(--red-tx);}
+.s2rb.sel-b{background:var(--panel);border-color:var(--line2);color:var(--ink2);}
+
+.reads-toggle{
+  background:none;border:1px dashed var(--line2);color:var(--ink3);font-size:10px;
+  padding:6px 11px;border-radius:7px;cursor:pointer;font-family:var(--sans);
+  text-transform:uppercase;letter-spacing:.8px;font-weight:600;
+}
+.reads-box{display:none;margin-top:10px;}
+.reads-box.show{display:block;}
+.reads-swing-cap{font-family:var(--mono);font-size:11px;color:var(--ink3);margin:9px 0 5px;}
+.method-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;}
+@media(max-width:640px){.method-grid{grid-template-columns:1fr;}}
+.method-card{background:var(--panel2);border:1px solid var(--line);border-radius:9px;padding:9px;}
+.method-card.has{border-color:var(--line2);}
+.mc-top{display:flex;justify-content:space-between;align-items:baseline;}
+.mc-name{font-family:var(--mono);font-size:10px;color:var(--ink3);font-weight:700;}
+.mc-pri{color:var(--gold);}
+.mc-val{font-family:var(--mono);font-size:17px;font-weight:700;color:var(--ink);}
+.mc-nodes{margin-top:5px;display:flex;flex-wrap:wrap;gap:4px;}
+.mn{font-family:var(--mono);font-size:9px;background:var(--gold-bg);border:1px solid var(--gold-dim);color:var(--gold-tx);padding:2px 6px;border-radius:5px;}
+.mn-none{font-size:10px;color:var(--ink4);font-style:italic;}
+.gb{color:var(--ink4);font-size:12px;}
+
+/* ---------- checklist / trade ---------- */
+.ck{
+  display:flex;align-items:flex-start;gap:10px;padding:10px 11px;border-radius:9px;
+  border:1px solid var(--line);background:var(--panel2);margin-bottom:6px;cursor:pointer;
+}
+.ck:hover{border-color:var(--line2);}
+.ck.on{border-color:var(--gold-dim);background:var(--gold-bg);}
+/* an unmet requirement is the warning state — a met one is simply satisfied */
+.ck.veto:not(.on){border-left:3px solid var(--red-dim);}
+.ck-box{
+  width:17px;height:17px;border-radius:5px;border:1px solid var(--line2);flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;font-size:11px;color:transparent;margin-top:1px;
+}
+.ck.on .ck-box{background:var(--gold);border-color:var(--gold);color:#12100a;}
+.ck-t{font-size:12.5px;font-weight:600;color:var(--ink2);line-height:1.4;}
+.ck.on .ck-t{color:var(--ink);}
+.ck-d{font-size:10.5px;color:var(--ink4);margin-top:2px;line-height:1.45;}
+.ck-w{margin-left:auto;font-family:var(--mono);font-size:10px;color:var(--ink4);flex-shrink:0;padding-top:2px;}
+
+.gradebox{border-radius:12px;padding:16px;text-align:center;border:1px solid var(--line2);background:var(--panel2);}
+.gradebox.a{background:var(--gold-bg);border-color:var(--gold-dim);}
+.gradebox.no{background:var(--red-bg);border-color:var(--red-dim);}
+.gr-l{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1.2px;color:var(--ink3);}
+.gr-v{font-family:var(--mono);font-size:44px;font-weight:700;line-height:1.05;color:var(--ink);}
+.gradebox.a .gr-v{color:var(--gold-tx);}
+.gradebox.no .gr-v{color:var(--red-tx);}
+.gr-s{font-size:12px;color:var(--ink3);margin-top:5px;line-height:1.5;}
+.gr-bar{height:7px;background:var(--panel3);border-radius:4px;overflow:hidden;margin:11px 0 4px;}
+.gr-fill{height:100%;background:var(--gold);transition:width .3s;}
+
+.calcrow{display:flex;justify-content:space-between;align-items:baseline;padding:8px 0;border-bottom:1px solid var(--line);}
+.calcrow:last-child{border-bottom:none;}
+.calc-l{font-size:12px;color:var(--ink3);}
+.calc-v{font-family:var(--mono);font-size:16px;font-weight:700;color:var(--ink);}
+.calc-v.big{font-size:24px;color:var(--gold-tx);}
+
+/* ---------- journal ---------- */
+.stat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:9px;}
+@media(max-width:760px){.stat-grid{grid-template-columns:repeat(2,1fr);}}
+.stat{background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:11px;}
+.stat-l{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.9px;color:var(--ink3);}
+.stat-v{font-family:var(--mono);font-size:24px;font-weight:700;color:var(--ink);line-height:1.2;}
+.stat-v.good{color:var(--green-tx);}
+.stat-v.bad{color:var(--red-tx);}
+.stat-s{font-size:10px;color:var(--ink4);font-family:var(--mono);}
+.tbl{width:100%;border-collapse:collapse;font-size:11.5px;}
+.tbl th{
+  text-align:left;font-size:9px;text-transform:uppercase;letter-spacing:.8px;color:var(--ink4);
+  font-weight:700;padding:7px 8px;border-bottom:1px solid var(--line2);white-space:nowrap;
+}
+.tbl td{padding:8px;border-bottom:1px solid var(--line);color:var(--ink2);font-family:var(--mono);white-space:nowrap;}
+.tbl tr:hover td{background:var(--panel2);}
+.tw{color:var(--green-tx);font-weight:700;}
+.tl{color:var(--red-tx);font-weight:700;}
+.tb{color:var(--ink3);font-weight:700;}
+.tbl-scroll{overflow-x:auto;}
+.bkt{display:flex;flex-direction:column;gap:5px;}
+.bktrow{display:grid;grid-template-columns:88px 1fr 76px;gap:9px;align-items:center;font-size:11px;}
+.bkt-l{font-family:var(--mono);color:var(--ink2);overflow:hidden;text-overflow:ellipsis;}
+.bkt-bar{height:15px;background:var(--panel3);border-radius:4px;overflow:hidden;}
+.bkt-f{height:100%;background:var(--green);}
+.bkt-f.lowwr{background:var(--red);}
+.bkt-f.midwr{background:var(--amber);}
+.bkt-n{font-family:var(--mono);color:var(--ink3);text-align:right;font-size:10px;}
+
+/* ---------- toast / banner ---------- */
+#toast{
+  position:fixed;left:50%;bottom:22px;transform:translateX(-50%) translateY(120%);
+  background:var(--panel3);border:1px solid var(--gold-dim);color:var(--gold-tx);
+  padding:11px 19px;border-radius:11px;font-size:13px;font-weight:600;z-index:200;
+  transition:transform .28s;box-shadow:0 8px 26px rgba(0,0,0,.55);max-width:90vw;text-align:center;
+}
+#toast.show{transform:translateX(-50%) translateY(0);}
+.alertbanner{
+  background:var(--gold-bg);border:1px solid var(--gold);border-radius:11px;padding:12px 15px;
+  margin-bottom:13px;display:flex;align-items:center;gap:11px;flex-wrap:wrap;
+}
+.ab-t{font-size:14px;font-weight:700;color:var(--gold-tx);flex:1;}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap">
+    <div class="hrow">
+      <div class="brand">GB<span>·</span>TIME TRADER</div>
+      <div>
+        <div class="hclock" id="hclock">--:--<span class="sec" id="hsec">:--</span></div>
+        <div class="htz">Europe/Zurich</div>
+      </div>
+      <div class="hkz" id="hkz">—</div>
+      <div class="hspacer"></div>
+      <button class="hbtn" id="alertBtn" onclick="toggleAlerts()">🔔 Alerts off</button>
+      <button class="hbtn" onclick="setTab('set')">⚙</button>
+    </div>
+    <nav>
+      <button class="tab active" id="tab-live" onclick="setTab('live')">LIVE</button>
+      <button class="tab" id="tab-path" onclick="setTab('path')">PATH ID</button>
+      <button class="tab" id="tab-conf" onclick="setTab('conf')">CONFLUENCE</button>
+      <button class="tab" id="tab-walk" onclick="setTab('walk')">WALK</button>
+      <button class="tab" id="tab-ce" onclick="setTab('ce')">CE WALK</button>
+      <button class="tab" id="tab-trade" onclick="setTab('trade')">TRADE</button>
+      <button class="tab" id="tab-jrn" onclick="setTab('jrn')">JOURNAL</button>
+      <button class="tab" id="tab-set" onclick="setTab('set')">SETTINGS</button>
+    </nav>
+  </div>
+</header>
+
+<div class="wrap">
+
+<!-- ==================== LIVE ==================== -->
+<div class="panel active" id="panel-live">
+  <div id="live-alert"></div>
+  <div class="livegrid">
+    <div>
+      <div class="nowbox">
+        <div class="nowclock" id="bigclock">--:--<span class="s" id="bigsec">:--</span></div>
+        <div class="nowsub" id="bigdate">Zurich · 24h</div>
+        <div class="nowstate" id="nowstate">—</div>
+        <div class="mrow" id="mrow"></div>
+      </div>
+
+      <div class="card" style="margin-top:13px;">
+        <div class="card-h">Active path <span class="hint">— set in PATH ID, or override here</span></div>
+        <div id="live-path"></div>
+        <div class="btn-row">
+          <button class="mini" onclick="setLiveAlgo(0)" id="la0">Auto</button>
+          <button class="mini" onclick="setLiveAlgo(1)" id="la1">Force Algo 1</button>
+          <button class="mini" onclick="setLiveAlgo(2)" id="la2">Force Algo 2</button>
+          <button class="mini" onclick="clearLivePath()">Clear</button>
+        </div>
+      </div>
+    </div>
+
+    <div>
+      <div class="ntimer" id="ntimer"></div>
+      <div class="card" style="margin-top:13px;">
+        <div class="card-h">Upcoming decision times <span class="hint">— next <span id="horizLabel">180</span> min, both algos</span></div>
+        <div class="uplist" id="uplist"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== PATH ID (multi-swing scorer) ==================== -->
+<div class="panel" id="panel-path">
+  <div class="grid2">
+    <div>
+      <div class="card">
+        <div class="card-h">Confirmed swings <span class="hint">— oldest first, Zurich time of the swing candle</span></div>
+        <div id="swinglist"></div>
+        <div class="field" style="margin-top:11px;">
+          <label class="flabel">Add swing</label>
+          <div style="display:flex;gap:9px;align-items:center;flex-wrap:wrap;">
+            <div class="timein">
+              <input id="psh" type="number" min="0" max="23" value="7" inputmode="numeric">
+              <span class="colon">:</span>
+              <input id="psn" type="number" min="0" max="59" value="11" inputmode="numeric">
+            </div>
+            <button class="dir-btn" data-g="ps" data-d="down" onclick="setDir('ps','down')">▼ low</button>
+            <button class="dir-btn" data-g="ps" data-d="up" onclick="setDir('ps','up')">▲ high</button>
+            <button class="mini" onclick="setNow('psh','psn')">now</button>
+          </div>
+        </div>
+        <div class="btn-row">
+          <button class="btn primary" onclick="addSwing()">+ Add swing</button>
+          <button class="btn" onclick="clearSwings()">Clear all</button>
+        </div>
+        <div class="note" style="margin-top:10px;">
+          Use <b>confirmed</b> pivots only — a swing that already has its right-side candles.
+          Two swings gives a read; three or more locks the path properly.
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-h">Scoring rules</div>
+        <div class="field"><label class="chk"><input type="checkbox" id="optSkip" checked onchange="runScorer()"> Allow skipped-node path ID</label></div>
+        <div class="field"><label class="flabel">Max skip distance</label><input class="mono" id="optMaxSkip" type="number" min="1" max="5" value="3" onchange="runScorer()"></div>
+        <div class="field"><label class="flabel">Minimum valid steps to lock</label><input class="mono" id="optMinSteps" type="number" min="1" max="6" value="2" onchange="runScorer()"></div>
+        <div class="field"><label class="flabel">Score margin to lock</label><input class="mono" id="optMargin" type="number" min="1" max="10" value="2" onchange="runScorer()"></div>
+        <div class="field"><label class="chk"><input type="checkbox" id="optPenal" checked onchange="runScorer()"> Penalise wrong-direction steps</label></div>
+        <div class="field"><label class="chk"><input type="checkbox" id="optAlt" onchange="runScorer()"> Require high/low alternation</label></div>
+        <div class="field"><label class="chk"><input type="checkbox" id="optSec" checked onchange="runScorer()"> Allow secondary methods for swing ID</label></div>
+      </div>
+    </div>
+    <div>
+      <div id="path-out"><div class="empty"><b>Add two or more confirmed swings.</b><br><br>The scorer maps each swing time to its Algo&nbsp;1 and Algo&nbsp;2 node, then scores the sequence forward (A1) and reverse (A2).</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== CONFLUENCE ==================== -->
+<div class="panel" id="panel-conf">
+  <div class="grid2">
+    <div class="card">
+      <div class="card-h">Swing input</div>
+      <div class="seg" style="margin-bottom:13px;">
+        <button id="cm2" class="active" onclick="setConfMode('two')">Two swings</button>
+        <button id="cm1" onclick="setConfMode('one')">One swing</button>
+      </div>
+      <div id="cswings">
+        <div class="field">
+          <label class="flabel" id="ccap1">First swing — earlier</label>
+          <div style="display:flex;gap:9px;align-items:center;flex-wrap:wrap;">
+            <div class="timein">
+              <input id="ch1" type="number" min="0" max="23" value="7" inputmode="numeric">
+              <span class="colon">:</span>
+              <input id="cn1" type="number" min="0" max="59" value="11" inputmode="numeric">
+            </div>
+            <button class="dir-btn" data-g="c1" data-d="down" onclick="setDir('c1','down')">▼ low</button>
+            <button class="dir-btn" data-g="c1" data-d="up" onclick="setDir('c1','up')">▲ high</button>
+            <button class="mini" onclick="setNow('ch1','cn1')">now</button>
+          </div>
+        </div>
+        <div class="field" id="cbox2">
+          <label class="flabel">Second swing — later</label>
+          <div style="display:flex;gap:9px;align-items:center;flex-wrap:wrap;">
+            <div class="timein">
+              <input id="ch2" type="number" min="0" max="23" value="7" inputmode="numeric">
+              <span class="colon">:</span>
+              <input id="cn2" type="number" min="0" max="59" value="41" inputmode="numeric">
+            </div>
+            <button class="dir-btn" data-g="c2" data-d="down" onclick="setDir('c2','down')">▼ low</button>
+            <button class="dir-btn" data-g="c2" data-d="up" onclick="setDir('c2','up')">▲ high</button>
+            <button class="mini" onclick="setNow('ch2','cn2')">now</button>
+          </div>
+        </div>
+      </div>
+      <div class="btn-row"><button class="btn primary wide" onclick="runConf()">Read confluence</button></div>
+      <div class="note" style="margin-top:11px;">Direction tags are annotations only. Nodes are decision levels — they mark where and when price faces a decision, not which way it resolves.</div>
+    </div>
+    <div id="conf-out"></div>
+  </div>
+</div>
+
+<!-- ==================== WALK ==================== -->
+<div class="panel" id="panel-walk">
+  <div class="card">
+    <div class="card-h">Section 1 — identify path from two swings, then walk minimum travel</div>
+    <div style="display:flex;gap:15px;flex-wrap:wrap;align-items:flex-end;">
+      <div class="field" style="margin:0;">
+        <label class="flabel">Swing 1 — earlier</label>
+        <div class="timein">
+          <input id="wh1" type="number" min="0" max="23" value="7" inputmode="numeric">
+          <span class="colon">:</span>
+          <input id="wn1" type="number" min="0" max="59" value="11" inputmode="numeric">
+        </div>
+      </div>
+      <div class="field" style="margin:0;">
+        <label class="flabel">Swing 2 — later</label>
+        <div class="timein">
+          <input id="wh2" type="number" min="0" max="23" value="7" inputmode="numeric">
+          <span class="colon">:</span>
+          <input id="wn2" type="number" min="0" max="59" value="41" inputmode="numeric">
+        </div>
+      </div>
+      <button class="btn primary" onclick="runWalkID()">Identify path</button>
+    </div>
+  </div>
+  <div id="walk-id"></div>
+  <div id="walk-out"></div>
+
+  <div class="sep"></div>
+  <div class="card">
+    <div class="card-h">Section 2 — walk a full path <span class="hint">— fed from above, or start manually</span></div>
+    <div style="display:flex;gap:11px;flex-wrap:wrap;align-items:flex-end;">
+      <div class="field" style="margin:0;">
+        <label class="flabel">Start time</label>
+        <div class="timein">
+          <input id="s2h" type="number" min="0" max="23" value="7" inputmode="numeric">
+          <span class="colon">:</span>
+          <input id="s2n" type="number" min="0" max="59" value="11" inputmode="numeric">
+        </div>
+      </div>
+      <button class="btn" onclick="s2manualStart(1)">Start Algo 1</button>
+      <button class="btn" onclick="s2manualStart(2)">Start Algo 2</button>
+      <button class="mini" onclick="setNow('s2h','s2n')">now</button>
+    </div>
+  </div>
+  <div id="s2-walk"></div>
+</div>
+
+<!-- ==================== CE WALK ==================== -->
+<div class="panel" id="panel-ce">
+  <div class="card">
+    <div class="card-h">CE chain — CE alternates only</div>
+    <div style="display:flex;gap:11px;flex-wrap:wrap;align-items:flex-end;">
+      <div class="field" style="margin:0;">
+        <label class="flabel">Start time</label>
+        <div class="timein">
+          <input id="eh" type="number" min="0" max="23" value="7" inputmode="numeric">
+          <span class="colon">:</span>
+          <input id="en" type="number" min="0" max="59" value="14" inputmode="numeric">
+        </div>
+      </div>
+      <button class="btn primary" onclick="ceStart()">Start CE walk</button>
+      <button class="mini" onclick="setNow('eh','en')">now</button>
+    </div>
+    <div class="note" style="margin-top:11px;">A1 CE: 14 → 44 → 7 → 23 → 35 ⊣ &nbsp;·&nbsp; A2 CE: 35 → 50/56 → 14 → 23 → 65 → 7 ⊣</div>
+  </div>
+  <div id="ce-out"></div>
+</div>
+
+<!-- ==================== TRADE ==================== -->
+<div class="panel" id="panel-trade">
+  <div class="grid2">
+    <div>
+      <div class="card">
+        <div class="card-h">Setup gate <span class="hint">— tick only what is actually true</span></div>
+        <div id="cklist"></div>
+      </div>
+    </div>
+    <div>
+      <div id="gradeout"></div>
+      <div class="card">
+        <div class="card-h">Risk &amp; position size</div>
+        <div class="field">
+          <label class="flabel">Instrument</label>
+          <select id="rInst" class="mono" onchange="runCalc()"></select>
+        </div>
+        <div class="grid2" style="gap:9px;">
+          <div class="field"><label class="flabel">Account</label><input class="mono" id="rAcct" type="number" value="10000" onchange="runCalc()" oninput="runCalc()"></div>
+          <div class="field"><label class="flabel">Risk %</label><input class="mono" id="rRisk" type="number" step="0.05" value="0.5" onchange="runCalc()" oninput="runCalc()"></div>
+        </div>
+        <div class="grid2" style="gap:9px;">
+          <div class="field"><label class="flabel">Entry</label><input class="mono" id="rEntry" type="number" step="any" placeholder="0" onchange="runCalc()" oninput="runCalc()"></div>
+          <div class="field"><label class="flabel">Stop</label><input class="mono" id="rStop" type="number" step="any" placeholder="0" onchange="runCalc()" oninput="runCalc()"></div>
+        </div>
+        <div class="field"><label class="flabel">Target (optional)</label><input class="mono" id="rTgt" type="number" step="any" placeholder="0" onchange="runCalc()" oninput="runCalc()"></div>
+        <div id="calcout"></div>
+      </div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-h">Log this trade</div>
+    <div class="grid3">
+      <div class="field"><label class="flabel">Direction</label><select id="jDir" class="mono"><option value="long">long</option><option value="short">short</option></select></div>
+      <div class="field"><label class="flabel">Node traded</label><input class="mono" id="jNode" type="text" placeholder="e.g. 17/23"></div>
+      <div class="field"><label class="flabel">Algo</label><select id="jAlgo" class="mono"><option value="1">Algo 1</option><option value="2">Algo 2</option><option value="both">Both / shared</option></select></div>
+    </div>
+    <div class="field"><label class="flabel">Notes</label><textarea id="jNotes" placeholder="What the node did, what confirmed it, what you'd change."></textarea></div>
+    <div class="btn-row">
+      <button class="btn primary" onclick="logTrade('W')">Log win</button>
+      <button class="btn" onclick="logTrade('L')">Log loss</button>
+      <button class="btn" onclick="logTrade('BE')">Log break-even</button>
+    </div>
+    <div class="note" style="margin-top:9px;">Grade, checklist ticks, killzone, node and R are all captured automatically so the Journal can tell you which conditions actually pay.</div>
+  </div>
+</div>
+
+<!-- ==================== JOURNAL ==================== -->
+<div class="panel" id="panel-jrn">
+  <div id="jrn-stats"></div>
+  <div class="card">
+    <div class="card-h">What actually pays <span class="hint">— win rate by condition, your data only</span></div>
+    <div id="jrn-buckets"></div>
+  </div>
+  <div class="card">
+    <div class="card-h">Trades</div>
+    <div class="tbl-scroll" id="jrn-table"></div>
+    <div class="btn-row">
+      <button class="btn" onclick="exportJSON()">Export JSON</button>
+      <button class="btn" onclick="exportCSV()">Export CSV</button>
+      <button class="btn" onclick="wipeJournal()">Wipe journal</button>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== SETTINGS ==================== -->
+<div class="panel" id="panel-set">
+  <div class="grid2">
+    <div class="card">
+      <div class="card-h">Engine</div>
+      <div class="field"><label class="flabel">Tolerance (± minutes)</label><input class="mono" id="setTol" type="number" min="0" max="3" value="1" onchange="saveSettings()"></div>
+      <div class="field"><label class="flabel">Forward scan horizon (minutes)</label><input class="mono" id="setHoriz" type="number" min="30" max="360" value="180" onchange="saveSettings()"></div>
+      <div class="field"><label class="chk"><input type="checkbox" id="setSecLive" onchange="saveSettings()"> Show secondary-method (HH+MM, |HH−MM|) hits on the live list</label></div>
+      <div class="field"><label class="flabel">Alert lead time (minutes before node)</label><input class="mono" id="setLead" type="number" min="1" max="10" value="2" onchange="saveSettings()"></div>
+      <div class="field"><label class="chk"><input type="checkbox" id="setSound" checked onchange="saveSettings()"> Sound on alert</label></div>
+      <div class="field"><label class="chk"><input type="checkbox" id="setKZOnly" onchange="saveSettings()"> Only alert inside a killzone</label></div>
+      <div class="field"><label class="chk"><input type="checkbox" id="setMMOnly" onchange="saveSettings()"> Only alert on MM-exact nodes (highest quality)</label></div>
+      <div class="note">Tolerance is ±1 by design in this framework. Change it only if you know why.</div>
+    </div>
+    <div class="card">
+      <div class="card-h">Killzones <span class="hint">— Zurich time, edit to match your broker/DST</span></div>
+      <div id="kzlist"></div>
+      <div class="note" style="margin-top:10px;">Defaults are the usual ICT windows converted to Zurich. They are <b>not</b> in the handoff spec — verify them against your own charts and adjust.</div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-h">Instruments <span class="hint">— value per 1.0 price move, per 1 lot</span></div>
+    <div id="instlist"></div>
+    <div class="note" style="margin-top:10px;">Contract values vary by broker. XAUUSD 100&nbsp;oz = $100 per $1.00. GBPUSD 100k = $100,000 per 1.0000 ($10/pip). NAS100 defaults to $1 per index point — check yours.</div>
+  </div>
+  <div class="card">
+    <div class="card-h">Framework reference</div>
+    <div class="note" style="line-height:1.8;">
+      <b>Reads</b> — for Zurich HH:MM: <span class="mono">MM</span> (primary, wins the label), <span class="mono">HH+MM</span>, <span class="mono">|HH−MM|</span>. All three checked independently, ±tolerance.<br>
+      <b>GB primes</b> — <span class="mono">3 11 17 29 41 47 53 59 71 83 89 97</span><br>
+      <b>CE alternates</b> — <span class="mono">7 14 23 35 44 50 56 65 77</span> · <span class="mono">00</span> is a valid node.<br>
+      <b>Algo 1 forward</b> — <span class="mono">00 → 11/14 → 41/44 → 03/7 → 17/23 → 71/77 or 29/35 ⊣</span><br>
+      <b>Algo 2 reverse</b> — <span class="mono">29/35 → 47/53 → 11/14 → 17/23 → 59/65 → 03/7 ⊣</span> (index decreases)<br>
+      <b>Minimum travel</b> — the nearest upcoming node in clock time across live candidates.<br>
+      <b>Nodes are decision levels</b> — price holds them as support, holds them as resistance, or breaks through. Neither algo is inherently bullish or bearish.
+    </div>
+  </div>
+</div>
+
+</div>
+<div id="toast"></div>
+
+<script>
+/* ============================================================
+   GB-TIME ENGINE
+   Ground truth from the handoff. Do not change without reason.
+   - Three reads per Zurich HH:MM: MM (primary), HH+MM, |HH-MM|
+   - MM wins the label when more than one method hits
+   - Algo 1 walks forward (index +), Algo 2 walks reverse (index -)
+   - Nodes are decision levels, not directional signals
+   ============================================================ */
+const GB=new Set([3,11,17,29,41,47,53,59,71,83,89,97]);
+const CE=new Set([7,14,23,35,44,50,56,65,77]);
+
+const A={
+  1:[
+    {l:'00',v:[0],term:false},
+    {l:'11/14',v:[11,14],term:false},
+    {l:'41/44',v:[41,44],term:false},
+    {l:'03/7',v:[3,7],term:false},
+    {l:'17/23',v:[17,23],term:false},
+    {l:'71/77 · 29/35',v:[71,77,29,35],term:true,groups:[{l:'71/77',v:[71,77]},{l:'29/35',v:[29,35]}]},
+  ],
+  2:[
+    {l:'03/7',v:[3,7],term:true},
+    {l:'59/65',v:[59,65],term:false},
+    {l:'17/23',v:[17,23],term:false},
+    {l:'11/14',v:[11,14],term:false},
+    {l:'47/53',v:[47,50,53,56],term:false},
+    {l:'29/35',v:[29,35],term:false},
+  ],
+};
+const CEA={
+  1:[
+    {ce:[14],l:'14',gb:'11',term:false},
+    {ce:[44],l:'44',gb:'41',term:false},
+    {ce:[7],l:'7',gb:'03',term:false},
+    {ce:[23],l:'23',gb:'17',term:false},
+    {ce:[35],l:'35',gb:'29/71',term:true},
+  ],
+  2:[
+    {ce:[7],l:'7',gb:'03',term:true},
+    {ce:[65],l:'65',gb:'59',term:false},
+    {ce:[23],l:'23',gb:'17',term:false},
+    {ce:[14],l:'14',gb:'11',term:false},
+    {ce:[50,56],l:'50/56',gb:'47/53',term:false},
+    {ce:[35],l:'35',gb:'29',term:false},
+  ],
+};
+
+/* ---------- settings (persisted) ---------- */
+const DEF_KZ=[
+  {n:'Asia',s:'01:00',e:'05:00'},
+  {n:'London KZ',s:'08:00',e:'11:00'},
+  {n:'NY AM KZ',s:'13:00',e:'16:00'},
+  {n:'London Close',s:'16:00',e:'18:00'},
+  {n:'NY PM',s:'18:00',e:'20:00'},
+];
+const DEF_INST=[
+  {n:'XAUUSD',v:100,d:2,step:0.1},
+  {n:'GBPUSD',v:100000,d:5,step:0.0001},
+  {n:'NAS100',v:1,d:1,step:1},
+];
+let S={tol:1,horiz:180,secLive:false,lead:2,sound:true,kzOnly:false,mmOnly:false,kz:DEF_KZ,inst:DEF_INST};
+function loadSettings(){
+  try{
+    const raw=localStorage.getItem('gbt.settings');
+    if(raw){const p=JSON.parse(raw);S=Object.assign({},S,p);}
+  }catch(e){}
+  if(!Array.isArray(S.kz)||!S.kz.length)S.kz=DEF_KZ.map(x=>({...x}));
+  if(!Array.isArray(S.inst)||!S.inst.length)S.inst=DEF_INST.map(x=>({...x}));
+}
+function persist(){try{localStorage.setItem('gbt.settings',JSON.stringify(S));}catch(e){}}
+function TOLV(){return S.tol;}
+
+/* ---------- primitives ---------- */
+function pad(n){return String(n).padStart(2,'0');}
+function kind(n){if(n===0)return'start';if(GB.has(n))return'GB';if(CE.has(n))return'CE';return null;}
+
+// THE central rule: three reads, MM listed first so it wins ties.
+function methods(hh,mm){return[
+  {name:'MM',val:mm,pri:true},
+  {name:'HH+MM',val:hh+mm,pri:false},
+  {name:'|HH−MM|',val:Math.abs(hh-mm),pri:false},
+];}
+
+// Best hit of a value-set against a time across all three methods.
+// MM preferred over secondary; then smallest distance.
+function hitValues(hh,mm,vals,tol){
+  const t=tol===undefined?TOLV():tol;
+  const ms=methods(hh,mm);
+  let best=null;
+  ms.forEach(m=>{
+    vals.forEach(target=>{
+      const d=Math.abs(m.val-target);
+      if(d<=t){
+        if(best===null||(m.pri&&!best.method.pri)||(m.pri===best.method.pri&&d<best.d)){
+          best={d,method:m,val:target};
+        }
+      }
+    });
+  });
+  return best;
+}
+function labelForValue(node,val){
+  if(node&&node.groups&&val!==undefined&&val!==null){
+    const g=node.groups.find(x=>x.v.includes(val));
+    if(g)return g.l;
+  }
+  return node?node.l:'';
+}
+function nodeHitLabel(hit){return hit?labelForValue(hit.node,hit.h&&hit.h.val):'';}
+function minByStep(a,b){return (a.step||9999)-(b.step||9999);}
+
+// Which node does this time sit on, for one algo? Best read wins.
+function nodeAt(hh,mm,algoNum,opts){
+  const o=opts||{};
+  const tol=o.tol===undefined?TOLV():o.tol;
+  let best=null;
+  A[algoNum].forEach((node,i)=>{
+    let h=hitValues(hh,mm,node.v,tol);
+    if(h&&!h.method.pri&&o.noSecondary)h=null;
+    if(h&&(best===null||(h.method.pri&&!best.h.method.pri)||(h.method.pri===best.h.method.pri&&h.d<best.h.d))){
+      best={idx:i,node,h};
+    }
+  });
+  return best;
+}
+// Algo 1 advances +1. Algo 2 advances -1. Terminal stops the walk.
+function stepIdx(algoNum,idx){
+  const arr=A[algoNum];
+  if(algoNum===1)return(arr[idx].term||idx>=arr.length-1)?null:idx+1;
+  return(arr[idx].term||idx<=0)?null:idx-1;
+}
+function nextNode(algoNum,idx,from){
+  const ni=stepIdx(algoNum,idx);
+  if(ni===null)return{done:true};
+  return{done:false,nextIdx:ni,node:A[algoNum][ni],times:solveTimes(A[algoNum][ni].v,from)};
+}
+
+// Every upcoming minute where any method hits this value-set.
+// step = minutes ahead, which keeps all comparisons midnight-safe.
+function solveTimes(vals,from,horizon,maxOut){
+  const H=horizon||90,M=maxOut||8,tol=TOLV();
+  const out=[];let h=from.hh,m=from.mm;
+  for(let s=0;s<H&&out.length<M;s++){
+    m++;if(m>59){m=0;h=(h+1)%24;}
+    const ms=methods(h,m);const via=[];let best=null;
+    ms.forEach(mt=>{
+      let hit=null;
+      vals.forEach(t=>{
+        const d=Math.abs(mt.val-t);
+        if(d<=tol&&(hit===null||d<hit))hit=d;
+        if(d<=tol&&(best===null||(mt.pri&&!best.method.pri)||(mt.pri===best.method.pri&&d<best.d))){
+          best={d,method:mt,val:t};
+        }
+      });
+      if(hit!==null)via.push(mt.name+(hit>0?'±'+hit:''));
+    });
+    if(via.length)out.push({time:pad(h)+':'+pad(m),via:via.join(', '),val:best?best.val:null,step:s+1});
+  }
+  return out;
+}
+
+// Read quality: MM exact = strong, MM ±tol = medium, secondary only = weak.
+// Always the MAX across hits on a bar, never a sum.
+function readQuality(h){
+  if(!h)return 0;
+  if(h.method.pri)return h.d===0?3:2;
+  return 1;
+}
+function qName(q){return q>=3?'strong':q===2?'medium':q===1?'weak':'none';}
+function qClass(q){return q>=3?'q-strong':q===2?'q-medium':'q-weak';}
+
+/* ---------- upcoming node scan (both algos, deduped) ---------- */
+function upcomingNodes(from,horizon,maxOut){
+  const H=horizon||S.horiz,M=maxOut||14;
+  const out=[];let h=from.hh,m=from.mm;let lastKey=null;
+  for(let s=1;s<=H&&out.length<M;s++){
+    m++;if(m>59){m=0;h=(h+1)%24;}
+    const hits=[];
+    [1,2].forEach(a=>{
+      const nd=nodeAt(h,m,a);
+      if(nd)hits.push({algo:a,idx:nd.idx,label:labelForValue(nd.node,nd.h.val),node:nd.node,h:nd.h,term:nd.node.term});
+    });
+    if(!hits.length){continue;}
+    const q=Math.max(...hits.map(x=>readQuality(x.h)));
+    if(!S.secLive&&q<2){lastKey=null;continue;}
+    const labels=[...new Set(hits.map(x=>x.label))].sort();
+    const key=labels.join('+');
+    // adjacent minutes on the same node are one decision, not several
+    if(key===lastKey){continue;}
+    lastKey=key;
+    const algos=[...new Set(hits.map(x=>x.algo))].sort();
+    out.push({
+      time:pad(h)+':'+pad(m),hh:h,mm:m,step:s,
+      label:labels.join(' · '),algos,shared:algos.length>1,
+      q,qn:qName(q),hits,
+      via:hits.map(x=>x.h.method.name+(x.h.d>0?'±'+x.h.d:'')).join(', '),
+      term:hits.some(x=>x.term),
+    });
+  }
+  return out;
+}
+
+/* ---------- killzones ---------- */
+function hm2min(s){const p=String(s).split(':');return (parseInt(p[0],10)||0)*60+(parseInt(p[1],10)||0);}
+function kzAt(hh,mm){
+  const t=hh*60+mm;
+  for(const z of S.kz){
+    const a=hm2min(z.s),b=hm2min(z.e);
+    if(a<=b){if(t>=a&&t<b)return z;}
+    else{if(t>=a||t<b)return z;} // wraps midnight
+  }
+  return null;
+}
+
+/* ---------- Zurich clock ---------- */
+function zurichNow(){
+  const d=new Date();
+  const f=new Intl.DateTimeFormat('en-GB',{timeZone:'Europe/Zurich',hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:false}).format(d);
+  const p=f.split(':').map(Number);
+  return{hh:p[0]%24,mm:p[1],ss:p[2]};
+}
+function zurichDateLabel(){
+  return new Intl.DateTimeFormat('en-GB',{timeZone:'Europe/Zurich',weekday:'short',day:'2-digit',month:'short'}).format(new Date());
+}
+
+/* ---------- shared UI helpers ---------- */
+function setNow(hId,nId){
+  const t=zurichNow();
+  document.getElementById(hId).value=t.hh;
+  document.getElementById(nId).value=pad(t.mm);
+}
+function getT(hId,nId){
+  let hh=parseInt(document.getElementById(hId).value,10);
+  let mm=parseInt(document.getElementById(nId).value,10);
+  if(isNaN(hh))hh=0;if(isNaN(mm))mm=0;
+  hh=Math.max(0,Math.min(23,hh));mm=Math.max(0,Math.min(59,mm));
+  document.getElementById(hId).value=hh;document.getElementById(nId).value=pad(mm);
+  return{hh,mm};
+}
+const DIR={};
+function setDir(g,d){
+  DIR[g]=DIR[g]===d?null:d;
+  document.querySelectorAll('.dir-btn[data-g="'+g+'"]').forEach(b=>b.classList.toggle('active',b.dataset.d===DIR[g]));
+}
+function dirLabel(g){return DIR[g]==='down'?'▼ low':DIR[g]==='up'?'▲ high':'neutral';}
+const TABS=['live','path','conf','walk','ce','trade','jrn','set'];
+function setTab(t){
+  TABS.forEach(x=>{
+    const tb=document.getElementById('tab-'+x),pn=document.getElementById('panel-'+x);
+    if(tb)tb.classList.toggle('active',x===t);
+    if(pn)pn.classList.toggle('active',x===t);
+  });
+  if(t==='jrn')renderJournal();
+  if(t==='set')renderSettings();
+  if(t==='trade'){renderChecklist();runCalc();}
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+let toastT=null;
+function toast(msg){
+  const el=document.getElementById('toast');
+  el.textContent=msg;el.classList.add('show');
+  clearTimeout(toastT);toastT=setTimeout(()=>el.classList.remove('show'),2600);
+}
+function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+
+/* ============================================================
+   LIVE RUNNER
+   ============================================================ */
+let livePath={mode:'auto',algo:null,idx:null,label:null,src:null};
+let alertsOn=false, lastAlertKey=null, audioCtx=null;
+
+function toggleAlerts(){
+  alertsOn=!alertsOn;
+  const b=document.getElementById('alertBtn');
+  b.classList.toggle('on',alertsOn);
+  b.textContent=alertsOn?'🔔 Alerts on':'🔔 Alerts off';
+  if(alertsOn){
+    if(window.Notification&&Notification.permission==='default')Notification.requestPermission();
+    primeAudio();
+    toast('Alerts on — keep this tab open');
+  }
+}
+function primeAudio(){
+  try{
+    if(!audioCtx)audioCtx=new (window.AudioContext||window.webkitAudioContext)();
+    if(audioCtx.state==='suspended')audioCtx.resume();
+  }catch(e){}
+}
+function beep(times){
+  if(!S.sound)return;
+  try{
+    primeAudio();
+    if(!audioCtx)return;
+    const n=times||2;
+    for(let i=0;i<n;i++){
+      const o=audioCtx.createOscillator(),g=audioCtx.createGain();
+      const t0=audioCtx.currentTime+i*0.22;
+      o.type='sine';o.frequency.setValueAtTime(i===n-1?880:660,t0);
+      g.gain.setValueAtTime(0.0001,t0);
+      g.gain.exponentialRampToValueAtTime(0.22,t0+0.02);
+      g.gain.exponentialRampToValueAtTime(0.0001,t0+0.18);
+      o.connect(g);g.connect(audioCtx.destination);
+      o.start(t0);o.stop(t0+0.2);
+    }
+  }catch(e){}
+}
+function notify(title,body){
+  try{
+    if(window.Notification&&Notification.permission==='granted')new Notification(title,{body,tag:'gbt'});
+  }catch(e){}
+}
+
+function setLiveAlgo(a){
+  if(a===0){livePath.mode='auto';livePath.algo=null;livePath.idx=null;livePath.src='auto';}
+  else{
+    livePath.mode='manual';livePath.algo=a;
+    if(livePath.idx===null||livePath.idx===undefined){
+      const t=zurichNow();const nd=nodeAt(t.hh,t.mm,a);
+      livePath.idx=nd?nd.idx:null;livePath.label=nd?labelForValue(nd.node,nd.h.val):null;
+    }
+    livePath.src='manual override';
+  }
+  renderLive();
+}
+function clearLivePath(){livePath={mode:'auto',algo:null,idx:null,label:null,src:null};renderLive();}
+
+// The next node on the active path — or, with no locked path, minimum travel across both.
+function liveNext(now){
+  if(livePath.algo&&livePath.idx!==null&&livePath.idx!==undefined){
+    const n=nextNode(livePath.algo,livePath.idx,now);
+    if(!n.done&&n.times.length){
+      const t=n.times[0];
+      return{kind:'path',algo:livePath.algo,label:labelForValue(n.node,t.val),time:t.time,step:t.step,via:t.via,times:n.times,nextIdx:n.nextIdx,term:n.node.term};
+    }
+    if(n.done)return{kind:'terminal',algo:livePath.algo};
+  }
+  const up=upcomingNodes(now,S.horiz,1);
+  if(!up.length)return null;
+  const u=up[0];
+  return{kind:'min',label:u.label,time:u.time,step:u.step,via:u.via,algos:u.algos,q:u.q,qn:u.qn,term:u.term};
+}
+
+function renderLive(){
+  const now=zurichNow();
+  const nowMinLeft=60-now.ss;
+
+  // clocks
+  const cl=pad(now.hh)+':'+pad(now.mm);
+  document.getElementById('hclock').innerHTML=cl+'<span class="sec">:'+pad(now.ss)+'</span>';
+  document.getElementById('bigclock').innerHTML=cl+'<span class="s">:'+pad(now.ss)+'</span>';
+  document.getElementById('bigdate').textContent=zurichDateLabel()+' · Zurich · 24h';
+
+  // killzone
+  const kz=kzAt(now.hh,now.mm);
+  const kzEl=document.getElementById('hkz');
+  kzEl.textContent=kz?kz.n:'no killzone';
+  kzEl.classList.toggle('live',!!kz);
+
+  // is NOW a node?
+  const a1=nodeAt(now.hh,now.mm,1),a2=nodeAt(now.hh,now.mm,2);
+  const stEl=document.getElementById('nowstate');
+  if(a1||a2){
+    const labs=[...new Set([a1?labelForValue(a1.node,a1.h.val):null,a2?labelForValue(a2.node,a2.h.val):null].filter(Boolean))];
+    const q=Math.max(readQuality(a1&&a1.h),readQuality(a2&&a2.h));
+    const who=[a1?'A1':null,a2?'A2':null].filter(Boolean).join('+');
+    stEl.className='nowstate onnode';
+    stEl.innerHTML='ON NODE · '+esc(labs.join(' · '))+' <span class="qbadge '+qClass(q)+'">'+qName(q)+'</span>'+
+      '<span class="ns-sub">'+who+' · decision level live now — watch the reaction, do not assume direction</span>';
+  }else{
+    stEl.className='nowstate';
+    stEl.innerHTML='between nodes<span class="ns-sub">no node on this minute within ±'+TOLV()+'</span>';
+  }
+
+  // three method reads
+  const ms=methods(now.hh,now.mm);
+  document.getElementById('mrow').innerHTML=ms.map(m=>{
+    const nodes=[];
+    [1,2].forEach(a=>A[a].forEach(node=>{
+      const d=Math.min.apply(null,node.v.map(v=>Math.abs(m.val-v)));
+      if(d<=TOLV())nodes.push('A'+a+' '+labelForValue(node,m.val)+(d>0?'±'+d:''));
+    }));
+    const uniq=[...new Set(nodes)];
+    return '<div class="mcell'+(uniq.length?' hit':'')+(m.pri?' pri':'')+'">'+
+      '<div class="mc-n">'+m.name+(m.pri?' •':'')+'</div>'+
+      '<div class="mc-v">'+m.val+'</div>'+
+      '<div class="mc-h">'+(uniq.length?esc(uniq.slice(0,2).join(' ')):'—')+'</div></div>';
+  }).join('');
+
+  // active path panel
+  const lp=document.getElementById('live-path');
+  if(livePath.algo&&livePath.idx!==null&&livePath.idx!==undefined){
+    const nd=A[livePath.algo][livePath.idx];
+    const flow=livePath.algo===1?'forward 00 → terminal':'reverse 29/35 → 03/7 ⊣';
+    lp.innerHTML='<div style="display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;">'+
+      '<span style="font-size:15px;font-weight:700;">Algo '+livePath.algo+'</span>'+
+      '<span class="mono" style="font-size:10px;color:var(--ink4);">'+flow+'</span></div>'+
+      '<div class="mono" style="font-size:22px;font-weight:700;color:var(--gold-tx);margin-top:5px;">'+esc(livePath.label||nd.l)+'</div>'+
+      '<div class="note" style="margin-top:4px;">last confirmed node · source: '+esc(livePath.src||'—')+'</div>';
+  }else{
+    lp.innerHTML='<div class="note">No path set. Live timer is showing <b>minimum travel</b> across both algos.<br>Lock a path in <b>PATH ID</b> for a directional-path next node, or force an algo below.</div>';
+  }
+  ['la0','la1','la2'].forEach((id,i)=>{
+    const on=(i===0&&livePath.mode==='auto')||(i>0&&livePath.algo===i);
+    document.getElementById(id).classList.toggle('on',on);
+  });
+
+  // next-node timer
+  const nx=liveNext(now);
+  const nt=document.getElementById('ntimer');
+  if(!nx){
+    nt.innerHTML='<div class="nt-lab">Next decision</div><div class="empty" style="margin-top:10px;">No node found in the next '+S.horiz+' minutes.</div>';
+  }else if(nx.kind==='terminal'){
+    nt.innerHTML='<div class="nt-lab">Path complete</div>'+
+      '<div class="nt-node">terminal ⊣</div>'+
+      '<div class="nt-meta">Algo '+nx.algo+' has reached its terminal node. A fresh sequence starts from the next confirmed swing — re-identify in <b>PATH ID</b>.</div>';
+  }else{
+    const mins=nx.step-1;
+    const secs=mins*60+nowMinLeft;
+    const cd=Math.floor(secs/60)+':'+pad(secs%60);
+    const cls=secs<=30?'due':secs<=S.lead*60?'soon':'';
+    const src=nx.kind==='path'?('Algo '+nx.algo+' next on path'):('minimum travel · '+(nx.algos?nx.algos.map(a=>'A'+a).join('+'):''));
+    const qb=nx.q?' <span class="qbadge '+qClass(nx.q)+'">'+nx.qn+'</span>':'';
+    nt.innerHTML='<div class="nt-lab">'+esc(src)+'</div>'+
+      '<div class="nt-node">'+esc(nx.label)+qb+'</div>'+
+      '<div class="nt-at">at '+nx.time+' Zurich</div>'+
+      '<div class="nt-cd '+cls+'">'+cd+'</div>'+
+      '<div class="nt-cdl">'+(secs<=30?'due now':'until decision')+'</div>'+
+      '<div class="nt-meta">via <b>'+esc(nx.via)+'</b>'+(nx.term?' · <b>terminal</b>':'')+
+      '<br>This is the <b>floor</b> — the minimum the clock expects price to travel to. It says <i>when</i> a decision is due, not which way it breaks.</div>';
+
+    // alert fire
+    if(alertsOn){
+      const key=nx.time+'|'+nx.label;
+      const inKz=!!kzAt(nx.hh!==undefined?nx.hh:now.hh,now.mm);
+      const kzOk=!S.kzOnly||inKz;
+      const qOk=!S.mmOnly||(nx.q===undefined||nx.q>=3);
+      if(mins<=S.lead&&key!==lastAlertKey&&kzOk&&qOk){
+        lastAlertKey=key;
+        beep(2);
+        notify('GB-Time · '+nx.label+' at '+nx.time,(mins<=0?'Due now':'In '+mins+' min')+' · '+src);
+        document.getElementById('live-alert').innerHTML=
+          '<div class="alertbanner"><div class="ab-t">'+esc(nx.label)+' at '+nx.time+' — '+(mins<=0?'due now':'in '+mins+' min')+'</div>'+
+          '<button class="mini" onclick="document.getElementById(\'live-alert\').innerHTML=\'\'">dismiss</button></div>';
+      }
+    }
+  }
+
+  // upcoming list
+  document.getElementById('horizLabel').textContent=S.horiz;
+  const up=upcomingNodes(now,S.horiz,12);
+  const ul=document.getElementById('uplist');
+  if(!up.length){ul.innerHTML='<div class="empty">Nothing in the next '+S.horiz+' minutes.</div>';}
+  else{
+    ul.innerHTML=up.map((u,i)=>{
+      const mins=u.step-1;
+      return '<div class="uprow'+(i===0?' next':'')+'">'+
+        '<span class="up-t">'+u.time+'</span>'+
+        '<span class="up-n">'+esc(u.label)+' <span class="up-a">'+u.algos.map(a=>'A'+a).join('+')+(u.term?' ⊣':'')+'</span></span>'+
+        '<span class="qbadge '+qClass(u.q)+'">'+u.qn+'</span>'+
+        '<span class="up-in">'+(mins<=0?'now':'+'+mins+'m')+'</span></div>';
+    }).join('');
+  }
+}
+
+/* ============================================================
+   PATH ID — multi-swing scorer (HTML port of the Pine scorer)
+   ============================================================ */
+let swings=[];
+function addSwing(){
+  const t=getT('psh','psn');
+  swings.push({hh:t.hh,mm:t.mm,isHigh:DIR['ps']==='up'});
+  renderSwings();runScorer();
+}
+function delSwing(i){swings.splice(i,1);renderSwings();runScorer();}
+function clearSwings(){swings=[];renderSwings();runScorer();}
+function renderSwings(){
+  const el=document.getElementById('swinglist');
+  if(!swings.length){el.innerHTML='<div class="note">No swings yet.</div>';return;}
+  el.innerHTML=swings.map((s,i)=>{
+    const noSec=!document.getElementById('optSec').checked;
+    const a1=nodeAt(s.hh,s.mm,1,{noSecondary:noSec}),a2=nodeAt(s.hh,s.mm,2,{noSecondary:noSec});
+    const m1=a1?'A1 '+labelForValue(a1.node,a1.h.val)+' ['+a1.idx+'] '+a1.h.method.name+(a1.h.d?'±'+a1.h.d:''):'A1 —';
+    const m2=a2?'A2 '+labelForValue(a2.node,a2.h.val)+' ['+a2.idx+'] '+a2.h.method.name+(a2.h.d?'±'+a2.h.d:''):'A2 —';
+    return '<div class="swingrow">'+
+      '<span class="sw-i">'+(i+1)+'</span>'+
+      '<span class="mono" style="font-size:15px;font-weight:700;">'+pad(s.hh)+':'+pad(s.mm)+'</span>'+
+      '<span class="dir-btn active" style="pointer-events:none;">'+(s.isHigh?'▲ high':'▼ low')+'</span>'+
+      '<span class="sw-map"><b>'+esc(m1)+'</b> · '+esc(m2)+'</span>'+
+      '<button class="sw-x" onclick="delSwing('+i+')" title="remove">×</button></div>';
+  }).join('');
+}
+
+function scoreSwings(list,opts){
+  const noSec=!opts.useSecondary;
+  const mapped=list.map(s=>({
+    ...s,
+    a1:nodeAt(s.hh,s.mm,1,{noSecondary:noSec}),
+    a2:nodeAt(s.hh,s.mm,2,{noSecondary:noSec})
+  }));
+  let s1=0,s2=0,v1=0,v2=0;
+  const steps=[];
+  const q=h=>h?(h.method.pri?(h.d===0?1:0.5):0.25):0;
+  for(let i=1;i<mapped.length;i++){
+    const p=mapped[i-1],c=mapped[i];
+    let d1=null,d2=null;
+    if(p.a1&&c.a1){
+      const gap=c.a1.idx-p.a1.idx;                       // Algo 1 must increase
+      if(gap===1)d1={sc:3,k:'consecutive'};
+      else if(gap>1&&opts.allowSkip&&gap<=opts.maxSkip)d1={sc:1.5,k:'skip '+(gap-1)};
+      else if(gap<=0&&opts.penalize)d1={sc:-1,k:'wrong dir'};
+      else if(gap>1)d1={sc:0,k:'skip too far'};
+    }
+    if(p.a2&&c.a2){
+      const gap=p.a2.idx-c.a2.idx;                       // Algo 2 must decrease
+      if(gap===1)d2={sc:3,k:'consecutive'};
+      else if(gap>1&&opts.allowSkip&&gap<=opts.maxSkip)d2={sc:1.5,k:'skip '+(gap-1)};
+      else if(gap<=0&&opts.penalize)d2={sc:-1,k:'wrong dir'};
+      else if(gap>1)d2={sc:0,k:'skip too far'};
+    }
+    if(d1&&d1.sc>0){d1.sc+=q(c.a1.h);v1++;}
+    if(d2&&d2.sc>0){d2.sc+=q(c.a2.h);v2++;}
+    if(opts.alternation&&p.isHigh===c.isHigh){
+      if(d1&&d1.sc>0){d1.sc-=0.5;d1.k+=' · no alt';}
+      if(d2&&d2.sc>0){d2.sc-=0.5;d2.k+=' · no alt';}
+    }
+    if(d1)s1+=d1.sc;
+    if(d2)s2+=d2.sc;
+    steps.push({p,c,d1,d2});
+  }
+  s1=Math.round(s1*100)/100;s2=Math.round(s2*100)/100;
+
+  const last=mapped[mapped.length-1];
+  let state,algo=null;
+  const lock1=v1>=opts.minSteps&&(s1-s2)>=opts.margin&&s1>0;
+  const lock2=v2>=opts.minSteps&&(s2-s1)>=opts.margin&&s2>0;
+  if(lock1){state='Algo 1 locked';algo=1;}
+  else if(lock2){state='Algo 2 locked';algo=2;}
+  else if(s1>s2&&s1>0){state='A1 leaning';algo=1;}
+  else if(s2>s1&&s2>0){state='A2 leaning';algo=2;}
+  else if(s1>0&&s1===s2){state='ambiguous A1/A2';algo=null;}
+  else state=mapped.length<2?'waiting':'unlocked';
+
+  let terminal=false;
+  if(algo&&last&&last['a'+algo]){
+    terminal=A[algo][last['a'+algo].idx].term;
+    if(terminal)state=(algo===1?'Algo 1':'Algo 2')+' terminal reached';
+  }
+  const locked=lock1||lock2;
+  const margin=Math.abs(s1-s2);
+  const evidence=algo===1?v1:algo===2?v2:0;
+  let conf;
+  if(!algo||!steps.length)conf={t:'none',p:0};
+  else if(locked&&margin>=4&&evidence>=3)conf={t:'strong',p:100};
+  else if(locked&&margin>=3)conf={t:'strong',p:84};
+  else if(locked)conf={t:'medium',p:62};
+  else if(margin>=1.5)conf={t:'weak',p:38};
+  else conf={t:'weak',p:20};
+
+  return{mapped,steps,s1,s2,v1,v2,state,algo,locked,terminal,conf,margin,last};
+}
+
+function scorerOpts(){
+  return{
+    allowSkip:document.getElementById('optSkip').checked,
+    maxSkip:Math.max(1,parseInt(document.getElementById('optMaxSkip').value,10)||3),
+    minSteps:Math.max(1,parseInt(document.getElementById('optMinSteps').value,10)||2),
+    margin:Math.max(1,parseFloat(document.getElementById('optMargin').value)||2),
+    penalize:document.getElementById('optPenal').checked,
+    alternation:document.getElementById('optAlt').checked,
+    useSecondary:document.getElementById('optSec').checked,
+  };
+}
+
+let lastScore=null;
+function runScorer(){
+  renderSwings();
+  const out=document.getElementById('path-out');
+  if(swings.length<2){
+    lastScore=null;
+    out.innerHTML='<div class="empty"><b>Add two or more confirmed swings.</b><br><br>The scorer maps each swing time to its Algo&nbsp;1 and Algo&nbsp;2 node, then scores the sequence forward (A1) and reverse (A2).</div>';
+    return;
+  }
+  const r=scoreSwings(swings,scorerOpts());
+  lastScore=r;
+  const vc=r.locked?'agree':(r.algo?'partial':'conflict');
+  const verdict='<div class="verdict '+vc+'">'+
+    '<div class="v-tag"><span class="v-dot '+vc+'"></span>path state</div>'+
+    '<div class="v-head">'+esc(r.state)+'</div>'+
+    '<div class="v-sub">'+r.steps.length+' transition(s) scored across '+swings.length+' swings · valid steps A1 '+r.v1+' / A2 '+r.v2+'</div>'+
+    '<div class="confmeter"><div class="cm-bar"><div class="cm-fill" style="width:'+r.conf.p+'%"></div></div><div class="cm-txt">'+r.conf.t+'</div></div>'+
+    '</div>';
+
+  const sg='<div class="scoregrid">'+
+    '<div class="scard'+(r.s1>r.s2?' win':'')+'"><div class="sc-h">Algo 1 · forward</div><div class="sc-v">'+r.s1+'</div><div class="sc-m">'+r.v1+' valid step(s)</div></div>'+
+    '<div class="scard'+(r.s2>r.s1?' win':'')+'"><div class="sc-h">Algo 2 · reverse</div><div class="sc-v">'+r.s2+'</div><div class="sc-m">'+r.v2+' valid step(s)</div></div>'+
+    '</div>';
+
+  const stepHtml='<div class="steplist">'+r.steps.map((st,i)=>{
+    const f=pad(st.p.hh)+':'+pad(st.p.mm),t=pad(st.c.hh)+':'+pad(st.c.mm);
+    const c1=st.d1?(st.d1.sc>0?'st-ok':'st-bad'):'st-bad';
+    const c2=st.d2?(st.d2.sc>0?'st-ok':'st-bad'):'st-bad';
+    return '<div class="steprow"><span class="st-n">'+f+' → '+t+'</span>'+
+      '<span class="st-s '+c1+'">A1 '+(st.d1?(st.d1.sc>0?'+':'')+st.d1.sc:'—')+'</span>'+
+      '<span class="st-s '+c2+'">A2 '+(st.d2?(st.d2.sc>0?'+':'')+st.d2.sc:'—')+'</span></div>';
+  }).join('')+'</div>';
+
+  // projection
+  let proj='';
+  if(r.algo&&r.last&&r.last['a'+r.algo]&&!r.terminal){
+    const idx=r.last['a'+r.algo].idx;
+    const from={hh:r.last.hh,mm:r.last.mm};
+    const n=nextNode(r.algo,idx,from);
+    const other=r.algo===1?2:1;
+    let altHtml='';
+    if(r.last['a'+other]){
+      const na=nextNode(other,r.last['a'+other].idx,from);
+      if(!na.done&&na.times.length)altHtml='<div class="walt">Alternate — Algo '+other+' → '+esc(labelForValue(na.node,na.times[0].val))+' @ '+na.times[0].time+'</div>';
+      else if(na.done)altHtml='<div class="walt">Alternate — Algo '+other+' is at terminal.</div>';
+    }
+    if(!n.done&&n.times.length){
+      const t=n.times[0];
+      proj='<div class="floor"><div class="floor-label">Primary next node — Algo '+r.algo+'</div>'+
+        '<div class="floor-main"><span class="floor-node">'+esc(labelForValue(n.node,t.val))+'</span>'+
+        '<span class="floor-at">at <b>'+t.time+'</b></span><span class="floor-via">via '+esc(t.via)+'</span></div>'+
+        '<div class="floor-sub">Minimum travel from the last confirmed swing at '+pad(from.hh)+':'+pad(from.mm)+'.'+(n.node.term?' This is a <b>terminal</b> node.':'')+'</div>'+
+        altHtml+'</div>'+
+        '<div class="btn-row"><button class="btn primary" onclick="pushToLive()">Send to LIVE runner →</button>'+
+        '<button class="btn" onclick="pushToWalk()">Walk this path →</button></div>';
+    }
+  }else if(r.terminal){
+    proj='<div class="verdict"><div class="v-tag"><span class="v-dot"></span>terminal</div>'+
+      '<div class="v-head">Path complete ⊣</div>'+
+      '<div class="v-sub">The last swing sits on Algo '+r.algo+"'s terminal node. Projections are suppressed until a fresh swing sequence forms.</div></div>";
+  }else{
+    proj='<div class="note" style="margin-top:11px;">No projection while the path is '+esc(r.state)+'. Add another confirmed swing, raise history, or lower the lock margin.</div>';
+  }
+
+  out.innerHTML=verdict+sg+'<div class="card" style="margin-top:13px;"><div class="card-h">Transition scoring</div>'+stepHtml+'</div>'+proj;
+}
+
+function pushToLive(){
+  if(!lastScore||!lastScore.algo)return;
+  const r=lastScore,idx=r.last['a'+r.algo].idx;
+  livePath={mode:'manual',algo:r.algo,idx,label:labelForValue(A[r.algo][idx],r.last['a'+r.algo].h.val),src:'PATH ID · '+r.state};
+  renderLive();setTab('live');toast('Path sent to LIVE runner');
+}
+function pushToWalk(){
+  if(!lastScore||!lastScore.algo)return;
+  const r=lastScore,idx=r.last['a'+r.algo].idx;
+  s2w={algo:r.algo,confirmedOrder:[idx],reactions:{},cursorIdx:stepIdx(r.algo,idx)===null?'done':stepIdx(r.algo,idx),from:{hh:r.last.hh,mm:r.last.mm},history:[]};
+  s2pendingReact=null;
+  setTab('walk');s2wRender();toast('Loaded into Section 2 walk');
+}
+
+/* ============================================================
+   CONFLUENCE
+   ============================================================ */
+let confMode='two',confChain=null;
+function setConfMode(m){
+  confMode=m;
+  document.getElementById('cm2').classList.toggle('active',m==='two');
+  document.getElementById('cm1').classList.toggle('active',m==='one');
+  document.getElementById('cbox2').style.display=m==='one'?'none':'block';
+  document.getElementById('ccap1').textContent=m==='one'?'The swing':'First swing — earlier';
+  document.getElementById('conf-out').innerHTML='';
+}
+function pathCandidates(t1,t2){
+  const h1a1=nodeAt(t1.hh,t1.mm,1),h1a2=nodeAt(t1.hh,t1.mm,2);
+  const h2a1=nodeAt(t2.hh,t2.mm,1),h2a2=nodeAt(t2.hh,t2.mm,2);
+  const cands=[];
+  if(h1a1&&h2a1){
+    if(h2a1.idx===h1a1.idx+1)cands.push({algo:1,i1:h1a1.idx,i2:h2a1.idx,skip:false,h1:h1a1,h2:h2a1});
+    else if(h2a1.idx>h1a1.idx)cands.push({algo:1,i1:h1a1.idx,i2:h2a1.idx,skip:true,gap:h2a1.idx-h1a1.idx,h1:h1a1,h2:h2a1});
+  }
+  if(h1a2&&h2a2){
+    if(h2a2.idx===h1a2.idx-1)cands.push({algo:2,i1:h1a2.idx,i2:h2a2.idx,skip:false,h1:h1a2,h2:h2a2});
+    else if(h2a2.idx<h1a2.idx)cands.push({algo:2,i1:h1a2.idx,i2:h2a2.idx,skip:true,gap:h1a2.idx-h2a2.idx,h1:h1a2,h2:h2a2});
+  }
+  return{cands,h1a1,h1a2,h2a1,h2a2};
+}
+function confStrength(a1,a2){
+  if(!(a1&&a2))return{txt:'low',why:'one algo only'};
+  const q1=readQuality(a1.h),q2=readQuality(a2.h);
+  if(q1===3&&q2===3)return{txt:'strong',why:'MM exact on both algos'};
+  if(q1>=2&&q2>=2)return{txt:'medium',why:'MM tolerance on one or both algos'};
+  return{txt:'medium',why:'secondary-method confirmation'};
+}
+function confPathHTML(pc){
+  if(confMode!=='two')return'';
+  if(pc.cands.length){
+    return pc.cands.map(c=>'<div class="verdict '+(c.skip?'partial':'agree')+'" style="padding:12px 14px;">'+
+      '<div class="v-tag"><span class="v-dot '+(c.skip?'partial':'agree')+'"></span>swing cross-check</div>'+
+      '<div class="v-head">Algo '+c.algo+(c.algo===2?' reverse':'')+': '+esc(labelForValue(A[c.algo][c.i1],c.h1.h.val))+' → '+esc(labelForValue(A[c.algo][c.i2],c.h2.h.val))+'</div>'+
+      '<div class="v-sub">'+(c.skip?'Valid order, but skipped '+(c.gap-1)+' node(s).':'Consecutive nodes on the same algo.')+' Direction tags: '+dirLabel('c1')+' → '+dirLabel('c2')+'.</div></div>').join('');
+  }
+  const s1=[pc.h1a1?'A1 '+nodeHitLabel(pc.h1a1):null,pc.h1a2?'A2 '+nodeHitLabel(pc.h1a2):null].filter(Boolean).join(', ')||'no node';
+  const s2=[pc.h2a1?'A1 '+nodeHitLabel(pc.h2a1):null,pc.h2a2?'A2 '+nodeHitLabel(pc.h2a2):null].filter(Boolean).join(', ')||'no node';
+  return'<div class="verdict conflict" style="padding:12px 14px;"><div class="v-tag"><span class="v-dot conflict"></span>swing cross-check failed</div>'+
+    '<div class="v-head">The two swings do not form an ordered path.</div>'+
+    '<div class="v-sub">Swing 1: '+esc(s1)+'. Swing 2: '+esc(s2)+'.</div></div>';
+}
+function overlap(t1,t2){if(!t1||!t2)return null;const s=new Set(t2.map(x=>x.time));const h=t1.find(x=>s.has(x.time));return h?h.time:null;}
+function firstVia(t){const p=t.via.split(', ');return p.find(x=>x.startsWith('MM'))||p[0];}
+function floorOf(n1,n2){
+  const c=[];
+  if(n1&&!n1.done&&n1.times.length)c.push({algo:1,node:labelForValue(n1.node,n1.times[0].val),time:n1.times[0].time,via:firstVia(n1.times[0]),step:n1.times[0].step});
+  if(n2&&!n2.done&&n2.times.length)c.push({algo:2,node:labelForValue(n2.node,n2.times[0].val),time:n2.times[0].time,via:firstVia(n2.times[0]),step:n2.times[0].step});
+  if(!c.length)return null;
+  c.sort(minByStep);
+  return c[0];
+}
+function acol(num,a,n){
+  const flow=num===1?'00 → terminal':'terminal ← 29/35 (rev)';
+  if(!a)return'<div class="acol"><div class="acol-head">Algo '+num+'</div><div class="acol-flow">'+flow+'</div><div class="acol-label">This swing</div><div class="acol-none">no node</div></div>';
+  let nb;
+  if(n.done)nb='<div class="acol-label">Next</div><div class="acol-node" style="color:var(--gold-tx);font-size:15px;">terminal ⊣</div>';
+  else{
+    const tt=n.times.length?n.times.map(t=>'<div class="acol-time">'+t.time+'<span class="mv">'+esc(t.via)+'</span></div>').join(''):'<div class="acol-none">no time in 90m</div>';
+    nb='<div class="acol-label">Next node</div><div class="acol-node">'+esc(n.node.l)+'</div><div class="acol-via">watch:</div><div class="acol-times">'+tt+'</div>';
+  }
+  return'<div class="acol"><div class="acol-head">Algo '+num+'</div><div class="acol-flow">'+flow+'</div>'+
+    '<div class="acol-label">This swing = node</div><div class="acol-node" style="font-size:16px;">'+esc(nodeHitLabel(a))+'</div>'+
+    '<div class="acol-via">via '+a.h.method.name+(a.h.d>0?' ±'+a.h.d:'')+' <span class="qbadge '+qClass(readQuality(a.h))+'">'+qName(readQuality(a.h))+'</span></div>'+nb+'</div>';
+}
+function methodCards(hh,mm){
+  return'<div class="method-grid">'+methods(hh,mm).map(m=>{
+    const nodes=[];
+    [1,2].forEach(a=>A[a].forEach(node=>{
+      const d=Math.min.apply(null,node.v.map(v=>Math.abs(m.val-v)));
+      if(d<=TOLV())nodes.push('A'+a+' '+labelForValue(node,m.val)+(d>0?' ±'+d:''));
+    }));
+    const ns=nodes.length?nodes.map(x=>'<span class="mn">'+esc(x)+'</span>').join(''):'<span class="mn-none">no node</span>';
+    return'<div class="method-card'+(nodes.length?' has':'')+'"><div class="mc-top"><span class="mc-name">'+m.name+(m.pri?' <span class="mc-pri">•</span>':'')+'</span><span class="mc-val">'+m.val+'</span></div><div class="mc-nodes">'+ns+'</div></div>';
+  }).join('')+'</div>';
+}
+function runConf(){
+  const t1=getT('ch1','cn1');
+  const tL=confMode==='two'?getT('ch2','cn2'):t1;
+  const pc=confMode==='two'?pathCandidates(t1,tL):{cands:[],h1a1:null,h1a2:null,h2a1:null,h2a2:null};
+  const a1=nodeAt(tL.hh,tL.mm,1),a2=nodeAt(tL.hh,tL.mm,2);
+  const out=document.getElementById('conf-out');
+  if(!a1&&!a2){
+    out.innerHTML=confPathHTML(pc)+'<div class="empty"><b>No node match.</b><br><br>'+pad(tL.hh)+':'+pad(tL.mm)+" doesn't land on a node in either algo within ±"+TOLV()+'.</div>';
+    return;
+  }
+  const n1=a1?nextNode(1,a1.idx,tL):null;
+  const n2=a2?nextNode(2,a2.idx,tL):null;
+  const l1=n1?(n1.done?'TERM':n1.node.l):null;
+  const l2=n2?(n2.done?'TERM':n2.node.l):null;
+  const sameNext=(l1&&l2&&l1===l2&&l1!=='TERM');
+  const st=confStrength(a1,a2);
+
+  let vc,vt,vh,vs;
+  if(a1&&a2&&l1&&l2){
+    if(sameNext){
+      const ov=overlap(n1.times,n2.times);
+      vc='agree';vt='both algos agree';vh='Next level: <span class="v-level">'+esc(l1)+'</span>';
+      vs=ov?'Both converge here. Strongest read — watch <span class="v-level">'+ov+'</span>.':'Both point to the same node.';
+    }else if(l1==='TERM'&&l2==='TERM'){vc='agree';vt='both complete';vh='Both paths at terminal ⊣';vs='A fresh sequence starts if price continues.';}
+    else{vc='conflict';vt='algos conflict';vh='Algo 1 → <span class="v-level">'+esc(l1)+'</span> · Algo 2 → <span class="v-level">'+esc(l2)+'</span>';vs='Different next levels — the floor below is the minimum move.';}
+  }else{
+    const w=a1?'Algo 1':'Algo 2';const lab=a1?l1:l2;
+    vc='partial';vt='partial — one algo';vh=w+' → <span class="v-level">'+esc(lab||'no next')+'</span>';vs='Only '+w+' reads here. Lower confidence.';
+  }
+  const verdict='<div class="verdict '+vc+'"><div class="v-tag"><span class="v-dot '+vc+'"></span>'+vt+' · strength '+st.txt+'</div>'+
+    '<div class="v-head">'+vh+'</div><div class="v-sub">'+vs+' <span style="color:var(--ink4);">('+st.why+')</span></div></div>';
+
+  const fl=floorOf(n1,n2);
+  let floorB='';
+  if(fl){
+    const p=fl.time.split(':').map(Number);
+    confChain={a1idx:(n1&&!n1.done)?n1.nextIdx:null,a2idx:(n2&&!n2.done)?n2.nextIdx:null,from:{hh:p[0],mm:p[1]},steps:[],history:[]};
+    floorB='<div class="floor"><div class="floor-label">Minimum expected move — reaches first</div>'+
+      '<div class="floor-main"><span class="floor-node">'+esc(fl.node)+'</span><span class="floor-at">at <b>'+fl.time+'</b></span><span class="floor-via">via '+esc(fl.via)+'</span></div>'+
+      '<div class="floor-sub">'+(sameNext?'Both algos point here.':'Algo '+fl.algo+"'s next node comes first in clock time — price should at least reach <b>"+esc(fl.node)+'</b>.')+'</div></div>'+
+      '<div class="wstep-actions"><button class="wbtn primary" onclick="confChainNext()">Next minimum →</button><button class="wbtn" onclick="confChainReset()">Reset</button></div><div id="conf-chain"></div>';
+  }
+  const compare='<div class="compare">'+acol(1,a1,n1)+acol(2,a2,n2)+'</div>';
+  const dirNote=confMode==='one'?'Direction tag: '+dirLabel('c1')+' — annotation only.':'Direction tags: Swing 1 '+dirLabel('c1')+' · Swing 2 '+dirLabel('c2')+' — annotation only.';
+  let readsInner='<div class="reads-swing-cap">'+(confMode==='one'?'Swing':'Swing 2')+' · '+pad(tL.hh)+':'+pad(tL.mm)+'</div>'+methodCards(tL.hh,tL.mm);
+  if(confMode==='two')readsInner='<div class="reads-swing-cap">Swing 1 · '+pad(t1.hh)+':'+pad(t1.mm)+'</div>'+methodCards(t1.hh,t1.mm)+readsInner;
+  const reads='<div class="note" style="margin:6px 0 8px;">'+dirNote+' Nodes are decision levels.</div>'+
+    '<button class="reads-toggle" onclick="this.nextElementSibling.classList.toggle(\'show\')">show / hide method reads</button><div class="reads-box">'+readsInner+'</div>';
+  out.innerHTML=verdict+confPathHTML(pc)+floorB+compare+reads;
+}
+// chain forward from the floor, always taking the nearest node in clock time
+function chainStep(state){
+  const c=[];
+  if(state.a1idx!==null&&state.a1idx!==undefined){
+    const n=nextNode(1,state.a1idx,state.from);
+    if(!n.done&&n.times.length)c.push({algo:1,ni:n.nextIdx,node:n.node,times:n.times,time:n.times[0].time,step:n.times[0].step,nodeLabel:labelForValue(n.node,n.times[0].val)});
+    else if(n.done)c.push({algo:1,done:true});
+  }
+  if(state.a2idx!==null&&state.a2idx!==undefined){
+    const n=nextNode(2,state.a2idx,state.from);
+    if(!n.done&&n.times.length)c.push({algo:2,ni:n.nextIdx,node:n.node,times:n.times,time:n.times[0].time,step:n.times[0].step,nodeLabel:labelForValue(n.node,n.times[0].val)});
+    else if(n.done)c.push({algo:2,done:true});
+  }
+  const live=c.filter(x=>!x.done&&x.time);
+  if(!live.length)return{exhausted:true};
+  live.sort(minByStep);
+  return{pick:live[0],alt:live[1]||null};
+}
+function advanceChain(state){
+  const mt=chainStep(state);
+  state.history.push({a1idx:state.a1idx,a2idx:state.a2idx,from:{...state.from},stepsLen:state.steps.length});
+  if(mt.exhausted){state.steps.push({exhausted:true});return;}
+  const p=mt.pick;
+  if(p.algo===1)state.a1idx=p.ni;else state.a2idx=p.ni;
+  const hm=p.time.split(':').map(Number);state.from={hh:hm[0],mm:hm[1]};
+  state.steps.push({algo:p.algo,node:p.nodeLabel||p.node.l,times:p.times,time:p.time,
+    alt:mt.alt?{algo:mt.alt.algo,node:mt.alt.nodeLabel||mt.alt.node.l,time:mt.alt.time}:null});
+  const reached=p.algo===1?state.a1idx:state.a2idx;
+  if(A[p.algo][reached].term){if(p.algo===1)state.a1idx=null;else state.a2idx=null;}
+}
+function backChain(state){
+  if(!state.history.length)return;
+  const prev=state.history.pop();
+  state.a1idx=prev.a1idx;state.a2idx=prev.a2idx;state.from=prev.from;
+  state.steps.splice(prev.stepsLen);
+}
+function chainStepHTML(s,i){
+  if(s.exhausted)return'<div class="wstep"><div class="wstep-verdict done">Both paths at terminal ⊣ — a fresh sequence starts here.</div></div>';
+  const tl=s.times.map((t,j)=>'<span class="wt '+(j===0?'first':'')+'">'+t.time+'<span class="wt-via">'+esc(t.via)+'</span></span>').join('');
+  const alt=s.alt?'<div class="walt">Other path: Algo '+s.alt.algo+' → '+esc(s.alt.node)+' @ '+s.alt.time+' (later)</div>':'';
+  return'<div class="wstep"><div class="wstep-head"><span class="wstep-num">'+i+'</span>'+
+    '<span class="wstep-verdict">min travel · Algo '+s.algo+(s.algo===2?' rev':'')+'</span>'+
+    '<span class="wstep-time">'+s.time+'</span></div>'+
+    '<div class="wstep-node">'+esc(s.node)+'</div>'+
+    '<div class="wt-label">all method times (MM first):</div><div class="wt-row">'+tl+'</div>'+alt+'</div>';
+}
+function confChainNext(){if(!confChain)return;advanceChain(confChain);confChainRender();}
+function confChainBack(){if(!confChain)return;backChain(confChain);confChainRender();}
+function confChainReset(){confChain=null;const el=document.getElementById('conf-chain');if(el)el.innerHTML='';}
+function confChainRender(){
+  const el=document.getElementById('conf-chain');if(!el||!confChain)return;
+  let html=confChain.steps.map((s,i)=>chainStepHTML(s,i+1)).join('');
+  const last=confChain.steps[confChain.steps.length-1];
+  const done=last&&last.exhausted;
+  if(confChain.steps.length)html+='<div class="wstep-actions">'+
+    (done?'<button class="wbtn" disabled>Complete</button>':'<button class="wbtn primary" onclick="confChainNext()">Next minimum →</button>')+
+    '<button class="wbtn" onclick="confChainBack()">← Back</button></div>';
+  el.innerHTML=html;
+}
+
+/* ============================================================
+   WALK — Section 1 (min travel) + Section 2 (full path)
+   ============================================================ */
+let walkCands=[],walkActive=-1,walkStates=[],walkT2=null;
+function runWalkID(){
+  const t1=getT('wh1','wn1'),t2=getT('wh2','wn2');
+  const pc=pathCandidates(t1,t2);
+  walkCands=pc.cands;walkActive=-1;walkStates=[];walkT2=t2;
+  const idEl=document.getElementById('walk-id');
+  document.getElementById('walk-out').innerHTML='';
+  if(!pc.cands.length){
+    const s1=[pc.h1a1?'A1 '+nodeHitLabel(pc.h1a1):null,pc.h1a2?'A2 '+nodeHitLabel(pc.h1a2):null].filter(Boolean).join(', ')||'no node';
+    const s2=[pc.h2a1?'A1 '+nodeHitLabel(pc.h2a1):null,pc.h2a2?'A2 '+nodeHitLabel(pc.h2a2):null].filter(Boolean).join(', ')||'no node';
+    idEl.innerHTML='<div class="empty"><b>No path found.</b><br><br>Swing 1: '+esc(s1)+'<br>Swing 2: '+esc(s2)+'<br><br>The two swings are not in order on one algo. Check the times.</div>';
+    return;
+  }
+  walkStates=pc.cands.map(c=>({
+    c,a1idx:c.algo===1?c.i2:null,a2idx:c.algo===2?c.i2:null,
+    from:{hh:t2.hh,mm:t2.mm},history:[],
+    steps:[{start:true,time:pad(t2.hh)+':'+pad(t2.mm),startNodes:labelForValue(A[c.algo][c.i1],c.h1.h.val)+' → '+labelForValue(A[c.algo][c.i2],c.h2.h.val)}]
+  }));
+  renderWalkID();activateWalk(0);
+}
+function renderWalkID(){
+  document.getElementById('walk-id').innerHTML='<div class="pathid"><div class="pathid-label">Path identified — pick one to walk</div>'+
+    walkCands.map((c,i)=>{
+      const active=i===walkActive;
+      return'<div class="cand'+(active?' active':'')+'" onclick="activateWalk('+i+')">'+
+        '<div class="cand-top"><span class="cand-algo">Algo '+c.algo+(c.algo===2?' · reverse':'')+'</span>'+
+        '<span class="cand-conf '+(c.skip?'skip':'ok')+'">'+(c.skip?'~ '+c.gap+' apart':'✓ consecutive')+'</span></div>'+
+        '<div class="cand-nodes"><b>'+esc(labelForValue(A[c.algo][c.i1],c.h1.h.val))+'</b> → <b>'+esc(labelForValue(A[c.algo][c.i2],c.h2.h.val))+'</b> · via '+c.h1.h.method.name+' / '+c.h2.h.method.name+'</div>'+
+        '<div style="display:flex;align-items:center;gap:10px;margin-top:8px;">'+
+        '<div class="cand-go" style="flex:1;">'+(active?'● walking this':'Walk §1 minimum →')+'</div>'+
+        '<span onclick="s2fromCand('+i+');event.stopPropagation();" class="mini on">Walk path §2 →</span></div></div>';
+    }).join('')+'</div>';
+}
+function activateWalk(i){walkActive=i;renderWalkID();renderWalk();}
+function walkNext(){advanceChain(walkStates[walkActive]);renderWalk();}
+function walkBack(){backChain(walkStates[walkActive]);renderWalk();}
+function walkReset(){runWalkID();}
+function renderWalk(){
+  if(walkActive<0)return;
+  const st=walkStates[walkActive];
+  const body=st.steps.map((s,i)=>{
+    if(s.start)return'<div class="wstep start"><div class="wstep-head"><span class="wstep-num">0</span><span class="wstep-verdict plain">start</span><span class="wstep-time">'+s.time+'</span></div><div class="wstart-nodes">'+esc(s.startNodes)+'</div></div>';
+    return chainStepHTML(s,i);
+  }).join('');
+  const last=st.steps[st.steps.length-1];
+  const done=last&&last.exhausted;
+  const acts='<div class="wstep-actions">'+
+    (done?'<button class="wbtn" disabled>Complete</button>':'<button class="wbtn primary" onclick="walkNext()">Next minimum →</button>')+
+    (st.history.length?'<button class="wbtn" onclick="walkBack()">← Back</button>':'')+
+    '<button class="wbtn" onclick="walkReset()">Reset</button></div>';
+  document.getElementById('walk-out').innerHTML=body+acts;
+}
+
+/* ---- Section 2: walk a full path with reactions ---- */
+let s2w=null,s2pendingReact=null;
+function s2fromCand(i){
+  const c=walkCands[i];if(!c)return;
+  const t=walkT2||{hh:7,mm:11};
+  const ni=stepIdx(c.algo,c.i2);
+  s2w={algo:c.algo,confirmedOrder:[c.i1,c.i2],reactions:{},cursorIdx:ni===null?'done':ni,from:{hh:t.hh,mm:t.mm},history:[]};
+  s2pendingReact=null;
+  s2wRender();
+  document.getElementById('s2-walk').scrollIntoView({behavior:'smooth',block:'start'});
+}
+function s2manualStart(algo){
+  const t=getT('s2h','s2n');
+  const hit=nodeAt(t.hh,t.mm,algo);
+  if(!hit){
+    document.getElementById('s2-walk').innerHTML='<div class="empty"><b>No node match.</b><br>'+pad(t.hh)+':'+pad(t.mm)+" doesn't land on a node for Algo "+algo+' within ±'+TOLV()+'.</div>';
+    return;
+  }
+  const ni=stepIdx(algo,hit.idx);
+  s2w={algo,confirmedOrder:[hit.idx],reactions:{},cursorIdx:ni===null?'done':ni,from:{hh:t.hh,mm:t.mm},history:[]};
+  s2pendingReact=null;s2wRender();
+}
+function s2pickReact(r){s2pendingReact=s2pendingReact===r?null:r;s2wRender();}
+function s2advance(){
+  if(!s2w||s2w.cursorIdx==='done')return;
+  s2w.history.push({cursorIdx:s2w.cursorIdx,from:{...s2w.from},confirmedOrder:[...s2w.confirmedOrder],reactions:{...s2w.reactions},pendingReact:s2pendingReact});
+  const idx=s2w.cursorIdx;
+  if(s2pendingReact)s2w.reactions[idx]=s2pendingReact;
+  if(!s2w.confirmedOrder.includes(idx))s2w.confirmedOrder.push(idx);
+  const nd=A[s2w.algo][idx];
+  const ts=solveTimes(nd.v,s2w.from);
+  if(ts.length){const hm=ts[0].time.split(':').map(Number);s2w.from={hh:hm[0],mm:hm[1]};}
+  const ni=stepIdx(s2w.algo,idx);
+  s2w.cursorIdx=(nd.term||ni===null)?'done':ni;
+  s2pendingReact=null;s2wRender();
+}
+function s2wBack(){
+  if(!s2w||!s2w.history.length)return;
+  const p=s2w.history.pop();
+  s2w.cursorIdx=p.cursorIdx;s2w.from=p.from;
+  s2w.confirmedOrder=[...p.confirmedOrder];s2w.reactions={...p.reactions};
+  s2pendingReact=p.pendingReact||null;s2wRender();
+}
+function s2wReset(){s2w=null;s2pendingReact=null;document.getElementById('s2-walk').innerHTML='';}
+function s2wRender(){
+  const el=document.getElementById('s2-walk');if(!el)return;
+  if(!s2w){el.innerHTML='';return;}
+  const algo=s2w.algo,arr=A[algo];
+  const flow=algo===1?'00 → terminal · forward':'29/35 → 03/7 ⊣ · reverse';
+  const reactCl={s:'react-s',r:'react-r',b:'react-b'};
+  const orderedConf=[...new Set(s2w.confirmedOrder)];
+  const pathHTML=arr.map((nd,i)=>{
+    const isConf=orderedConf.includes(i),isCursor=i===s2w.cursorIdx;
+    let cl='s2n'+(nd.term?' term':'');
+    if(isConf){cl+=' conf';const r=s2w.reactions[i];if(r)cl+=' '+reactCl[r];}
+    else if(isCursor)cl+=' cursor';
+    else cl+=' future';
+    const oi=orderedConf.indexOf(i);
+    const badge=isConf&&oi>=0?'<span class="badge">'+(oi+1)+'</span>':'';
+    return(i>0?'<span class="s2arr">→</span>':'')+'<span class="'+cl+'">'+badge+esc(nd.l)+'</span>';
+  }).join('');
+  const total=arr.length;
+  const curPos=s2w.cursorIdx==='done'?total:(algo===1?s2w.cursorIdx+1:arr.length-s2w.cursorIdx);
+  const posStr=s2w.cursorIdx==='done'?'complete':'node '+curPos+' of '+total;
+
+  let nextHTML;
+  if(s2w.cursorIdx==='done'){
+    nextHTML='<div class="s2-next"><div class="s2nx-top"><span class="s2nx-label">Path complete</span><span class="s2nx-pos">'+posStr+'</span></div>'+
+      '<div class="s2nx-done">terminal reached ⊣</div>'+
+      '<div class="s2nx-donesub">If price continues, the next sequence starts fresh. Re-identify from your next two confirmed swings.</div></div>';
+  }else{
+    const nd=arr[s2w.cursorIdx];
+    const ts=solveTimes(nd.v,s2w.from);
+    const tlist=ts.length?ts.map((t,j)=>'<span class="s2t '+(j===0?'first':'')+'">'+t.time+'<span class="s2t-via">'+esc(t.via)+'</span></span>').join(''):'<span class="note">No time in the next 90 min</span>';
+    const lbls={s:'held support',r:'held resistance',b:'broke through'};
+    const rBtns=['s','r','b'].map(r=>'<div class="s2rb'+(s2pendingReact===r?' sel-'+r:'')+'" onclick="s2pickReact(\''+r+'\')">'+lbls[r]+'</div>').join('');
+    nextHTML='<div class="s2-next"><div class="s2nx-top"><span class="s2nx-label">Next node — watching for</span><span class="s2nx-pos">'+posStr+'</span></div>'+
+      '<div class="s2nx-node">'+esc(ts.length?labelForValue(nd,ts[0].val):nd.l)+(nd.term?' <span style="font-size:14px;color:var(--ink4);">terminal</span>':'')+'</div>'+
+      '<div class="s2nx-tlabel">All method times to watch (MM first):</div><div class="s2nx-times">'+tlist+'</div>'+
+      '<div class="s2nx-rlabel">When it prints, how did price react at this level?</div><div class="s2nx-rbts">'+rBtns+'</div></div>';
+  }
+  el.innerHTML='<div class="s2-algo"><div class="s2-algo-head"><span class="s2-algo-name">Algo '+algo+(algo===2?' · reverse':'')+'</span>'+
+    '<span class="s2-algo-flow">'+flow+'</span>'+
+    '<button class="wbtn" onclick="s2wReset()" style="margin-left:auto;padding:5px 12px;font-size:11px;">Reset</button></div>'+
+    '<div class="s2-path">'+pathHTML+'</div>'+
+    '<div class="s2-legend"><span><span class="lg-d s"></span>held support</span><span><span class="lg-d r"></span>held resistance</span><span><span class="lg-d b"></span>broke through</span></div></div>'+
+    nextHTML+
+    '<div class="wstep-actions">'+
+    (s2w.cursorIdx!=='done'?'<button class="wbtn primary" onclick="s2advance()">Advance →</button>':'<button class="wbtn" disabled>Complete</button>')+
+    (s2w.history.length?'<button class="wbtn" onclick="s2wBack()">← Back</button>':'')+'</div>';
+}
+
+/* ============================================================
+   CE WALK
+   ============================================================ */
+let ceState=null;
+function ceNodeAt(hh,mm,algoNum){
+  let best=null;
+  CEA[algoNum].forEach((node,i)=>{
+    const h=hitValues(hh,mm,node.ce);
+    if(h&&(best===null||(h.method.pri&&!best.h.method.pri)||(h.method.pri===best.h.method.pri&&h.d<best.h.d)))best={idx:i,node,h};
+  });
+  return best;
+}
+function ceNext(algoNum,idx,from){
+  const arr=CEA[algoNum];let ni;
+  if(algoNum===1){if(arr[idx].term||idx>=arr.length-1)return{done:true};ni=idx+1;}
+  else{if(arr[idx].term||idx<=0)return{done:true};ni=idx-1;}
+  return{done:false,ni,node:arr[ni],times:solveTimes(arr[ni].ce,from)};
+}
+function ceStart(){
+  const t=getT('eh','en');
+  const a1=ceNodeAt(t.hh,t.mm,1),a2=ceNodeAt(t.hh,t.mm,2);
+  const out=document.getElementById('ce-out');
+  if(!a1&&!a2){
+    out.innerHTML='<div class="empty"><b>No CE match.</b><br><br>'+pad(t.hh)+':'+pad(t.mm)+" doesn't land on a CE alternate in either algo within ±"+TOLV()+'.</div>';
+    ceState=null;return;
+  }
+  ceState={a1idx:a1?a1.idx:null,a2idx:a2?a2.idx:null,from:{hh:t.hh,mm:t.mm},history:[],
+    steps:[{start:true,time:pad(t.hh)+':'+pad(t.mm),startNodes:[a1?'A1 CE '+a1.node.l:null,a2?'A2 CE '+a2.node.l:null].filter(Boolean).join(' · ')}]};
+  ceRender();
+}
+// NOTE: both candidate branches must set `time` AND keep `times` as the array.
+// The previous build set `times:n.times[0].time` on the Algo 2 branch and omitted
+// `time` entirely, which silently dropped Algo 2 from every CE minimum comparison.
+function ceMin(){
+  const c=[];
+  [1,2].forEach(a=>{
+    const idx=a===1?ceState.a1idx:ceState.a2idx;
+    if(idx===null||idx===undefined)return;
+    const n=ceNext(a,idx,ceState.from);
+    if(!n.done&&n.times.length)c.push({algo:a,ni:n.ni,node:n.node,times:n.times,time:n.times[0].time,step:n.times[0].step});
+    else if(n.done)c.push({algo:a,done:true});
+  });
+  const live=c.filter(x=>!x.done&&x.time);
+  if(!live.length)return{exhausted:true};
+  live.sort(minByStep);
+  return{pick:live[0],alt:live[1]||null};
+}
+function ceStep(){
+  const mt=ceMin();
+  ceState.history.push({a1idx:ceState.a1idx,a2idx:ceState.a2idx,from:{...ceState.from},stepsLen:ceState.steps.length});
+  if(mt.exhausted){ceState.steps.push({exhausted:true});ceRender();return;}
+  const p=mt.pick;
+  if(p.algo===1)ceState.a1idx=p.ni;else ceState.a2idx=p.ni;
+  const hm=p.time.split(':').map(Number);ceState.from={hh:hm[0],mm:hm[1]};
+  ceState.steps.push({algo:p.algo,node:p.node.l,gb:p.node.gb,times:p.times,time:p.time,
+    alt:mt.alt?{algo:mt.alt.algo,node:mt.alt.node.l,time:mt.alt.time}:null});
+  const reached=p.algo===1?ceState.a1idx:ceState.a2idx;
+  if(CEA[p.algo][reached].term){if(p.algo===1)ceState.a1idx=null;else ceState.a2idx=null;}
+  ceRender();
+}
+function ceBack(){if(!ceState)return;backChain(ceState);ceRender();}
+function ceReset(){ceState=null;document.getElementById('ce-out').innerHTML='';}
+function ceRender(){
+  if(!ceState)return;
+  let html=ceState.steps.map((s,i)=>{
+    if(s.start)return'<div class="wstep start"><div class="wstep-head"><span class="wstep-num">0</span><span class="wstep-verdict plain">start CE</span><span class="wstep-time">'+s.time+'</span></div><div class="wstart-nodes">'+esc(s.startNodes)+'</div></div>';
+    if(s.exhausted)return'<div class="wstep"><div class="wstep-verdict done">Both CE chains complete ⊣</div></div>';
+    const tl=s.times.map((t,j)=>'<span class="wt '+(j===0?'first':'')+'">'+t.time+'<span class="wt-via">'+esc(t.via)+'</span></span>').join('');
+    const alt=s.alt?'<div class="walt">Other CE: Algo '+s.alt.algo+' → '+esc(s.alt.node)+' @ '+s.alt.time+' (later)</div>':'';
+    return'<div class="wstep"><div class="wstep-head"><span class="wstep-num">'+i+'</span>'+
+      '<span class="wstep-verdict">min CE · Algo '+s.algo+(s.algo===2?' rev':'')+'</span><span class="wstep-time">'+s.time+'</span></div>'+
+      '<div class="wstep-node">CE '+esc(s.node)+' <span class="gb">(GB '+esc(s.gb)+')</span></div>'+
+      '<div class="wt-label">all method times (MM first):</div><div class="wt-row">'+tl+'</div>'+alt+'</div>';
+  }).join('');
+  const last=ceState.steps[ceState.steps.length-1];
+  const done=last&&last.exhausted;
+  html+='<div class="wstep-actions">'+
+    (done?'<button class="wbtn" disabled>Complete</button>':'<button class="wbtn primary" onclick="ceStep()">Next CE →</button>')+
+    (ceState.history.length?'<button class="wbtn" onclick="ceBack()">← Back</button>':'')+
+    '<button class="wbtn" onclick="ceReset()">Reset</button></div>';
+  document.getElementById('ce-out').innerHTML=html;
+}
+
+/* ============================================================
+   TRADE GATE
+   This is the part that actually moves win rate: it does not
+   predict direction, it refuses low-quality context.
+   ============================================================ */
+const CK=[
+  {id:'node',   w:3, veto:true,  t:'Price is at / just left a GB-time node',      d:'No node, no trade. This is the whole premise.'},
+  {id:'mm',     w:2, veto:false, t:'The node read is MM-exact',                    d:'MM is primary. MM-exact is the highest-quality read; secondary-only is the weakest.'},
+  {id:'agree',  w:2, veto:false, t:'Both algos point to the same next node',       d:'Confluence — A1 and A2 converging is the strongest time read available.'},
+  {id:'locked', w:2, veto:false, t:'Path is locked, not ambiguous',                d:'From PATH ID: locked beats leaning, leaning beats ambiguous.'},
+  {id:'react',  w:3, veto:true,  t:'I have SEEN the reaction at the node',         d:'Held support, held resistance, or broke. Never front-run a decision level.'},
+  {id:'kz',     w:2, veto:false, t:'Inside a killzone',                            d:'Auto-detected from the live clock, but confirm it yourself.'},
+  {id:'htf',    w:3, veto:true,  t:'HTF bias / draw on liquidity agrees',          d:'Time tells you when. HTF bias is what tells you which way.'},
+  {id:'ssmt',  w:2, veto:false, t:'SSMT divergence present',                       d:'Correlated pair failed to confirm the sweep.'},
+  {id:'po3',    w:2, veto:false, t:'PO3 / AMD phase aligned',                      d:'Accumulation done, manipulation taken, distribution starting.'},
+  {id:'tcisd',  w:3, veto:true,  t:'tCISD confirmed on entry timeframe',           d:'Your actual entry trigger. Without it you are guessing at the node.'},
+  {id:'liq',    w:2, veto:false, t:'Liquidity was swept before entry',             d:'A sweep into the node beats price drifting into it.'},
+  {id:'rr',     w:2, veto:false, t:'Target ≥ 2R and reachable before the next node',d:'The next node is the natural target boundary. Do not plan through it.'},
+];
+let ckState={};
+function toggleCk(id){ckState[id]=!ckState[id];renderChecklist();}
+function renderChecklist(){
+  // auto-tick killzone from the live clock
+  const now=zurichNow();
+  if(ckState.kz===undefined)ckState.kz=!!kzAt(now.hh,now.mm);
+  document.getElementById('cklist').innerHTML=CK.map(c=>
+    '<div class="ck'+(ckState[c.id]?' on':'')+(c.veto?' veto':'')+'" onclick="toggleCk(\''+c.id+'\')">'+
+    '<div class="ck-box">✓</div><div><div class="ck-t">'+esc(c.t)+(c.veto?' <span style="font-size:10px;color:'+(ckState[c.id]?'var(--ink4)':'var(--red-tx)')+';">required</span>':'')+'</div>'+
+    '<div class="ck-d">'+esc(c.d)+'</div></div><div class="ck-w">'+c.w+'</div></div>').join('');
+  renderGrade();
+}
+function gradeNow(){
+  const max=CK.reduce((a,c)=>a+c.w,0);
+  const got=CK.reduce((a,c)=>a+(ckState[c.id]?c.w:0),0);
+  const missingVeto=CK.filter(c=>c.veto&&!ckState[c.id]);
+  const pct=Math.round(got/max*100);
+  let g,cls,msg;
+  if(missingVeto.length){
+    g='NO';cls='no';
+    msg='Missing required: '+missingVeto.map(c=>c.t.replace(/^I have SEEN the /,'')).join(' · ');
+  }else if(pct>=85){g='A+';cls='a';msg='Full context. This is the setup you wait for.';}
+  else if(pct>=70){g='A';cls='a';msg='Strong. Size normally.';}
+  else if(pct>=55){g='B';cls='';msg='Marginal. Half size, or pass and wait for the next node.';}
+  else{g='C';cls='no';msg='Thin context. The next node is minutes away — passing costs you nothing.';}
+  return{g,cls,msg,pct,got,max,missingVeto};
+}
+function renderGrade(){
+  const r=gradeNow();
+  document.getElementById('gradeout').innerHTML=
+    '<div class="gradebox '+r.cls+'"><div class="gr-l">setup grade</div><div class="gr-v">'+r.g+'</div>'+
+    '<div class="gr-bar"><div class="gr-fill" style="width:'+r.pct+'%"></div></div>'+
+    '<div class="gr-s">'+r.got+' / '+r.max+' · '+esc(r.msg)+'</div></div>';
+}
+
+/* ---------- risk & size ---------- */
+function instByName(n){return S.inst.find(x=>x.n===n)||S.inst[0];}
+function fillInstruments(){
+  const sel=document.getElementById('rInst');
+  const cur=sel.value;
+  sel.innerHTML=S.inst.map(i=>'<option value="'+esc(i.n)+'">'+esc(i.n)+'</option>').join('');
+  if(cur&&S.inst.some(i=>i.n===cur))sel.value=cur;
+}
+let lastCalc=null;
+function runCalc(){
+  const inst=instByName(document.getElementById('rInst').value);
+  const acct=parseFloat(document.getElementById('rAcct').value)||0;
+  const riskPct=parseFloat(document.getElementById('rRisk').value)||0;
+  const entry=parseFloat(document.getElementById('rEntry').value);
+  const stop=parseFloat(document.getElementById('rStop').value);
+  const tgt=parseFloat(document.getElementById('rTgt').value);
+  const riskAmt=acct*riskPct/100;
+  const el=document.getElementById('calcout');
+  if(!isFinite(entry)||!isFinite(stop)||entry===stop){
+    lastCalc=null;
+    el.innerHTML='<div class="note" style="margin-top:9px;">Enter an entry and a stop to size the position. Risk budget: <b>'+riskAmt.toFixed(2)+'</b>.</div>';
+    return;
+  }
+  const dist=Math.abs(entry-stop);
+  const perLot=dist*inst.v;                 // currency risked per 1 lot
+  const lots=perLot>0?riskAmt/perLot:0;
+  let rr=null;
+  if(isFinite(tgt)&&tgt!==entry)rr=Math.abs(tgt-entry)/dist;
+  lastCalc={inst:inst.n,acct,riskPct,riskAmt,entry,stop,tgt:isFinite(tgt)?tgt:null,dist,lots,rr};
+  el.innerHTML=
+    '<div class="calcrow"><span class="calc-l">Risk budget</span><span class="calc-v">'+riskAmt.toFixed(2)+'</span></div>'+
+    '<div class="calcrow"><span class="calc-l">Stop distance</span><span class="calc-v">'+dist.toFixed(inst.d)+'</span></div>'+
+    '<div class="calcrow"><span class="calc-l">Risk per 1.00 lot</span><span class="calc-v">'+perLot.toFixed(2)+'</span></div>'+
+    '<div class="calcrow"><span class="calc-l">Position size</span><span class="calc-v big">'+(lots<0.01?lots.toFixed(4):lots.toFixed(2))+' lots</span></div>'+
+    (rr!==null?'<div class="calcrow"><span class="calc-l">Reward : risk</span><span class="calc-v">'+rr.toFixed(2)+' R</span></div>':'')+
+    '<div class="note" style="margin-top:9px;">Sized on '+esc(inst.n)+' at '+inst.v+' per 1.0 price move per lot. Verify against your broker contract spec.</div>';
+}
+
+/* ============================================================
+   JOURNAL
+   ============================================================ */
+function loadTrades(){try{return JSON.parse(localStorage.getItem('gbt.trades')||'[]');}catch(e){return[];}}
+function saveTrades(t){try{localStorage.setItem('gbt.trades',JSON.stringify(t));}catch(e){}}
+function logTrade(result){
+  const now=zurichNow();
+  const g=gradeNow();
+  const kz=kzAt(now.hh,now.mm);
+  const t={
+    id:Date.now(),
+    date:new Intl.DateTimeFormat('en-CA',{timeZone:'Europe/Zurich'}).format(new Date()),
+    time:pad(now.hh)+':'+pad(now.mm),
+    inst:lastCalc?lastCalc.inst:document.getElementById('rInst').value,
+    dir:document.getElementById('jDir').value,
+    node:document.getElementById('jNode').value||'—',
+    algo:document.getElementById('jAlgo').value,
+    grade:g.g,gradePct:g.pct,
+    kz:kz?kz.n:'none',
+    checks:CK.filter(c=>ckState[c.id]).map(c=>c.id),
+    rr:lastCalc&&lastCalc.rr?Math.round(lastCalc.rr*100)/100:null,
+    lots:lastCalc?Math.round(lastCalc.lots*10000)/10000:null,
+    risk:lastCalc?Math.round(lastCalc.riskAmt*100)/100:null,
+    result,
+    notes:document.getElementById('jNotes').value||'',
+  };
+  const all=loadTrades();all.unshift(t);saveTrades(all);
+  document.getElementById('jNotes').value='';
+  toast('Logged '+result+' · grade '+g.g);
+  renderJournal();
+}
+function delTrade(id){
+  if(!confirm('Delete this trade?'))return;
+  saveTrades(loadTrades().filter(t=>t.id!==id));renderJournal();
+}
+function wipeJournal(){
+  if(!confirm('Delete ALL journal entries? This cannot be undone.'))return;
+  saveTrades([]);renderJournal();toast('Journal wiped');
+}
+function wr(list){
+  const dec=list.filter(t=>t.result!=='BE');
+  if(!dec.length)return null;
+  return Math.round(dec.filter(t=>t.result==='W').length/dec.length*100);
+}
+function expectancy(list){
+  const dec=list.filter(t=>t.result!=='BE'&&t.rr);
+  if(!dec.length)return null;
+  const tot=dec.reduce((a,t)=>a+(t.result==='W'?t.rr:-1),0);
+  return Math.round(tot/dec.length*100)/100;
+}
+function renderJournal(){
+  const all=loadTrades();
+  const st=document.getElementById('jrn-stats');
+  if(!all.length){
+    st.innerHTML='<div class="empty"><b>No trades logged yet.</b><br><br>Log from the TRADE tab. Grade, checklist, killzone and node are captured automatically — that is what lets this tell you which conditions actually pay.</div>';
+    document.getElementById('jrn-buckets').innerHTML='<div class="note">Nothing to break down yet.</div>';
+    document.getElementById('jrn-table').innerHTML='';
+    return;
+  }
+  const w=all.filter(t=>t.result==='W').length,l=all.filter(t=>t.result==='L').length,b=all.filter(t=>t.result==='BE').length;
+  const rate=wr(all),exp=expectancy(all);
+  st.innerHTML='<div class="stat-grid">'+
+    '<div class="stat"><div class="stat-l">Trades</div><div class="stat-v">'+all.length+'</div><div class="stat-s">'+w+'W / '+l+'L / '+b+'BE</div></div>'+
+    '<div class="stat"><div class="stat-l">Win rate</div><div class="stat-v '+(rate===null?'':rate>=50?'good':'bad')+'">'+(rate===null?'—':rate+'%')+'</div><div class="stat-s">excl. break-even</div></div>'+
+    '<div class="stat"><div class="stat-l">Expectancy</div><div class="stat-v '+(exp===null?'':exp>0?'good':'bad')+'">'+(exp===null?'—':(exp>0?'+':'')+exp+'R')+'</div><div class="stat-s">per trade</div></div>'+
+    '<div class="stat"><div class="stat-l">A / A+ share</div><div class="stat-v">'+Math.round(all.filter(t=>t.grade==='A'||t.grade==='A+').length/all.length*100)+'%</div><div class="stat-s">of all trades</div></div>'+
+    '</div>';
+
+  const bucket=(label,keyFn)=>{
+    const m={};
+    all.forEach(t=>{const k=keyFn(t);if(k===null||k===undefined)return;(m[k]=m[k]||[]).push(t);});
+    const rows=Object.keys(m).map(k=>({k,list:m[k],r:wr(m[k])}))
+      .filter(x=>x.r!==null).sort((a,b)=>b.r-a.r);
+    if(!rows.length)return'';
+    return'<div style="margin-bottom:15px;"><div class="flabel">'+label+'</div><div class="bkt">'+rows.map(x=>{
+      const cls=x.r>=60?'':x.r>=45?'midwr':'lowwr';
+      return'<div class="bktrow"><span class="bkt-l" title="'+esc(x.k)+'">'+esc(x.k)+'</span>'+
+        '<span class="bkt-bar"><span class="bkt-f '+cls+'" style="width:'+x.r+'%"></span></span>'+
+        '<span class="bkt-n">'+x.r+'% · n='+x.list.length+'</span></div>';
+    }).join('')+'</div></div>';
+  };
+  const ckBucket=()=>{
+    const rows=CK.map(c=>{
+      const on=all.filter(t=>(t.checks||[]).includes(c.id));
+      return{k:c.t,list:on,r:wr(on)};
+    }).filter(x=>x.r!==null&&x.list.length>=2).sort((a,b)=>b.r-a.r);
+    if(!rows.length)return'';
+    return'<div style="margin-bottom:15px;"><div class="flabel">When this condition was true (n ≥ 2)</div><div class="bkt">'+rows.map(x=>{
+      const cls=x.r>=60?'':x.r>=45?'midwr':'lowwr';
+      return'<div class="bktrow"><span class="bkt-l" title="'+esc(x.k)+'">'+esc(x.k)+'</span>'+
+        '<span class="bkt-bar"><span class="bkt-f '+cls+'" style="width:'+x.r+'%"></span></span>'+
+        '<span class="bkt-n">'+x.r+'% · n='+x.list.length+'</span></div>';
+    }).join('')+'</div></div>';
+  };
+  document.getElementById('jrn-buckets').innerHTML=
+    bucket('By grade',t=>t.grade)+
+    bucket('By node',t=>t.node)+
+    bucket('By killzone',t=>t.kz)+
+    bucket('By algo',t=>'Algo '+t.algo)+
+    bucket('By instrument',t=>t.inst)+
+    ckBucket()+
+    '<div class="note">Small samples lie. Treat anything under n=20 as a hint, not a rule.</div>';
+
+  document.getElementById('jrn-table').innerHTML='<table class="tbl"><thead><tr>'+
+    '<th>Date</th><th>Time</th><th>Inst</th><th>Dir</th><th>Node</th><th>Algo</th><th>KZ</th><th>Grade</th><th>R</th><th>Result</th><th>Notes</th><th></th>'+
+    '</tr></thead><tbody>'+all.map(t=>
+      '<tr><td>'+esc(t.date)+'</td><td>'+esc(t.time)+'</td><td>'+esc(t.inst)+'</td><td>'+esc(t.dir)+'</td>'+
+      '<td>'+esc(t.node)+'</td><td>'+esc(t.algo)+'</td><td>'+esc(t.kz)+'</td><td>'+esc(t.grade)+'</td>'+
+      '<td>'+(t.rr?t.rr:'—')+'</td>'+
+      '<td class="'+(t.result==='W'?'tw':t.result==='L'?'tl':'tb')+'">'+esc(t.result)+'</td>'+
+      '<td style="max-width:260px;overflow:hidden;text-overflow:ellipsis;font-family:var(--sans);">'+esc(t.notes)+'</td>'+
+      '<td><button class="sw-x" onclick="delTrade('+t.id+')">×</button></td></tr>').join('')+
+    '</tbody></table>';
+}
+function download(name,content,type){
+  const b=new Blob([content],{type});
+  const u=URL.createObjectURL(b);
+  const a=document.createElement('a');a.href=u;a.download=name;document.body.appendChild(a);a.click();
+  document.body.removeChild(a);URL.revokeObjectURL(u);
+}
+function exportJSON(){download('gb-journal.json',JSON.stringify(loadTrades(),null,2),'application/json');}
+function exportCSV(){
+  const all=loadTrades();
+  if(!all.length){toast('Nothing to export');return;}
+  const cols=['date','time','inst','dir','node','algo','kz','grade','gradePct','rr','lots','risk','result','notes'];
+  const esc2=v=>'"'+String(v==null?'':v).replace(/"/g,'""')+'"';
+  const csv=[cols.join(',')].concat(all.map(t=>cols.map(c=>esc2(t[c])).join(','))).join('\n');
+  download('gb-journal.csv',csv,'text/csv');
+}
+
+/* ============================================================
+   SETTINGS
+   ============================================================ */
+function renderSettings(){
+  document.getElementById('setTol').value=S.tol;
+  document.getElementById('setHoriz').value=S.horiz;
+  document.getElementById('setLead').value=S.lead;
+  document.getElementById('setSecLive').checked=S.secLive;
+  document.getElementById('setSound').checked=S.sound;
+  document.getElementById('setKZOnly').checked=S.kzOnly;
+  document.getElementById('setMMOnly').checked=S.mmOnly;
+  document.getElementById('kzlist').innerHTML=S.kz.map((z,i)=>
+    '<div class="swingrow"><input class="mono" style="flex:1;min-width:110px;" value="'+esc(z.n)+'" onchange="editKZ('+i+',\'n\',this.value)">'+
+    '<input class="mono" style="width:78px;" value="'+esc(z.s)+'" onchange="editKZ('+i+',\'s\',this.value)">'+
+    '<span class="mono" style="color:var(--ink4);">→</span>'+
+    '<input class="mono" style="width:78px;" value="'+esc(z.e)+'" onchange="editKZ('+i+',\'e\',this.value)">'+
+    '<button class="sw-x" onclick="delKZ('+i+')">×</button></div>').join('')+
+    '<div class="btn-row"><button class="mini" onclick="addKZ()">+ add killzone</button><button class="mini" onclick="resetKZ()">reset defaults</button></div>';
+  document.getElementById('instlist').innerHTML=S.inst.map((n,i)=>
+    '<div class="swingrow"><input class="mono" style="flex:1;min-width:100px;" value="'+esc(n.n)+'" onchange="editInst('+i+',\'n\',this.value)">'+
+    '<span class="note">value per 1.0</span><input class="mono" style="width:110px;" type="number" step="any" value="'+n.v+'" onchange="editInst('+i+',\'v\',this.value)">'+
+    '<span class="note">decimals</span><input class="mono" style="width:64px;" type="number" value="'+n.d+'" onchange="editInst('+i+',\'d\',this.value)">'+
+    '<button class="sw-x" onclick="delInst('+i+')">×</button></div>').join('')+
+    '<div class="btn-row"><button class="mini" onclick="addInst()">+ add instrument</button><button class="mini" onclick="resetInst()">reset defaults</button></div>';
+}
+function saveSettings(){
+  S.tol=Math.max(0,Math.min(3,parseInt(document.getElementById('setTol').value,10)||0));
+  S.horiz=Math.max(30,Math.min(360,parseInt(document.getElementById('setHoriz').value,10)||180));
+  S.lead=Math.max(1,Math.min(10,parseInt(document.getElementById('setLead').value,10)||2));
+  S.secLive=document.getElementById('setSecLive').checked;
+  S.sound=document.getElementById('setSound').checked;
+  S.kzOnly=document.getElementById('setKZOnly').checked;
+  S.mmOnly=document.getElementById('setMMOnly').checked;
+  persist();renderLive();
+}
+function editKZ(i,k,v){S.kz[i][k]=v;persist();renderLive();}
+function delKZ(i){S.kz.splice(i,1);persist();renderSettings();renderLive();}
+function addKZ(){S.kz.push({n:'New zone',s:'00:00',e:'01:00'});persist();renderSettings();}
+function resetKZ(){S.kz=DEF_KZ.map(x=>({...x}));persist();renderSettings();renderLive();}
+function editInst(i,k,v){S.inst[i][k]=(k==='n')?v:(parseFloat(v)||0);persist();fillInstruments();runCalc();}
+function delInst(i){S.inst.splice(i,1);persist();renderSettings();fillInstruments();}
+function addInst(){S.inst.push({n:'NEW',v:1,d:2});persist();renderSettings();fillInstruments();}
+function resetInst(){S.inst=DEF_INST.map(x=>({...x}));persist();renderSettings();fillInstruments();}
+
+/* ============================================================
+   BOOT
+   ============================================================ */
+loadSettings();
+fillInstruments();
+renderSwings();
+renderChecklist();
+runCalc();
+renderLive();
+setInterval(renderLive,1000);
+document.addEventListener('click',primeAudio,{once:true});
+window.addEventListener('keydown',e=>{
+  if(e.target.tagName==='INPUT'||e.target.tagName==='TEXTAREA')return;
+  const map={'1':'live','2':'path','3':'conf','4':'walk','5':'ce','6':'trade','7':'jrn','8':'set'};
+  if(map[e.key])setTab(map[e.key]);
+});
+</script>
+</body>
+</html>
