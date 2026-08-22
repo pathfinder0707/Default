@@ -19,6 +19,10 @@
 
 # production
 /build
+/dist
+
+# standalone build scratch
+/.standalone-tmp
 
 # misc
 .DS_Store

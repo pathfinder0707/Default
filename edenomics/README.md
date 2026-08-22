@@ -37,6 +37,22 @@ npm run build
 npm run lint
 ```
 
+### Or open it without installing anything
+
+```bash
+npm run build:standalone   # -> dist/edenomics.html
+```
+
+Bundles the whole page — CSS, JS and fonts — into one HTML file you can
+double-click, email, or drop on any static host. It uses the same
+`app/globals.css` and the same components, so the tokens cannot drift from the
+Next build.
+
+Two things differ by necessity: the page renders on the client rather than the
+server, and three.js is bundled in rather than code-split (the globe still
+waits for an IntersectionObserver before creating the WebGL context). The Next
+app is the real one.
+
 ## Stack
 
 Next.js 16 (App Router) · React 19 · TypeScript · Tailwind CSS v4 · Motion ·

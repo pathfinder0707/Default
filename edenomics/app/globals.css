@@ -1,5 +1,10 @@
 @import "tailwindcss";
 
+/* Explicit so the standalone single-file build scans the same files Next does. */
+@source "../app";
+@source "../components";
+@source "../lib";
+
 /* ---------------------------------------------------------------------------
    Edenomics design tokens
    Dark-first, one warm brand accent. Market green/red appears only on numbers.
