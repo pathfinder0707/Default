@@ -1,16 +1,16 @@
-"""Reduce a large local tick file into something small enough to upload.
+"""Reduce a large local bar/tick file into something small enough to upload.
 
 Run this on YOUR machine. Nothing here needs network access.
 
-    python3 ticktool.py inspect  ticks.csv          # <- do this FIRST, paste the output
-    python3 ticktool.py sample   ticks.csv --month 2014-06
-    python3 ticktool.py bars     ticks.csv --out nq_1m_2010_2016.csv
+    python3 ticktool.py inspect NQ_OHLCV_1S_2010_2026.parquet     # do this FIRST
+    python3 ticktool.py downsample NQ_OHLCV_1S_2010_2026.parquet  # 1s -> 1m, by year
+    python3 ticktool.py slice NQ_OHLCV_1S_2010_2026.parquet --start 2026-06-01 --end 2026-08-01
 
-Everything streams in chunks, so a 1.5 GB file works in a few hundred MB of RAM.
-Handles .csv, .csv.gz, .txt and .parquet.
+Parquet is read row group by row group, so a 1.5 GB file never loads into
+memory. Parquet is already compressed -- gzipping it again does nothing, so the
+size has to come from dropping rows or columns, not from packing harder.
 
-`inspect` guesses nothing silently -- it prints what it found and what it
-assumed, so the guesses can be corrected before anything is computed on them.
+`inspect` states every guess it makes rather than assuming silently.
 """
 import argparse
 import gzip
@@ -20,11 +20,13 @@ import sys
 
 CHUNK = 2_000_000
 
-
-def _open(path):
-    if path.endswith(".gz"):
-        return io.TextIOWrapper(gzip.open(path, "rb"), encoding="utf-8", errors="replace")
-    return open(path, "r", encoding="utf-8", errors="replace")
+TS_NAMES = ["ts_event", "ts_recv", "timestamp", "datetime", "date_time", "time",
+            "date", "ts", "index", "__index_level_0__"]
+OHLCV = {"o": ["open", "o", "px_open", "first"],
+         "h": ["high", "h", "px_high", "max"],
+         "l": ["low", "l", "px_low", "min"],
+         "c": ["close", "c", "px_close", "last", "price"],
+         "v": ["volume", "v", "vol", "size", "qty"]}
 
 
 def human(n):
@@ -35,143 +37,203 @@ def human(n):
     return "%.1f TB" % n
 
 
+def _open(path):
+    if path.endswith(".gz"):
+        return io.TextIOWrapper(gzip.open(path, "rb"), encoding="utf-8", errors="replace")
+    return open(path, "r", encoding="utf-8", errors="replace")
+
+
+def detect(cols):
+    """Map schema columns onto ts + OHLCV, case-insensitively."""
+    low = {c.lower(): c for c in cols}
+    ts = next((low[n] for n in TS_NAMES if n in low), None)
+    got = {}
+    for k, names in OHLCV.items():
+        hit = next((low[n] for n in names if n in low), None)
+        if hit:
+            got[k] = hit
+    return ts, got
+
+
+def is_parquet(p):
+    return p.endswith(".parquet") or p.endswith(".pq")
+
+
 # ---------------------------------------------------------------- inspect
 def cmd_inspect(args):
     path = args.path
-    size = os.path.getsize(path)
     print("file      %s" % path)
-    print("size      %s" % human(size))
+    print("size      %s" % human(os.path.getsize(path)))
 
-    if path.endswith(".parquet"):
+    if not is_parquet(path):
+        return _inspect_text(args)
+
+    import pyarrow.parquet as pq
+    pf = pq.ParquetFile(path)
+    md = pf.metadata
+    print("rows      %s" % "{:,}".format(md.num_rows))
+    print("row grps  %d" % md.num_row_groups)
+    print("\nschema:")
+    for f in pf.schema_arrow:
+        print("  %-24s %s" % (f.name, f.type))
+
+    cols = [f.name for f in pf.schema_arrow]
+    ts, got = detect(cols)
+    print("\nauto-detected:")
+    print("  timestamp   %s" % (ts or "NOT FOUND -- pass --ts"))
+    for k in "ohlcv":
+        print("  %-11s %s" % (k, got.get(k, "-")))
+
+    head = pf.read_row_group(0).to_pandas()
+    tail = pf.read_row_group(md.num_row_groups - 1).to_pandas()
+    print("\nhead:\n%s" % head.head(3).to_string())
+    print("\ntail:\n%s" % tail.tail(3).to_string())
+
+    if ts and ts in head.columns:
         import pandas as pd
-        pf = pd.read_parquet(path)
-        print("rows      %d" % len(pf))
-        print("columns   %s" % list(pf.columns))
-        print("\nhead:\n%s" % pf.head(4).to_string())
-        print("\ndtypes:\n%s" % pf.dtypes.to_string())
-        return
+        a = pd.to_datetime(head[ts].iloc[0]); b = pd.to_datetime(tail[ts].iloc[-1])
+        print("\nspan      %s  ->  %s" % (a, b))
+        print("tz        %s" % (getattr(a, "tzinfo", None) or "naive -- I will verify empirically"))
+        d = head[ts].iloc[:200]
+        try:
+            gaps = pd.to_datetime(d).diff().dt.total_seconds().dropna()
+            print("bar step  median %.2fs (min %.2f, max %.2f) over first 200 rows"
+                  % (gaps.median(), gaps.min(), gaps.max()))
+        except Exception:
+            pass
+    print("\n--- paste everything above back to Claude ---")
+    print("also say, if you know: whether prices are raw traded prices or")
+    print("back-adjusted across contract rolls. That one silently breaks the study.")
 
+
+def _inspect_text(args):
+    path, size = args.path, os.path.getsize(args.path)
     head = []
     with _open(path) as fh:
         for i, line in enumerate(fh):
             head.append(line.rstrip("\n"))
             if i >= 5:
                 break
-
     print("\nfirst lines:")
     for h in head:
         print("  %s" % h[:220])
-
-    # delimiter guess
-    cand = [",", ";", "\t", "|", " "]
     probe = head[1] if len(head) > 1 else head[0]
-    delim = max(cand, key=lambda d: probe.count(d))
+    delim = max([",", ";", "\t", "|"], key=lambda d: probe.count(d))
     cols = head[0].split(delim)
-    print("\ndelimiter guess   %r  -> %d columns" % (delim, len(cols)))
-
-    first_is_header = not any(c.replace(".", "").replace("-", "").isdigit()
-                              for c in cols[:3])
-    print("header row        %s" % ("yes" if first_is_header else "NO -- positional columns"))
-    if first_is_header:
-        print("column names      %s" % cols)
-
-    # tail
-    with _open(path) as fh:
-        try:
-            fh.seek(max(0, size - 4000))
-        except Exception:
-            pass
-        tail = fh.read().splitlines()
-    print("\nlast line:\n  %s" % (tail[-1][:220] if tail else "?"))
-
-    # row count + rough time span
+    print("\ndelimiter guess   %r -> %d columns" % (delim, len(cols)))
+    ts, got = detect(cols)
+    print("auto-detected     ts=%s  %s" % (ts, got))
     n = 0
     with _open(path) as fh:
         for _ in fh:
             n += 1
-    print("\nrows              %s" % "{:,}".format(n))
-    print("bytes/row         %.0f" % (size / max(1, n)))
+    print("rows              %s" % "{:,}".format(n))
     print("\n--- paste everything above back to Claude ---")
-    print("also say, if you know: the timezone of the timestamps, and whether")
-    print("prices are raw traded prices or back-adjusted across contract rolls.")
 
 
-# ---------------------------------------------------------------- sample
-def cmd_sample(args):
-    """Pull one month out verbatim -- small enough to upload, real enough to verify."""
-    out = args.out or ("sample_%s.csv" % args.month)
-    kept = 0
-    with _open(args.path) as fh, open(out, "w") as w:
-        first = fh.readline()
-        if args.header:
-            w.write(first)
-        else:
-            if args.month.replace("-", "") in first.replace("-", "").replace("/", ""):
-                w.write(first)
-                kept += 1
-        key = args.month.replace("-", "")
-        for line in fh:
-            # match YYYY-MM or YYYYMM anywhere in the first field
-            head = line[:32].replace("-", "").replace("/", "")
-            if key in head:
-                w.write(line)
-                kept += 1
-            elif kept:
-                break                      # file is chronological; done
-    os.system("gzip -f '%s'" % out)
-    gz = out + ".gz"
-    print("wrote %s  (%s rows, %s)" % (gz, "{:,}".format(kept), human(os.path.getsize(gz))))
-    if os.path.getsize(gz) > 29e6:
-        print("still over the 30MB cap -- try a single week with --month %s-1" % args.month)
-
-
-# ---------------------------------------------------------------- bars
-def cmd_bars(args):
-    """Stream ticks -> 1-minute OHLCV. ~1.5 GB in, ~15 MB gzipped out."""
+# ------------------------------------------------------------- downsample
+def cmd_downsample(args):
+    """1-second bars -> 1-minute bars, streamed by row group, split by year."""
     import pandas as pd
+    import pyarrow.parquet as pq
 
-    ts_col, px_col, sz_col = args.ts, args.price, args.size
-    reader = pd.read_csv(
-        args.path, chunksize=CHUNK, sep=args.sep,
-        usecols=[c for c in (ts_col, px_col, sz_col) if c is not None],
-    )
+    pf = pq.ParquetFile(args.path)
+    cols = [f.name for f in pf.schema_arrow]
+    ts, got = detect(cols)
+    ts = args.ts or ts
+    if not ts or "h" not in got or "l" not in got:
+        sys.exit("could not detect columns -- run `inspect` and pass --ts explicitly.\n"
+                 "found: ts=%s %s" % (ts, got))
 
-    parts = []
-    seen = 0
-    for chunk in reader:
-        seen += len(chunk)
-        t = pd.to_datetime(chunk[ts_col], errors="coerce", utc=args.utc)
-        chunk = chunk.assign(_t=t).dropna(subset=["_t"]).set_index("_t")
-        agg = {px_col: ["first", "max", "min", "last", "count"]}
-        if sz_col:
-            agg[sz_col] = "sum"
-        g = chunk.resample("1min").agg(agg).dropna(how="all")
+    use = [ts] + [got[k] for k in "ohlcv" if k in got]
+    rule = args.rule
+    print("resampling %s -> %s   using %s" % (ts, rule, use))
+
+    parts, seen = [], 0
+    for i in range(pf.metadata.num_row_groups):
+        df = pf.read_row_group(i, columns=use).to_pandas()
+        seen += len(df)
+        t = pd.to_datetime(df[ts], errors="coerce", utc=False)
+        df = df.assign(_t=t).dropna(subset=["_t"]).set_index("_t")
+        agg = {}
+        if "o" in got: agg[got["o"]] = "first"
+        if "h" in got: agg[got["h"]] = "max"
+        if "l" in got: agg[got["l"]] = "min"
+        if "c" in got: agg[got["c"]] = "last"
+        if "v" in got: agg[got["v"]] = "sum"
+        g = df.resample(rule).agg(agg).dropna(how="all")
         parts.append(g)
-        print("  %s ticks -> %s minutes" % ("{:,}".format(seen), "{:,}".format(sum(len(p) for p in parts))),
-              end="\r", flush=True)
+        print("  rowgroup %d/%d   %s rows in" % (i + 1, pf.metadata.num_row_groups,
+                                                 "{:,}".format(seen)), end="\r", flush=True)
 
     df = pd.concat(parts)
-    # chunk boundaries can split a minute across two parts -- merge them
-    df.columns = ["o", "h", "l", "c", "ticks"] + (["v"] if sz_col else [])
-    df = df.groupby(level=0).agg({"o": "first", "h": "max", "l": "min",
-                                  "c": "last", "ticks": "sum",
-                                  **({"v": "sum"} if sz_col else {})})
-    df = df.dropna(subset=["o"])
-    print("\n%s minutes  %s -> %s" % ("{:,}".format(len(df)), df.index[0], df.index[-1]))
+    # a row-group boundary can split a minute across two parts -- merge them
+    agg2 = {}
+    if "o" in got: agg2[got["o"]] = "first"
+    if "h" in got: agg2[got["h"]] = "max"
+    if "l" in got: agg2[got["l"]] = "min"
+    if "c" in got: agg2[got["c"]] = "last"
+    if "v" in got: agg2[got["v"]] = "sum"
+    df = df.groupby(level=0).agg(agg2)
+    df = df.dropna(subset=[got.get("c", got["h"])])
+    df.index.name = "ts"
+    df.columns = [k for k in "ohlcv" if k in got]
+    for c in [x for x in df.columns if x != "v"]:
+        df[c] = df[c].astype("float32")
 
-    stem = (args.out or "bars_1m.csv").replace(".csv", "")
-    # six years of 1-minute bars gzips to roughly 25-35 MB, which is at or over
-    # the 30 MB upload cap -- so split by year by default
-    groups = [("", df)] if args.no_split else [
-        (str(y), g) for y, g in df.groupby(df.index.year)]
-    for tag, g in groups:
-        out = "%s%s.csv" % (stem, ("_" + tag) if tag else "")
-        g.to_csv(out)
-        os.system("gzip -f '%s'" % out)
-        gz = out + ".gz"
-        sz = os.path.getsize(gz)
-        flag = "   <-- OVER 30MB CAP" if sz > 29e6 else ""
-        print("  %-28s %9s  %s rows%s" % (gz, human(sz), "{:,}".format(len(g)), flag))
+    print("\n%s bars   %s -> %s" % ("{:,}".format(len(df)), df.index[0], df.index[-1]))
+    stem = (args.out or "nq_%s" % rule).replace(".parquet", "")
+    total = 0
+    # batch several years per file so this is a few uploads, not sixteen
+    span = max(1, args.per_file)
+    for y, g in df.groupby(df.index.year // span * span):
+        lo, hi = int(g.index.year.min()), int(g.index.year.max())
+        out = "%s_%d.parquet" % (stem, lo) if lo == hi else "%s_%d_%d.parquet" % (stem, lo, hi)
+        g.to_parquet(out, compression="zstd")
+        sz = os.path.getsize(out); total += sz
+        flag = "   <-- OVER 30MB CAP, lower --per-file" if sz > 29e6 else ""
+        print("  %-30s %9s  %s bars%s" % (out, human(sz), "{:,}".format(len(g)), flag))
+    print("\ntotal %s" % human(total))
+
+
+# ------------------------------------------------------------------ slice
+def cmd_slice(args):
+    """Keep native resolution for a date window -- for fill-model work."""
+    import pandas as pd
+    import pyarrow.parquet as pq
+
+    pf = pq.ParquetFile(args.path)
+    cols = [f.name for f in pf.schema_arrow]
+    ts, got = detect(cols)
+    ts = args.ts or ts
+    use = [ts] + [got[k] for k in "ohlcv" if k in got]
+    start, end = pd.Timestamp(args.start), pd.Timestamp(args.end)
+
+    keep = []
+    for i in range(pf.metadata.num_row_groups):
+        df = pf.read_row_group(i, columns=use).to_pandas()
+        t = pd.to_datetime(df[ts], errors="coerce")
+        m = (t >= start) & (t < end)
+        if m.any():
+            keep.append(df.loc[m].assign(**{ts: t[m]}))
+        elif keep:
+            break                       # chronological; past the window
+        print("  rowgroup %d/%d" % (i + 1, pf.metadata.num_row_groups), end="\r", flush=True)
+
+    if not keep:
+        sys.exit("no rows in that window")
+    df = pd.concat(keep).set_index(ts)
+    df.index.name = "ts"
+    df.columns = [k for k in "ohlcv" if k in got]
+    for c in [x for x in df.columns if x != "v"]:
+        df[c] = df[c].astype("float32")
+
+    out = args.out or ("nq_1s_%s_%s.parquet" % (args.start[:7], args.end[:7]))
+    df.to_parquet(out, compression="zstd")
+    sz = os.path.getsize(out)
+    print("\n%s rows  %s -> %s" % ("{:,}".format(len(df)), df.index[0], df.index[-1]))
+    print("wrote %s (%s)%s" % (out, human(sz),
+                               "   <-- OVER 30MB CAP, shorten the window" if sz > 29e6 else ""))
 
 
 def main():
@@ -180,21 +242,15 @@ def main():
 
     p = sub.add_parser("inspect"); p.add_argument("path"); p.set_defaults(fn=cmd_inspect)
 
-    p = sub.add_parser("sample"); p.add_argument("path")
-    p.add_argument("--month", required=True, help="YYYY-MM")
-    p.add_argument("--out"); p.add_argument("--header", action="store_true", default=True)
-    p.set_defaults(fn=cmd_sample)
+    p = sub.add_parser("downsample"); p.add_argument("path")
+    p.add_argument("--ts"); p.add_argument("--rule", default="1min")
+    p.add_argument("--per-file", type=int, default=4,
+                   help="years per output file (default 4); lower it if a file busts 30MB")
+    p.add_argument("--out"); p.set_defaults(fn=cmd_downsample)
 
-    p = sub.add_parser("bars"); p.add_argument("path")
-    p.add_argument("--ts", required=True, help="timestamp column name")
-    p.add_argument("--price", required=True)
-    p.add_argument("--size", default=None)
-    p.add_argument("--sep", default=",")
-    p.add_argument("--utc", action="store_true")
-    p.add_argument("--out")
-    p.add_argument("--no-split", action="store_true",
-                   help="one file instead of one per year")
-    p.set_defaults(fn=cmd_bars)
+    p = sub.add_parser("slice"); p.add_argument("path")
+    p.add_argument("--start", required=True); p.add_argument("--end", required=True)
+    p.add_argument("--ts"); p.add_argument("--out"); p.set_defaults(fn=cmd_slice)
 
     a = ap.parse_args()
     a.fn(a)
