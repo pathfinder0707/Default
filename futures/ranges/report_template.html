@@ -1,0 +1,579 @@
+<title>Goldbach Ranges on the Lattice</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Zilla+Slab:wght@400;500;600;700&family=Public+Sans:ital,wght@0,300;0,400;0,500;0,600;1,400&family=JetBrains+Mono:wght@400;500;700&display=swap">
+
+<style>
+:root{
+  --ground:#F7F8F5;
+  --raise:#FFFFFF;
+  --sunk:#EDEFEA;
+  --ink:#171C1F;
+  --ink-2:#414B4C;
+  --ink-3:#6E7975;
+  --rule:#D8DCD4;
+  --rule-2:#C3C9BE;
+  --liq:#3F6E4C;
+  --flow:#35648F;
+  --reb:#9A4E48;
+  --gip:#6E5A8C;
+  --noise:#98A199;
+  --true:#171C1F;
+  --shadow:0 1px 2px rgba(23,28,31,.06),0 4px 16px rgba(23,28,31,.05);
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --ground:#0F1316;
+    --raise:#161B1F;
+    --sunk:#1B2126;
+    --ink:#E5E9E3;
+    --ink-2:#B2BAB4;
+    --ink-3:#828C86;
+    --rule:#2A3238;
+    --rule-2:#3A444A;
+    --liq:#7FB68C;
+    --flow:#77A9D4;
+    --reb:#D68B84;
+    --gip:#A992C7;
+    --noise:#6B756E;
+    --true:#F2F5EF;
+    --shadow:0 1px 2px rgba(0,0,0,.4),0 6px 24px rgba(0,0,0,.3);
+  }
+}
+:root[data-theme="dark"]{
+  --ground:#0F1316;
+  --raise:#161B1F;
+  --sunk:#1B2126;
+  --ink:#E5E9E3;
+  --ink-2:#B2BAB4;
+  --ink-3:#828C86;
+  --rule:#2A3238;
+  --rule-2:#3A444A;
+  --liq:#7FB68C;
+  --flow:#77A9D4;
+  --reb:#D68B84;
+  --gip:#A992C7;
+  --noise:#6B756E;
+  --true:#F2F5EF;
+  --shadow:0 1px 2px rgba(0,0,0,.4),0 6px 24px rgba(0,0,0,.3);
+}
+
+*{box-sizing:border-box}
+body{
+  background:var(--ground);
+  color:var(--ink);
+  font-family:"Public Sans",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+  font-size:16.5px; line-height:1.62;
+  -webkit-font-smoothing:antialiased;
+  margin:0; padding:0 20px 96px;
+}
+.wrap{max-width:1000px;margin:0 auto}
+.col{max-width:68ch}
+
+h1,h2,h3{font-family:"Zilla Slab",Georgia,serif;text-wrap:balance;margin:0}
+h1{font-size:clamp(2.1rem,5vw,3.4rem);font-weight:700;line-height:1.06;letter-spacing:-.015em}
+h2{font-size:clamp(1.4rem,2.6vw,1.85rem);font-weight:600;line-height:1.18}
+h3{font-size:1.06rem;font-weight:600;line-height:1.3;margin-top:2.1rem}
+p{margin:0 0 1.05rem}
+a{color:var(--flow)}
+
+/* ---- masthead ---- */
+header.mast{padding:74px 0 30px;border-bottom:2px solid var(--ink);margin-bottom:0}
+.eyebrow{
+  font-family:"JetBrains Mono",monospace;font-size:.7rem;font-weight:500;
+  letter-spacing:.16em;text-transform:uppercase;color:var(--ink-3);margin-bottom:1.5rem;
+}
+.lede{font-size:1.16rem;color:var(--ink-2);max-width:60ch;margin-top:1.5rem}
+.meta{
+  display:flex;flex-wrap:wrap;gap:0 2.2rem;margin-top:2rem;
+  font-family:"JetBrains Mono",monospace;font-size:.76rem;color:var(--ink-3);
+}
+.meta b{color:var(--ink-2);font-weight:500}
+
+/* ---- verdict ---- */
+.verdict{
+  background:var(--raise);border:1px solid var(--rule);border-radius:3px;
+  padding:26px 28px;margin:38px 0 8px;box-shadow:var(--shadow);
+}
+.verdict h2{font-size:1.15rem;margin-bottom:.2rem}
+.verdict .sub{color:var(--ink-3);font-size:.85rem;margin-bottom:1.4rem}
+
+/* ---- sections ---- */
+section{padding-top:58px}
+.snum{
+  font-family:"JetBrains Mono",monospace;font-size:.7rem;letter-spacing:.14em;
+  color:var(--ink-3);display:block;margin-bottom:.55rem;
+}
+section > h2{padding-bottom:.7rem;border-bottom:1px solid var(--rule);margin-bottom:1.5rem}
+
+/* ---- tables ---- */
+.scroll{overflow-x:auto;margin:1.4rem 0;-webkit-overflow-scrolling:touch}
+table{border-collapse:collapse;width:100%;font-size:.855rem;min-width:460px}
+th,td{text-align:left;padding:.5rem .8rem;border-bottom:1px solid var(--rule)}
+thead th{
+  font-family:"JetBrains Mono",monospace;font-size:.66rem;font-weight:500;
+  letter-spacing:.1em;text-transform:uppercase;color:var(--ink-3);
+  border-bottom:1px solid var(--rule-2);white-space:nowrap;
+}
+tbody tr:last-child td,tbody tr:last-child th{border-bottom:none}
+td.num,th.num{font-family:"JetBrains Mono",monospace;font-variant-numeric:tabular-nums;white-space:nowrap}
+tbody th{font-weight:500}
+.dim{color:var(--ink-3);font-size:.94em}
+td.lv{width:1%}
+
+.chip{
+  display:inline-block;font-family:"JetBrains Mono",monospace;font-size:.72rem;
+  font-weight:500;padding:.12rem .5rem;border-radius:2px;border:1px solid;
+  font-variant-numeric:tabular-nums;
+}
+.chip-liq{color:var(--liq);border-color:var(--liq)}
+.chip-flow{color:var(--flow);border-color:var(--flow)}
+.chip-reb{color:var(--reb);border-color:var(--reb)}
+.chip-gip{color:var(--gip);border-color:var(--gip)}
+
+/* ---- figures ---- */
+figure{margin:1.6rem 0;padding:0}
+figcaption{font-size:.79rem;color:var(--ink-3);margin-top:.6rem;max-width:64ch}
+.strip{width:100%;max-width:580px;height:auto;display:block}
+.strip-band{fill:var(--noise);opacity:.16}
+.strip-null{stroke:var(--noise);stroke-width:1.4;opacity:.75}
+.strip-true{stroke:var(--true);stroke-width:2}
+.strip-dot{fill:var(--true)}
+.strip-axis{stroke:var(--rule-2);stroke-width:1}
+.strip-lab{font-family:"JetBrains Mono",monospace;font-size:8px;fill:var(--ink-3)}
+
+.sigbar{width:150px;height:18px;display:block}
+.sig-track{fill:var(--sunk)}
+.sig-thr{stroke:var(--rule-2);stroke-width:1.5}
+.sig-zero{stroke:var(--rule-2);stroke-width:1;stroke-dasharray:1.5 1.5}
+.sig-noise{fill:var(--noise)}
+.sig-hit{fill:var(--reb)}
+
+.heat{width:100%;max-width:640px;height:auto;display:block}
+.hm-pos{fill:var(--flow)}
+.hm-neg{fill:var(--reb)}
+.hm-val{font-family:"JetBrains Mono",monospace;font-size:9.5px;fill:var(--ink);opacity:.92}
+.hm-hd{font-family:"JetBrains Mono",monospace;font-size:9.5px;fill:var(--ink-2)}
+.hm-sub{font-family:"JetBrains Mono",monospace;font-size:8px;fill:var(--ink-3)}
+
+/* ---- callouts ---- */
+.note{
+  border-left:2px solid var(--rule-2);padding:.1rem 0 .1rem 1.2rem;
+  margin:1.5rem 0;color:var(--ink-2);
+}
+.note.warn{border-left-color:var(--reb)}
+.note.key{border-left-color:var(--ink)}
+.note p:last-child{margin-bottom:0}
+
+.kv{display:grid;grid-template-columns:auto 1fr;gap:.35rem 1.4rem;
+    font-family:"JetBrains Mono",monospace;font-size:.8rem;margin:1.3rem 0}
+.kv dt{color:var(--ink-3)}
+.kv dd{margin:0;font-variant-numeric:tabular-nums}
+
+code{font-family:"JetBrains Mono",monospace;font-size:.85em;
+     background:var(--sunk);padding:.1em .36em;border-radius:2px}
+
+ul,ol{padding-left:1.15rem;margin:0 0 1.05rem}
+li{margin-bottom:.4rem}
+
+hr.end{border:none;border-top:2px solid var(--ink);margin:70px 0 0}
+footer{padding-top:22px;font-family:"JetBrains Mono",monospace;
+       font-size:.72rem;color:var(--ink-3)}
+
+@media (max-width:640px){
+  body{font-size:16px;padding:0 16px 64px}
+  header.mast{padding-top:48px}
+  .meta{gap:0 1.3rem}
+}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+
+<div class="wrap">
+
+<header class="mast">
+  <div class="eyebrow">Backtest &#183; CME NQ futures, 1-minute &#183; {{start}} &ndash; {{end}}</div>
+  <h1>Goldbach Ranges<br>on the Lattice</h1>
+  <p class="lede">The Goldbach Trifecta anchors its dealing range on a fixed
+  power-of-three price lattice. That anchoring is exact, recoverable, and
+  testable &mdash; so it was tested, six ways, against three matched nulls, on
+  sixteen years of real CME futures spanning a 18-fold change in price.
+  Nothing survived.</p>
+  <div class="meta">
+    <span><b>{{bars}}</b> bars</span>
+    <span><b>{{sessions}}</b> sessions</span>
+    <span>px <b>{{px_lo}}</b>&ndash;<b>{{px_hi}}</b></span>
+    <span><b>{{grid_survive}}</b> of {{n_grid_z}} grid tests clear every null</span>
+  </div>
+</header>
+
+<div class="verdict">
+  <h2>Every claim, against its null</h2>
+  <div class="sub">z-score against a lattice whose origin has been shifted.
+  The pre-registered bar was &#177;3&#963;; the marks show where each result landed.</div>
+  <div class="scroll">
+  <table>
+    <thead><tr><th>Claim</th><th>Measured on</th><th class="num">z</th><th>&nbsp;</th></tr></thead>
+    <tbody>{{vrows}}</tbody>
+  </table>
+  </div>
+</div>
+
+<div class="col">
+
+<section id="what">
+  <span class="snum">01</span>
+  <h2>What the framework actually specifies</h2>
+  <p>The source document is a discretionary trade-plan narrative. It names its
+  levels but never states how the dealing range is anchored &mdash; which is the
+  whole game, since every level is a percentage of it.</p>
+  <p>That anchoring was recovered from the chart images. One chart carries a
+  line explicitly labelled <code>[729 L]</code>, the block low. It reads
+  <b>25,515</b>. And 25,515 = 35 &times; 729, exactly.</p>
+  <div class="note key">
+    <p><b>The dealing range is a fixed price lattice.</b>
+    <code>block_low = floor(price / R) * R</code>, with <code>R</code> a power of
+    three. Not swing-anchored, not session-anchored &mdash; absolute price.</p>
+  </div>
+  <p>That single hypothesis then predicts every other plotted line across all
+  four charts, to within a pixel or two. Four independent block anchors all land
+  exactly on the lattice: 10&times;2187, 11&times;2187, 35&times;729.</p>
+  <p>The clincher is that the author's own annotations land where the
+  reconstruction puts them &mdash; <code>EXECUTE</code> on 17, <code>RETRACE</code>
+  on 29, <code>REBALANCE</code> on 50, <code>LAST LINE OF DEFENSE</code> on 93.
+  Those labels were not used to fit anything.</p>
+
+  <h3>The twenty levels</h3>
+  <p>Percentages of the block, symmetric about 50. At the tested tolerance of
+  &#177;0.5 percentage points they cover exactly <b>20.0%</b> of every block
+  &mdash; a genuinely falsifiable target, unlike the GB-time settings that made
+  97.6% of the day a node.</p>
+  <div class="scroll">
+  <table>
+    <thead><tr><th>Level</th><th>Name</th><th>Layer</th></tr></thead>
+    <tbody>
+      <tr><td class="lv"><span class="chip chip-liq">0 / 100</span></td><td>range extreme, block boundary</td><td class="dim">liquidity</td></tr>
+      <tr><td class="lv"><span class="chip chip-liq">3 / 97</span></td><td>internal range liquidity</td><td class="dim">liquidity</td></tr>
+      <tr><td class="lv"><span class="chip chip-liq">7 / 93</span></td><td>LLOD &mdash; last line of defense</td><td class="dim">liquidity</td></tr>
+      <tr><td class="lv"><span class="chip chip-liq">11 / 89</span></td><td>internal range liquidity</td><td class="dim">liquidity</td></tr>
+      <tr><td class="lv"><span class="chip chip-gip">17 / 83</span></td><td>GIP &mdash; Goldbach inversion point</td><td class="dim">&mdash;</td></tr>
+      <tr><td class="lv"><span class="chip chip-flow">23 / 77</span></td><td>flow layer outer edge</td><td class="dim">flow</td></tr>
+      <tr><td class="lv"><span class="chip chip-flow">29 / 71</span></td><td>flow layer middle</td><td class="dim">flow</td></tr>
+      <tr><td class="lv"><span class="chip chip-flow">35 / 65</span></td><td>flow layer inner edge</td><td class="dim">flow</td></tr>
+      <tr><td class="lv"><span class="chip chip-reb">41 / 59</span></td><td>external rebalance liquidity</td><td class="dim">rebalance</td></tr>
+      <tr><td class="lv"><span class="chip chip-reb">47 / 53</span></td><td>internal rebalance liquidity</td><td class="dim">rebalance</td></tr>
+      <tr><td class="lv"><span class="chip chip-reb">50</span></td><td>equilibrium</td><td class="dim">rebalance</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <p>The number set is <b>identical</b> to the GB-time minute set tested
+  previously. One axis is the Zurich clock, the other is price within a block.
+  That shared set is what &ldquo;trifecta&rdquo; refers to.</p>
+</section>
+
+<section id="method">
+  <span class="snum">02</span>
+  <h2>How it was tested</h2>
+  <p>Hypotheses, statistics, nulls and decision rules were written down and
+  frozen before any of them was computed. Only the data sanity checks ran first,
+  and those are not hypothesis-dependent.</p>
+
+  <h3>The confound, and the fix</h3>
+  <p>&ldquo;Is this price on a level&rdquo; is deterministic given the price. So the
+  question is never <em>do swings sit on levels</em> &mdash; some always will, at
+  the rate the coverage implies. The question is whether they sit there more than
+  they would on a lattice that is identical in every respect except its origin.</p>
+  <p>Three nulls, deliberately orthogonal. A finding had to survive all three.</p>
+  <ul>
+    <li><b>Occupancy null.</b> Swings only form where price goes. Compares against
+    the block-position distribution of every bar extreme in the data.</li>
+    <li><b>Phase null.</b> The same measurement under 60 lattice origins, offset by
+    <code>j&#183;R/60</code>. The true lattice is one of them. This is the decisive
+    one &mdash; it kills &ldquo;price respects round numbers in general.&rdquo;</li>
+    <li><b>Level-set null.</b> Takes the framework's own multiset of gaps
+    &mdash; {3,4,4,6,&#8230;} &mdash; permutes the order and rotates. Every draw
+    matches GB exactly on level count, gap distribution and coverage, so the only
+    thing that differs is <em>which specific numbers</em> are levels.</li>
+  </ul>
+
+  <div class="note warn">
+    <p><b>Two traps carried over from the GB-time run.</b> There, a <code>+4.86&#963;</code>
+    result at minute <code>:00</code> turned out to be a round-clock artifact, and a
+    <code>+10.84&#963;</code> sequencing result came from a null that destroyed
+    chronology and manufactured its own signal. The price analogues &mdash; round
+    decimal prices, and chronology-breaking shuffles &mdash; were controlled for
+    here from the start.</p>
+  </div>
+</section>
+
+<section id="h1">
+  <span class="snum">03</span>
+  <h2>Test one &mdash; do swings land on levels?</h2>
+  <p>If the levels are real decision points, confirmed turning points should sit
+  on them more often than chance. This is the foundational claim: everything the
+  trade plans describe is built on it.</p>
+  <dl class="kv">
+    <dt>swings analysed</dt><dd>{{n_swings}}</dd>
+    <dt>level coverage</dt><dd>{{cov}} of each block</dd>
+    <dt>swing hit rate</dt><dd>{{rate}}</dd>
+    <dt>occupancy baseline</dt><dd>{{occ}}</dd>
+  </dl>
+  <p>The hit rate is <b>{{rate}}</b> against a coverage of <b>{{cov}}</b>. Held
+  against a naive uniform null that is <b>z = {{z_uniform}}</b> &mdash; which, taken
+  at face value, looks like an emphatic confirmation of the framework.</p>
+  <div class="note warn">
+    <p><b>It is not, and this is the whole reason the occupancy null was
+    pre-registered.</b> Swings can only form where price actually goes. The
+    same measurement over every bar extreme in the data gives
+    <b>{{occ}}</b> &mdash; indistinguishable from the swing rate. Control for
+    where price spends its time and z = {{z_uniform}} becomes
+    <b>z = {{z_occ}}</b>. The entire apparent effect was the shape of the price
+    distribution, not the levels.</p>
+  </div>
+
+  <figure>
+    {{strip_h1}}
+    <figcaption>Each grey tick is one of the 59 shifted lattices; the shaded band
+    is &#177;3&#963; of them. The dark mark is the true Goldbach lattice. It sits
+    inside the pack, ranked {{phase_rank}} of 60 &mdash; almost exactly where a lattice
+    with no special property would fall.</figcaption>
+  </figure>
+
+  <div class="scroll">
+  <table>
+    <thead><tr><th>Null</th><th>What it rules out</th><th class="num">z</th><th>Rank</th></tr></thead>
+    <tbody>
+      <tr><td>Occupancy</td><td class="dim">price simply dwells near block edges</td><td class="num">{{z_occ}}</td><td class="dim">&mdash;</td></tr>
+      <tr><td>Phase</td><td class="dim">round numbers in general</td><td class="num">{{z_phase}}</td><td class="dim">{{phase_rank}} / 60</td></tr>
+      <tr><td>Level-set</td><td class="dim">any twenty similarly-spaced lines</td><td class="num">{{z_lset}}</td><td class="dim">{{lset_rank}} / 4,000</td></tr>
+      <tr><td>Best-of-60 phases</td><td class="dim">basis offset hiding the true phase</td><td class="num">{{z_adjmax}}</td><td class="dim">{{adjmax_rank}} / 4,000</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <p>The last row matters because this is cash index data, not futures. Even
+  allowing the lattice to find its <em>best</em> phase out of sixty, Goldbach's
+  best is worse than the typical random level-set's best.</p>
+</section>
+
+<section id="grid">
+  <span class="snum">04</span>
+  <h2>Test one, everywhere else</h2>
+  <p>The primary configuration was fixed in advance, but a single configuration
+  proves little. The same test across four block sizes, four swing strengths and
+  three tolerances &mdash; 48 cells, 144 z-scores.</p>
+  <figure>
+    {{heat}}
+    <figcaption>Blue is positive, red negative; saturation is |z| against the
+    phase null, saturating at 3. Nothing reaches the threshold.</figcaption>
+  </figure>
+  <p>On this much data the grid does throw up large numbers: <b>{{grid_over3}}</b> of
+  {{n_grid_z}} z-scores exceed |3|, the largest {{grid_max}}. Taken individually
+  several would read as findings.</p>
+  <p>The pre-registration required clearing +3&#963; against <em>every</em> null, not
+  whichever one happens to cooperate. On that test, <b>{{grid_survive}} cells
+  survive</b>. Every large positive is the occupancy null at R=729 &mdash; and each
+  one carries a <em>negative</em> phase z, meaning lattices with a shifted origin
+  score <em>higher</em> than the true Goldbach one. Whatever mild structure exists at
+  that block size, it is not a property of this lattice's phase.</p>
+</section>
+
+<section id="reaction">
+  <span class="snum">05</span>
+  <h2>Test two &mdash; does a level produce a reaction?</h2>
+  <p>Swings landing on levels is indirect. The question a trader faces is
+  narrower: price is arriving at a level &mdash; does it reject or go through?</p>
+  <p>On a deduplicated first touch approached from below, <em>reject</em> means
+  price travels further down than up over the next N bars. With symmetric
+  excursion that is the same as asking which side of a bracket around the level
+  gets hit first.</p>
+
+  <figure>
+    {{strip_rx}}
+    <figcaption>Reject rate at Goldbach levels (dark mark) against the same
+    measurement on 59 shifted lattices, R=2187, 60-minute horizon.</figcaption>
+  </figure>
+
+  <div class="scroll">
+  <table>
+    <thead><tr><th class="num">R</th><th class="num">Horizon</th><th class="num">Touches</th>
+      <th class="num">Reject</th><th class="num">Null</th><th class="num">z</th><th class="num">Rank</th></tr></thead>
+    <tbody>{{rx_rows}}</tbody>
+  </table>
+  </div>
+
+  <div class="note key">
+    <p>Every reject rate sits on <b>0.500</b>. Not &ldquo;we could not measure it&rdquo;
+    &mdash; price behaves like a martingale at <em>every</em> line tested, Goldbach
+    and shifted alike. There is nothing at these levels to reject against.</p>
+  </div>
+
+  <h3>Level by level</h3>
+  <p>Reject rates at the 60-minute horizon, per level, for both block sizes.
+  Nothing separates from 0.5 beyond what 120 tests generate on their own; the
+  largest deviation anywhere is <b>&minus;2.88&#963;</b>, and it is negative.</p>
+  <div class="scroll">
+  <table>
+    <thead><tr><th>Level</th><th>Name</th>
+      <th class="num">n <span class="dim">R=729</span></th><th class="num">reject</th>
+      <th class="num">n <span class="dim">R=2187</span></th><th class="num">reject</th></tr></thead>
+    <tbody>{{lvl_rows}}</tbody>
+  </table>
+  </div>
+</section>
+
+<section id="structure">
+  <span class="snum">06</span>
+  <h2>Test three &mdash; the structural claims</h2>
+
+  <h3>Does price sweep block edges and reject?</h3>
+  <p>This is the framework's core mechanic: the block edge gets run for liquidity,
+  then price rejects back into the range. Measured as the rate at which price
+  returns above a lattice boundary it has just crossed downward.</p>
+  <figure>
+    {{strip_sw}}
+    <figcaption>Boundary sweep-and-reverse rate, R=2187.</figcaption>
+  </figure>
+  <div class="scroll">
+  <table>
+    <thead><tr><th class="num">R</th><th class="num">Crossings</th><th class="num">Reverse</th>
+      <th class="num">Null</th><th class="num">z</th></tr></thead>
+    <tbody>{{sweep_rows}}</tbody>
+  </table>
+  </div>
+  <p>Price does return above a line it just crossed about <b>91%</b> of the time
+  within the hour. It also does that for every shifted lattice, and for round
+  decimal prices. It is mean reversion around any line, not a property of the
+  block edge.</p>
+
+  <h3>Does price linger in the rebalance layer?</h3>
+  <div class="scroll">
+  <table>
+    <thead><tr><th class="num">R</th><th>Layer</th><th class="num">Width</th>
+      <th class="num">Dwell</th><th class="num">Null</th><th class="num">z</th></tr></thead>
+    <tbody>{{dwell_rows}}</tbody>
+  </table>
+  </div>
+  <p>Every layer's dwell time tracks its own width. The strongest deviation is
+  {{dwell_best_layer}} at <b>{{dwell_best_z}}&#963;</b>, from ten tests.</p>
+
+  <h3>The round-number control</h3>
+  <p>Registered in advance because of the <code>:00</code> artifact in the GB-time
+  run. If lattices are null but round decimals showed the effect clearly, the
+  Goldbach result would be a story about the wrong lattice.</p>
+  <div class="scroll">
+  <table>
+    <thead><tr><th>Lattice</th><th class="num">Crossings</th><th class="num">Reverse</th>
+      <th class="num">Null</th><th class="num">z</th></tr></thead>
+    <tbody>{{round_rows}}</tbody>
+  </table>
+  </div>
+  <p>This time the control fires: round decimals reach <b>z = {{round_best_z}}</b> at
+  the {{round_best_R}}-point grid, against {{sw_z}} for the Goldbach block edge.</p>
+  <div class="note key">
+    <p>That is the most useful single result on this page. On the earlier cash
+    dataset both were null, so it was impossible to tell whether the statistic
+    could detect line-specific behaviour at all. With sixteen years of real
+    futures it plainly can &mdash; it picks up round numbers at more than three
+    sigma. It simply finds nothing at Goldbach boundaries.</p>
+  </div>
+</section>
+
+<section id="power">
+  <span class="snum">07</span>
+  <h2>What would have been detected</h2>
+  <p>A null result is only worth anything if the test could have seen a real
+  effect. Both primary tests were re-run with synthetic effects of known size
+  injected into the real data.</p>
+
+  <h3>Swing clustering</h3>
+  <p>Taking a fraction of real swings and moving them onto their nearest level:</p>
+  <div class="scroll">
+  <table>
+    <thead><tr><th class="num">Injected</th><th class="num">Hit rate</th><th class="num">z</th><th>&nbsp;</th></tr></thead>
+    <tbody>{{pw_h1}}</tbody>
+  </table>
+  </div>
+  <p>Two percent of swings being level-attracted clears the bar. The observed
+  effect is consistent with zero percent.</p>
+
+  <h3>Level reaction</h3>
+  <div class="scroll">
+  <table>
+    <thead><tr><th class="num">Injected</th><th class="num">Reject rate</th><th class="num">z</th><th>&nbsp;</th></tr></thead>
+    <tbody>{{pw_rx}}</tbody>
+  </table>
+  </div>
+  <p>A single percentage point of edge on the reject rate would have registered at
+  <b>+3.50&#963;</b>. A reject rate that beats costs &mdash; roughly two points on a
+  fade &mdash; would have shown at <b>+5.84&#963;</b>. The measured rate is
+  {{rx60_rate}} against a null of {{rx60_null}}.</p>
+  <div class="note key">
+    <p>These tests had the resolution to see any edge large enough to trade. They
+    did not see one.</p>
+  </div>
+</section>
+
+<section id="limits">
+  <span class="snum">08</span>
+  <h2>Limitations, stated plainly</h2>
+  <ul>
+    <li><b>The basis limitation is resolved.</b> The earlier run used HistData's
+    cash Nasdaq-100 CFD, and the cash-futures basis meant its lattice phase was
+    only loosely tied to the real one. This run uses genuine CME NQ front-month
+    futures, unadjusted, rolled by daily volume. Over the overlap the two feeds
+    differed by +96 to +143 points, drifting by year. That objection no longer
+    applies to any result here.</li>
+    <li><b>Sixteen years is a much harder test than three.</b> Price ran from
+    1,722 to 30,976, an 18-fold change. A lattice anchored on absolute price
+    means something completely different at each end &mdash; a 243-point block
+    was 14% of price in 2010 and 0.8% in 2026. If the anchoring carried
+    information, this is where it would have to show.</li>
+    <li><b>The trade plans are discretionary.</b> "Price should aggressively
+    reject" and "look for potential gap" cannot be coded without inventing rules
+    the author did not specify. What was tested is the levels and the structural
+    claims &mdash; whether the map has any territory under it. Not one
+    particular trader's execution on top of it.</li>
+    <li><b>Absence of evidence at this resolution.</b> The power analysis bounds
+    what was ruled out: effects smaller than roughly one percentage point of
+    reject rate, or one percent of swings, would not have been seen. Those are
+    below the size that survives spread.</li>
+    <li><b>One instrument.</b> Sixteen years of Nasdaq futures. The framework
+    claims to describe CME-driven price cycles generally.</li>
+  </ul>
+</section>
+
+<section id="verdict">
+  <span class="snum">09</span>
+  <h2>Conclusion</h2>
+  <p>The pre-registration set three conditions for GB-Ranges to count as working:
+  clear +3&#963; against all three nulls, survive the round-decimal check, and appear
+  in more than one block size or year.</p>
+  <p><b>None of the six claims cleared the first condition.</b> Of {{n_grid_z}}
+  grid z-scores, {{grid_survive}} clear +3&#963; against all three nulls. The
+  level-reaction test returns 0.500 at every level, block size and horizon. The
+  boundary sweep behaves identically for Goldbach edges and shifted edges &mdash;
+  while the round-decimal control, on the same statistic and the same data, reads
+  {{round_best_z}}.</p>
+  <p>That last contrast is what makes this a measurement rather than a shrug. The
+  test can see line-specific behaviour. It sees it at round numbers. It does not
+  see it at Goldbach levels.</p>
+  <p>The lattice reconstruction itself remains solid and worth keeping &mdash; the
+  anchoring rule is exact and the chart evidence for it is unambiguous. What the
+  data does not support is the idea that price behaves any differently on arriving
+  there.</p>
+  <div class="note key">
+    <p>The levels are real in the sense that they are exactly computable and the
+    framework's own charts confirm them. They are not real in the sense of price
+    doing anything different when it arrives.</p>
+  </div>
+</section>
+
+</div>
+
+<hr class="end">
+<footer>
+  {{bars}} bars &#183; {{sessions}} sessions &#183; {{start}} to {{end}} &#183;
+  HistData NSXUSD M1 &#183; America/New_York with DST &#183;
+  pre-registered, three matched nulls, power-calibrated
+</footer>
+
+</div>

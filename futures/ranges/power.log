@@ -8,3 +8,11 @@
     inject   5.0% of swings onto levels -> rate 0.2436  z_phase   +4.62
 
 === power: level reaction (R=2187, M=60) ===
+    reject rate +0.0pp -> 0.5023  z_phase   -0.21
+    reject rate +0.5pp -> 0.5078  z_phase   +1.69
+    reject rate +1.0pp -> 0.5122  z_phase   +3.25
+    reject rate +1.5pp -> 0.5190  z_phase   +5.62
+    reject rate +2.0pp -> 0.5212  z_phase   +6.40
+    reject rate +3.0pp -> 0.5339  z_phase  +10.86
+
+wrote power.json

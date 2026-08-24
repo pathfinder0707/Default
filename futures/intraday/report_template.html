@@ -1,0 +1,793 @@
+<title>PO3 Intraday Trading Study</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700&family=Source+Sans+3:ital,wght@0,300;0,400;0,500;0,600;1,400&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+
+<style>
+:root{
+  color-scheme:light;
+  --ground:#FBFBFA; --raise:#FFFFFF; --sunk:#F1F1EE; --rail:#E7E7E2;
+  --ink:#15171A; --ink2:#4A4E52; --ink3:#7A7F84;
+  --rule:#DEDED8; --rule2:#C6C7C0;
+  --s1:#2a78d6; --s2:#eb6834; --s3:#1baf7a;
+  --pos:#0ca30c; --neg:#d03b3b; --warn:#fab219;
+  --mid:#f0efec;
+  --shadow:0 1px 2px rgba(21,23,26,.06),0 4px 14px rgba(21,23,26,.05);
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    color-scheme:dark;
+    --ground:#131619; --raise:#1A1E22; --sunk:#20252A; --rail:#262C31;
+    --ink:#E8EAE7; --ink2:#B4B9BC; --ink3:#848A8F;
+    --rule:#2B3238; --rule2:#3B434A;
+    --s1:#3987e5; --s2:#d95926; --s3:#199e70;
+    --pos:#0ca30c; --neg:#d03b3b; --warn:#fab219;
+    --mid:#383835;
+    --shadow:0 1px 2px rgba(0,0,0,.45),0 6px 22px rgba(0,0,0,.32);
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme:dark;
+  --ground:#131619; --raise:#1A1E22; --sunk:#20252A; --rail:#262C31;
+  --ink:#E8EAE7; --ink2:#B4B9BC; --ink3:#848A8F;
+  --rule:#2B3238; --rule2:#3B434A;
+  --s1:#3987e5; --s2:#d95926; --s3:#199e70;
+  --pos:#0ca30c; --neg:#d03b3b; --warn:#fab219;
+  --mid:#383835;
+  --shadow:0 1px 2px rgba(0,0,0,.45),0 6px 22px rgba(0,0,0,.32);
+}
+*{box-sizing:border-box}
+body{margin:0;padding:0 20px 90px;background:var(--ground);color:var(--ink);
+  font-family:"Source Sans 3",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+  font-size:16.5px;line-height:1.6;-webkit-font-smoothing:antialiased}
+.wrap{max-width:1060px;margin:0 auto}
+.col{max-width:70ch}
+h1,h2,h3{font-family:Archivo,-apple-system,"Segoe UI",sans-serif;margin:0;text-wrap:balance}
+h1{font-size:clamp(2rem,4.6vw,3.1rem);font-weight:700;line-height:1.05;letter-spacing:-.02em}
+h2{font-size:clamp(1.35rem,2.5vw,1.75rem);font-weight:600}
+h3{font-size:1.02rem;font-weight:600;margin-top:2rem}
+p{margin:0 0 1rem}
+ul,ol{padding-left:1.15rem;margin:0 0 1rem}li{margin-bottom:.38rem}
+code{font-family:"IBM Plex Mono",monospace;font-size:.86em;background:var(--sunk);
+  padding:.1em .36em;border-radius:2px}
+.eyebrow{font-family:"IBM Plex Mono",monospace;font-size:.7rem;letter-spacing:.15em;
+  text-transform:uppercase;color:var(--ink3);margin-bottom:1.3rem}
+header.mast{padding:70px 0 28px;border-bottom:2px solid var(--ink)}
+.lede{font-size:1.15rem;color:var(--ink2);max-width:60ch;margin-top:1.3rem}
+
+.hero{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:1px;
+  background:var(--rule);border:1px solid var(--rule);margin:34px 0;border-radius:3px;overflow:hidden}
+.hero div{background:var(--raise);padding:16px 18px}
+.hero .k{font-family:"IBM Plex Mono",monospace;font-size:.66rem;letter-spacing:.1em;
+  text-transform:uppercase;color:var(--ink3);margin-bottom:.35rem}
+.hero .v{font-family:Archivo,sans-serif;font-size:1.6rem;font-weight:600;
+  font-variant-numeric:tabular-nums;line-height:1.1}
+.hero .n{font-size:.78rem;color:var(--ink3);margin-top:.2rem}
+.v.pos{color:var(--pos)}.v.neg{color:var(--neg)}
+
+section{padding-top:56px}
+.snum{font-family:"IBM Plex Mono",monospace;font-size:.7rem;letter-spacing:.13em;
+  color:var(--ink3);display:block;margin-bottom:.5rem}
+section>h2{padding-bottom:.65rem;border-bottom:1px solid var(--rule);margin-bottom:1.4rem}
+
+.scroll{overflow-x:auto;margin:1.3rem 0}
+table{border-collapse:collapse;width:100%;font-size:.85rem;min-width:440px}
+th,td{text-align:left;padding:.46rem .75rem;border-bottom:1px solid var(--rule)}
+thead th{font-family:"IBM Plex Mono",monospace;font-size:.65rem;font-weight:500;
+  letter-spacing:.09em;text-transform:uppercase;color:var(--ink3);
+  border-bottom:1px solid var(--rule2);white-space:nowrap}
+tbody tr:last-child td{border-bottom:none}
+td.num,th.num{font-family:"IBM Plex Mono",monospace;font-variant-numeric:tabular-nums;white-space:nowrap}
+.dim{color:var(--ink3)}
+.pos{color:var(--pos)}.neg{color:var(--neg)}
+tr.hl td{background:var(--sunk)}
+
+.note{border-left:2px solid var(--rule2);padding:.05rem 0 .05rem 1.15rem;margin:1.4rem 0;color:var(--ink2)}
+.note.key{border-left-color:var(--ink)}
+.note.bad{border-left-color:var(--neg)}
+.note.good{border-left-color:var(--pos)}
+.note p:last-child{margin-bottom:0}
+
+/* ---- interactive panel ---- */
+.panel{background:var(--raise);border:1px solid var(--rule);border-radius:4px;
+  box-shadow:var(--shadow);padding:18px;margin:1.5rem 0}
+.ctrls{display:flex;flex-wrap:wrap;gap:14px 22px;align-items:flex-end;margin-bottom:16px}
+.grp{display:flex;flex-direction:column;gap:5px}
+.grp>span{font-family:"IBM Plex Mono",monospace;font-size:.62rem;letter-spacing:.09em;
+  text-transform:uppercase;color:var(--ink3)}
+.seg{display:flex;background:var(--sunk);border-radius:3px;padding:2px;gap:2px}
+.seg button{font:inherit;font-size:.78rem;padding:.24rem .62rem;border:0;border-radius:2px;
+  background:transparent;color:var(--ink2);cursor:pointer;white-space:nowrap}
+.seg button[aria-pressed="true"]{background:var(--raise);color:var(--ink);font-weight:600;
+  box-shadow:0 1px 2px rgba(0,0,0,.13)}
+.seg button:focus-visible,.linkbtn:focus-visible{outline:2px solid var(--s1);outline-offset:1px}
+.slider{display:flex;align-items:center;gap:9px}
+.slider input{width:150px;accent-color:var(--s1)}
+.slider output{font-family:"IBM Plex Mono",monospace;font-size:.8rem;min-width:3.4em;
+  font-variant-numeric:tabular-nums}
+.linkbtn{background:none;border:0;color:var(--s1);font:inherit;font-size:.8rem;
+  cursor:pointer;padding:0;text-decoration:underline}
+
+.chartbox{position:relative}
+svg.chart{width:100%;height:auto;display:block;touch-action:pan-y}
+.axis{stroke:var(--rule2);stroke-width:1}
+.grid{stroke:var(--rule);stroke-width:1}
+.zero{stroke:var(--ink3);stroke-width:1;stroke-dasharray:3 3}
+.po3rule{stroke:var(--ink3);stroke-width:1;stroke-dasharray:2 4;opacity:.6}
+.tick{font-family:"IBM Plex Mono",monospace;font-size:9.5px;fill:var(--ink3)}
+.ticklab{font-family:"IBM Plex Mono",monospace;font-size:9px;fill:var(--ink3)}
+.axlab{font-family:"IBM Plex Mono",monospace;font-size:9.5px;fill:var(--ink3);
+  letter-spacing:.06em;text-transform:uppercase}
+.ser{fill:none;stroke-width:2;stroke-linejoin:round;stroke-linecap:round}
+.band{fill:var(--mid);opacity:.55}
+.cross{stroke:var(--ink3);stroke-width:1}
+.dot{stroke:var(--raise);stroke-width:2}
+.tip{position:absolute;pointer-events:none;background:var(--raise);border:1px solid var(--rule2);
+  border-radius:3px;padding:7px 10px;font-size:.76rem;box-shadow:var(--shadow);
+  font-family:"IBM Plex Mono",monospace;line-height:1.5;white-space:nowrap;opacity:0;
+  transition:opacity .1s;z-index:5}
+.tip b{font-weight:600}
+.tip .row{display:flex;justify-content:space-between;gap:12px}
+.legend{display:flex;flex-wrap:wrap;gap:6px 18px;margin-top:10px;font-size:.78rem;color:var(--ink2)}
+.legend i{width:16px;height:3px;border-radius:2px;display:inline-block;vertical-align:middle;margin-right:6px}
+.readout{display:grid;grid-template-columns:repeat(auto-fit,minmax(124px,1fr));gap:1px;
+  background:var(--rule);border:1px solid var(--rule);border-radius:3px;margin-top:16px;overflow:hidden}
+.readout div{background:var(--raise);padding:9px 11px}
+.readout .k{font-family:"IBM Plex Mono",monospace;font-size:.6rem;letter-spacing:.08em;
+  text-transform:uppercase;color:var(--ink3)}
+.readout .v{font-family:"IBM Plex Mono",monospace;font-size:1rem;font-weight:600;
+  font-variant-numeric:tabular-nums;margin-top:.15rem}
+
+/* ---- rule cards ---- */
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px;margin:1.4rem 0}
+.card{background:var(--raise);border:1px solid var(--rule);border-radius:4px;padding:16px 18px}
+.card h4{font-family:Archivo,sans-serif;font-size:.95rem;margin:0 0 .1rem;font-weight:600}
+.card .tag{font-family:"IBM Plex Mono",monospace;font-size:.66rem;letter-spacing:.08em;
+  text-transform:uppercase;margin-bottom:.75rem;display:block}
+.card dl{display:grid;grid-template-columns:auto 1fr;gap:.3rem .8rem;margin:0;font-size:.82rem}
+.card dt{font-family:"IBM Plex Mono",monospace;font-size:.68rem;letter-spacing:.05em;
+  text-transform:uppercase;color:var(--ink3);padding-top:.16rem}
+.card dd{margin:0}
+.card .out{margin-top:.85rem;padding-top:.7rem;border-top:1px solid var(--rule);font-size:.82rem}
+
+hr.end{border:none;border-top:2px solid var(--ink);margin:66px 0 0}
+footer{padding-top:20px;font-family:"IBM Plex Mono",monospace;font-size:.71rem;color:var(--ink3)}
+.hidden{display:none}
+@media (max-width:640px){
+  body{font-size:16px;padding:0 15px 60px}
+  header.mast{padding-top:44px}
+  .slider input{width:110px}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+
+<div class="wrap">
+
+<header class="mast">
+  <div class="eyebrow">Intraday study &#183; CME NQ futures, 1-minute &#183; 2010-07-07 &ndash; 2026-08-06</div>
+  <h1>Powers of Three,<br>Priced Intraday</h1>
+  <p class="lede">Every reasonable PO3 block size, swept across a continuum, on
+  three intraday strategies with explicit entry and exit rules &mdash; over
+  sixteen years of real CME futures. One setup looked strongly profitable. It
+  was a fill artifact, and this report shows exactly how it died.</p>
+</header>
+
+<div class="hero">
+  <div><div class="k">Block sizes tested</div><div class="v">52</div><div class="n">27 &ndash; 6561, continuous</div></div>
+  <div><div class="k">Best paper result</div><div class="v pos">+1.40</div><div class="n">pts/trade, t = 10.67</div></div>
+  <div><div class="k">After 1pt of real fill</div><div class="v">+0.17</div><div class="n">pts/trade, t = 1.27</div></div>
+  <div><div class="k">Day-block drift, 16 yrs</div><div class="v">9&#215;</div><div class="n">27 &rarr; 81 &rarr; 243</div></div>
+</div>
+
+<div class="col">
+<div class="note bad">
+  <p><b>The verdict, up front.</b> There is no PO3 edge to utilise. A power of
+  three is not a special block size &mdash; the results vary smoothly with size,
+  and non-PO3 values beat every PO3 value. The one setup that showed a strong
+  paper edge (+3.32 pts/trade, t&nbsp;=&nbsp;9.63) was earning it entirely from an
+  optimistic limit-fill assumption, and goes negative the moment fills are
+  modelled honestly.</p>
+</div>
+<p>Sixteen years did surface one thing three years could not, in section 5: the
+paper edge is a <b>post-2020 regime</b>, not a constant. And section 1 now shows
+the absolute-price lattice going stale in the clearest possible terms &mdash; the
+block matching a median day moved 27 &rarr; 81 &rarr; 243 across the sample.</p>
+</div>
+
+<section id="sizing">
+  <span class="snum">01</span>
+  <h2>Which PO3 fits which timeframe</h2>
+  <div class="col">
+  <p>Realized high&ndash;low range, RTH only, matched to the nearest power of
+  three in log space.</p>
+  <div class="note bad">
+    <p><b>Read the per-year table below, not this one, for present-day sizing.</b>
+    These medians pool sixteen years across a 16.5&#215; change in volatility, so they
+    are dragged down by the low-volatility 2010s. For trading now, the day-scale
+    block is <b>243</b>, and <b>729</b> is what actually contains 92.6% of days.</p>
+  </div>
+  </div>
+  <div class="scroll"><table id="tfTable">
+    <thead><tr><th>Timeframe</th><th class="num">n</th><th class="num">p25</th>
+      <th class="num">Median</th><th class="num">p75</th><th class="num">p90</th>
+      <th class="num">Nearest PO3</th></tr></thead>
+    <tbody></tbody>
+  </table></div>
+
+  <h3>By session window</h3>
+  <div class="scroll"><table id="winTable">
+    <thead><tr><th>Window</th><th class="num">Sessions</th><th class="num">p25</th>
+      <th class="num">Median</th><th class="num">p75</th><th class="num">Nearest PO3</th></tr></thead>
+    <tbody></tbody>
+  </table></div>
+
+  <h3>The drift problem</h3>
+  <div class="col">
+  <p>Over sixteen years NQ's median RTH range went from <b>23.8 to 392.8
+  points</b> &mdash; 16.5&#215; &mdash; while price rose from 1,722 to 30,976. Range as a
+  <em>percentage</em> of price barely moved at all: 0.66% to 2.34%, averaging
+  1.24%. Volatility scales with price; a fixed point-grid does not. That is fatal
+  for a lattice anchored on absolute price.</p>
+  </div>
+  <div class="scroll"><table id="driftTable">
+    <thead><tr><th class="num">Year</th><th class="num">Days</th><th class="num">Median close</th>
+      <th class="num">Median range</th><th class="num">Range % of price</th>
+      <th class="num">P(range &le; 243)</th><th class="num">P(range &le; 729)</th></tr></thead>
+    <tbody></tbody>
+  </table></div>
+  <div class="col">
+  <div class="note key">
+    <p>The block matching a median day moved <b>27 &rarr; 81 &rarr; 243</b> across the
+    sample, a 9&#215; drift. P(day range &le; 27) was <b>68%</b> in 2010 and <b>0%</b>
+    from 2018 onward. P(day range &le; 243) held at <b>100%</b> through 2017 and is
+    <b>13.4%</b> in 2026. Each power of three is the right day-block for roughly
+    five to eight years, then the market outgrows it.</p>
+  </div>
+  </div>
+</section>
+
+<section id="explorer">
+  <span class="snum">02</span>
+  <h2>The sweep &mdash; is a power of three special?</h2>
+  <div class="col">
+  <p>If PO3 sizes were special, performance would <b>peak</b> at 27, 81, 243,
+  729. Instead every curve is smooth in block size, and the peaks land wherever
+  the bracket happens to match intraday noise. Drag the cost slider &mdash; cost
+  is a flat per-trade charge, so net expectancy is exact at any level.</p>
+  </div>
+
+  <div class="panel">
+    <div class="ctrls">
+      <div class="grp"><span>Strategy</span><div class="seg" id="segStrat"></div></div>
+      <div class="grp"><span>Session</span><div class="seg" id="segWin"></div></div>
+      <div class="grp"><span>Metric</span><div class="seg" id="segMetric"></div></div>
+      <div class="grp"><span>Min trades</span><div class="seg" id="segMinN"></div></div>
+      <div class="grp"><span>Cost, pts round trip</span>
+        <div class="slider"><input type="range" id="cost" min="0" max="4" step="0.25" value="1"
+          aria-label="Cost in points round trip"><output id="costOut">1.00</output></div></div>
+    </div>
+    <div class="chartbox"><svg class="chart" id="sweep" viewBox="0 0 900 392"
+      role="img" aria-label="Performance against block size"></svg>
+      <div class="tip" id="tip"></div></div>
+    <div class="legend" id="sweepLegend"></div>
+    <div class="readout" id="readout"></div>
+    <p style="margin:.9rem 0 0"><button class="linkbtn" id="tblToggle"
+      aria-expanded="false">Show as table</button></p>
+    <div class="scroll hidden" id="sweepTableWrap"><table id="sweepTable">
+      <thead><tr><th class="num">R</th><th class="num">PO3</th><th class="num">Trades</th>
+        <th class="num">Win %</th><th class="num">Target %</th><th class="num">Stop %</th>
+        <th class="num">Net exp</th><th class="num">t</th><th class="num">Total pts</th></tr></thead>
+      <tbody></tbody></table></div>
+  </div>
+
+  <div class="col">
+  <div class="note key">
+    <p><b>Read the shape, not the peak.</b> The edge-fade curve climbs smoothly
+    from deeply negative at R=27, crosses zero near R=81, plateaus across
+    R&nbsp;=&nbsp;120&ndash;280, then collapses. 243 sits on that slope like any
+    other number. In RTH the best block is R&nbsp;=&nbsp;138.7
+    (t&nbsp;=&nbsp;7.73) against 243's t&nbsp;=&nbsp;4.44, and R&nbsp;=&nbsp;175.2
+    and 221.3 also beat it &mdash; non-PO3 values on both sides.</p>
+  </div>
+  </div>
+</section>
+
+<section id="rules">
+  <span class="snum">03</span>
+  <h2>The three strategies, exactly as coded</h2>
+  <div class="col">
+  <p>Rules were fixed before any result was inspected. Fills are conservative
+  throughout: entries are resting limits at a price the bar actually traded
+  through, stop and target resolve from the entry bar inclusive, and a bar
+  containing both is scored as the stop.</p>
+  </div>
+  <div class="cards">
+    <div class="card">
+      <h4>S1 &middot; Block Traverse</h4>
+      <span class="tag" style="color:var(--s1)">Sweep the edge, run the range</span>
+      <dl>
+        <dt>Setup</dt><dd>At 09:30 NY take the open <code>O</code>. Block is
+          <code>[floor(O/R)&#183;R, +R]</code>. Near edge is the one closer to <code>O</code>.</dd>
+        <dt>Entry</dt><dd>Resting limit at the near edge, first touch.</dd>
+        <dt>Side</dt><dd>Toward the far edge &mdash; long if the near edge is the block low.</dd>
+        <dt>Stop</dt><dd><code>0.10&#183;R</code> beyond the near edge.</dd>
+        <dt>Target</dt><dd>The far edge (a 10:1 reward-to-risk).</dd>
+        <dt>Exit</dt><dd>Stop, target, or market-on-close 16:00.</dd>
+      </dl>
+      <div class="out"><b class="neg">Fails.</b> Best PO3 is R=81 at +0.17 pts,
+        t&nbsp;=&nbsp;0.17. At 243 and 729 the target is simply too far &mdash;
+        49&ndash;89% of trades time out unresolved.</div>
+    </div>
+    <div class="card">
+      <h4>S2 &middot; Edge Fade</h4>
+      <span class="tag" style="color:var(--s2)">Fade the boundary touch</span>
+      <dl>
+        <dt>Setup</dt><dd>Any lattice boundary <code>k&#183;R</code> touched during the session.</dd>
+        <dt>Entry</dt><dd>Resting limit at the boundary.</dd>
+        <dt>Side</dt><dd>Fade the approach &mdash; arrived from below, go short.
+          Direction taken from the close 5 bars earlier.</dd>
+        <dt>Stop</dt><dd><code>0.10&#183;R</code> beyond.</dd>
+        <dt>Target</dt><dd><code>0.10&#183;R</code> back (1:1).</dd>
+        <dt>Limits</dt><dd>Max 3 per session, at least 30 bars apart.</dd>
+      </dl>
+      <div class="out"><b class="warn" style="color:var(--warn)">Looks strong, then dies.</b>
+        +3.32 pts, t&nbsp;=&nbsp;9.63 on paper. Section 4 removes it.</div>
+    </div>
+    <div class="card">
+      <h4>S3 &middot; Range Completion</h4>
+      <span class="tag" style="color:var(--s3)">Fade the finished expansion</span>
+      <dl>
+        <dt>Setup</dt><dd>Track running session range from 09:30. Trigger when it first reaches <code>R</code>.</dd>
+        <dt>Entry</dt><dd>Market at that bar's close.</dd>
+        <dt>Side</dt><dd>Fade whichever side just made the new extreme.</dd>
+        <dt>Stop</dt><dd><code>0.10&#183;R</code>.</dd>
+        <dt>Target</dt><dd><code>0.20&#183;R</code> (2:1).</dd>
+        <dt>Exit</dt><dd>Stop, target, or close.</dd>
+      </dl>
+      <div class="out"><b class="neg">Fails.</b> Negative at every PO3 in both
+        sessions; best PO3 is 243 at &minus;0.83 pts, t&nbsp;=&nbsp;&minus;0.50.</div>
+    </div>
+  </div>
+</section>
+
+<section id="fills">
+  <span class="snum">04</span>
+  <h2>How the edge died</h2>
+  <div class="col">
+  <p>S2 assumed a resting limit fills every time a bar's range touches the
+  level. But the trades that make the money are exactly the ones where price
+  <em>tags</em> the level and reverses &mdash; and those are the fills you are
+  most likely to miss, because price never traded through your order. Everyone
+  ahead of you in the queue gets filled; you don't.</p>
+  <p>So require price to trade a given distance <b>beyond</b> the level before
+  counting a fill. The entry price stays the same. Only the fill assumption
+  tightens.</p>
+  </div>
+
+  <div class="panel">
+    <div class="chartbox"><svg class="chart" id="penChart" viewBox="0 0 900 344"
+      role="img" aria-label="Expectancy against required fill penetration"></svg>
+      <div class="tip" id="penTip"></div></div>
+    <div class="legend" id="penLegend"></div>
+  </div>
+
+  <div class="scroll"><table id="penTable">
+    <thead><tr><th>Config</th><th class="num">Penetration</th><th class="num">Trades</th>
+      <th class="num">Win %</th><th class="num">Exp pts</th><th class="num">t</th>
+      <th class="num">Total pts</th></tr></thead><tbody></tbody></table></div>
+
+  <div class="col">
+  <div class="note bad">
+    <p>Every point of required penetration costs roughly <b>1.2 points</b> of
+    expectancy, decaying monotonically through zero. That is not a strategy with a
+    cost problem &mdash; that is the shape of a result made entirely of adverse
+    selection. On real futures it is gone after <b>one</b> point
+    (+0.17, t&nbsp;=&nbsp;1.27) and negative by two.</p>
+  </div>
+  <p>One point is a <em>gentle</em> assumption on an instrument that ticks in
+  0.25s. It is roughly the minimum you should assume if you are not co-located
+  and near the front of the queue. Note this died faster here than on the cash
+  CFD tested previously, where it survived to two points &mdash; real futures
+  have tighter spreads and punish the assumption harder.</p>
+
+  <h3>All five time-of-day windows are negative</h3>
+  <p>On the cash data the opening hour was the last survivor at +1.90
+  (t&nbsp;=&nbsp;3.62). On real futures, with a 2-point fill requirement, it is
+  &minus;0.22 (t&nbsp;=&nbsp;&minus;1.01) &mdash; and every other window is worse.</p>
+  </div>
+</section>
+
+<section id="regime">
+  <span class="snum">05</span>
+  <h2>What sixteen years showed that three could not</h2>
+  <div class="col">
+  <p>The single genuinely new finding here. The paper edge is not a constant
+  property of the market &mdash; it is a <b>regime that began around 2020</b>.</p>
+  </div>
+  <div class="scroll"><table>
+    <thead><tr><th>Era</th><th class="num">Trades</th><th class="num">Paper exp</th>
+      <th class="num">Years positive</th><th class="num">After 2pt fill</th></tr></thead>
+    <tbody>
+      <tr><td>2010&ndash;2019</td><td class="num dim">1,833</td>
+        <td class="num neg">&minus;0.64</td><td class="num dim">2 of 10</td>
+        <td class="num neg">&minus;2.34</td></tr>
+      <tr><td>2020&ndash;2026</td><td class="num dim">4,565</td>
+        <td class="num pos"><b>+2.15</b></td><td class="num"><b>7 of 7</b></td>
+        <td class="num">&minus;0.07</td></tr>
+    </tbody>
+  </table></div>
+  <div class="col">
+  <p>Level mean-reversion genuinely became far more prevalent after 2020. Seven
+  years out of seven positive on paper is not noise &mdash; something in market
+  structure changed.</p>
+  <div class="note key">
+    <p>But apply realistic fills and the post-2020 era lands at
+    <b>&minus;0.07 points per trade</b>. Breakeven, not profitable. The regime shift
+    is real; it is simply not large enough to clear the cost of getting filled.
+    Worth knowing the effect exists. Not worth trading.</p>
+  </div>
+  <p>This also reframes the earlier three-year study: it happened to sample only
+  the favourable regime, which is why its paper numbers looked better
+  (+3.32 vs +1.40 here) while failing the same fill test.</p>
+  </div>
+</section>
+
+<section id="checks">
+  <span class="snum">06</span>
+  <h2>The other three checks</h2>
+
+  <h3>Does the lattice phase matter? No.</h3>
+  <div class="col">
+  <p>Shift the lattice origin by a fraction of a block and re-run. If Goldbach's
+  specific anchoring carried information, the true origin would stand out from
+  the shifted ones. It does not &mdash; and note the shifted origins are
+  <em>also</em> profitable on paper, which is the point: the effect belongs to
+  the mechanic, not the lattice.</p>
+  </div>
+  <div class="scroll"><table id="phaseTable">
+    <thead><tr><th class="num">R</th><th class="num">Trades</th><th class="num">True exp</th>
+      <th class="num">Shifted mean</th><th class="num">Shifted sd</th>
+      <th class="num">z</th><th class="num">Rank</th></tr></thead><tbody></tbody></table></div>
+
+  <h3>Is it stable year to year?</h3>
+  <div class="scroll"><table id="yearTable">
+    <thead><tr><th class="num">R</th><th class="num">Year</th><th class="num">Trades</th>
+      <th class="num">Win %</th><th class="num">Exp pts</th><th class="num">t</th></tr></thead><tbody></tbody></table></div>
+  <div class="col"><p>R=123 decays away as volatility rises; R=197 improves.
+  Neither is stable, and both drift in the direction the sizing table predicts
+  &mdash; the block that suits the market keeps getting bigger.</p></div>
+
+  <h3>Volatility-scaled blocks</h3>
+  <div class="col">
+  <p>Since a fixed point size decays, set <code>R</code> from the trailing
+  20-day median RTH range instead. This is the best-behaved variant on paper
+  &mdash; and still does not survive section 4.</p>
+  </div>
+  <div class="scroll"><table id="volTable">
+    <thead><tr><th class="num">f</th><th class="num">Median R</th><th class="num">Trades</th>
+      <th class="num">Win %</th><th class="num">Exp pts</th><th class="num">t</th>
+      <th class="num">Per-year exp</th></tr></thead><tbody></tbody></table></div>
+
+  <h3>Time of day</h3>
+  <div class="col"><p>Recommended config with a 2-point fill requirement, split
+  by session hour. Only the opening hour is positive &mdash; one bucket out of
+  five tested, and it too dies at 3 points of penetration
+  (t&nbsp;=&nbsp;0.69).</p></div>
+  <div class="scroll"><table id="todTable">
+    <thead><tr><th>Window</th><th class="num">Trades</th><th class="num">Win %</th>
+      <th class="num">Exp pts</th><th class="num">t</th></tr></thead><tbody></tbody></table></div>
+</section>
+
+<section id="do">
+  <span class="snum">07</span>
+  <h2>What to actually do</h2>
+  <div class="col">
+    <h3>Don't trade the PO3 lattice</h3>
+    <p>Nothing here supports it. The lattice phase is irrelevant, no power of
+    three is a peak in any sweep, and the only strategy that looked profitable
+    was extracting its edge from a fill assumption rather than from the market.</p>
+
+    <h3>If you keep the blocks on your chart, size them like this</h3>
+    <p>At <em>2026</em> volatility, not the sixteen-year pooled average:</p>
+    <ul>
+      <li><b>Scalping, 1&ndash;15m:</b> R = 27.</li>
+      <li><b>30&ndash;60m structure:</b> R = 81.</li>
+      <li><b>Session / 4h:</b> R = 243.</li>
+      <li><b>Containing the whole day:</b> R = 729 &mdash; it holds 92.6% of 2026
+      days, while 243 holds only 13.4%.</li>
+    </ul>
+    <p>Better: stop using a fixed number at all. Set spacing to roughly
+    <b>0.5&ndash;0.6&times; the trailing 20-day median RTH range</b> &mdash; around
+    200&ndash;240 NQ points at current volatility. That tracks the market instead
+    of going stale every five to eight years, which is what the drift table shows
+    a fixed power of three doing. It still is not an edge; it is just the
+    non-broken way to place lines.</p>
+
+    <h3>The transferable lesson</h3>
+    <p>This is the most valuable thing in the report. Any backtest where you
+    enter with a limit order at a level will overstate its edge, because it
+    assumes you are filled on exactly the touches that reverse instantly. Before
+    believing any such result, re-run it requiring price to trade 1&ndash;3 points
+    through your level. If the edge does not survive that, it was never there.
+    This one lost <b>all</b> of its expectancy to that single test &mdash; on both
+    a cash CFD and real futures, across nineteen years of combined data.</p>
+
+    <h3>What would change the answer</h3>
+    <ul>
+      <li><b>Tick or full-depth data.</b> This now runs on genuine CME NQ
+      futures, so the cash-basis objection is closed. What remains is the fill
+      model: the penetration test is a <em>proxy</em> for queue position, and it is
+      doing all the work in the verdict. One month of 1-second or market-by-order
+      data would replace that estimate with a measurement.</li>
+      <li><b>Tick or depth data.</b> It would replace the fill assumption with
+      an actual queue model rather than a penetration proxy.</li>
+      <li><b>An execution rule the source document actually specifies.</b> The
+      trade plans are discretionary &mdash; "price should aggressively reject",
+      "look for potential gap". What is tested here is the structure those plans
+      stand on, not any one trader's reading of them.</li>
+    </ul>
+  </div>
+</section>
+
+</div>
+
+<hr class="end">
+<footer id="foot"></footer>
+</div>
+
+<script>
+const D = {{DATA}};
+
+const $ = s => document.querySelector(s);
+const fmt = (v,d=2) => (v==null||!isFinite(v)) ? "—" : (v>=0?"+":"−")+Math.abs(v).toFixed(d);
+const num = (v,d=2) => (v==null||!isFinite(v)) ? "—" : v.toFixed(d);
+const pct = v => (v==null||!isFinite(v)) ? "—" : (v*100).toFixed(1)+"%";
+const cls = v => v>0 ? "pos" : (v<0 ? "neg" : "");
+const esc = s => String(s).replace(/[&<>]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;"}[c]));
+
+/* ---------- static tables ---------- */
+function fill(id, rows){ const t=$(id).querySelector("tbody"); t.innerHTML=rows.join(""); }
+
+fill("#tfTable", D.sizing.timeframes.map(r=>
+  `<tr><td>${esc(r.tf)}</td><td class="num dim">${r.n.toLocaleString()}</td>
+   <td class="num">${num(r.p25,1)}</td><td class="num"><b>${num(r.median,1)}</b></td>
+   <td class="num">${num(r.p75,1)}</td><td class="num dim">${num(r.p90,1)}</td>
+   <td class="num"><b>${r.nearest_po3}</b></td></tr>`));
+
+fill("#winTable", D.sizing.sessions.map(r=>
+  `<tr><td>${esc(r.window)}</td><td class="num dim">${r.n}</td>
+   <td class="num">${num(r.p25,1)}</td><td class="num"><b>${num(r.median,1)}</b></td>
+   <td class="num">${num(r.p75,1)}</td><td class="num"><b>${r.nearest_po3}</b></td></tr>`));
+
+fill("#driftTable", D.sizing.drift.map((r,i)=>{
+  const c=D.sizing.containment[i]||{};
+  return `<tr><td class="num">${r.year}</td><td class="num dim">${r.days}</td>
+   <td class="num">${r.med_close.toFixed(0)}</td><td class="num"><b>${r.med_range.toFixed(1)}</b></td>
+   <td class="num">${r.range_pct.toFixed(2)}%</td>
+   <td class="num">${pct(c.p243)}</td><td class="num">${pct(c.p729)}</td></tr>`;}));
+
+fill("#phaseTable", D.phase.map(r=>
+  `<tr><td class="num">${r.R.toFixed(0)}</td><td class="num dim">${r.n}</td>
+   <td class="num ${cls(r.exp_pts)}">${fmt(r.exp_pts)}</td>
+   <td class="num">${fmt(r.null_mean)}</td><td class="num dim">${num(r.null_sd)}</td>
+   <td class="num"><b>${fmt(r.z)}</b></td><td class="num dim">${r.rank}/20</td></tr>`));
+
+fill("#yearTable", D.year.map(r=>
+  `<tr><td class="num">${r.R.toFixed(0)}</td><td class="num">${r.year}</td>
+   <td class="num dim">${r.n}</td><td class="num">${pct(r.win_rate)}</td>
+   <td class="num ${cls(r.exp_pts)}">${fmt(r.exp_pts)}</td>
+   <td class="num ${cls(r.t_stat)}">${fmt(r.t_stat)}</td></tr>`));
+
+fill("#volTable", D.vol.map(r=>
+  `<tr${r.f===0.6?' class="hl"':''}><td class="num"><b>${r.f.toFixed(2)}</b></td>
+   <td class="num">${r.med_R.toFixed(0)}</td><td class="num dim">${r.n}</td>
+   <td class="num">${pct(r.win_rate)}</td>
+   <td class="num ${cls(r.exp_pts)}">${fmt(r.exp_pts)}</td>
+   <td class="num ${cls(r.t_stat)}">${fmt(r.t_stat)}</td>
+   <td class="num dim">${r.per_year.map(y=>fmt(y.exp_pts,1)).join("  ")}</td></tr>`));
+
+fill("#todTable", D.tod.map(r=>
+  `<tr><td>${esc(r.window)}</td><td class="num dim">${r.n}</td>
+   <td class="num">${pct(r.win_rate)}</td>
+   <td class="num ${cls(r.exp_pts)}">${fmt(r.exp_pts)}</td>
+   <td class="num ${cls(r.t_stat)}">${fmt(r.t_stat)}</td></tr>`));
+
+fill("#penTable", D.pen.map(r=>
+  `<tr${r.pen===3?' class="hl"':''}><td>${esc(r.config)}</td>
+   <td class="num"><b>${r.pen.toFixed(1)}</b></td><td class="num dim">${r.n}</td>
+   <td class="num">${pct(r.win_rate)}</td>
+   <td class="num ${cls(r.exp_pts)}"><b>${fmt(r.exp_pts)}</b></td>
+   <td class="num ${cls(r.t_stat)}">${fmt(r.t_stat)}</td>
+   <td class="num ${cls(r.total_pts)}">${fmt(r.total_pts,0)}</td></tr>`));
+
+$("#foot").innerHTML = `${D.meta.bars.toLocaleString()} bars &#183; ${D.meta.rth_sessions} RTH sessions &#183; `
+  + `${D.meta.start} to ${D.meta.end} &#183; ${esc(D.meta.instrument)} &#183; `
+  + `stop = ${D.meta.stop_f}&#215;R &#183; conservative fills, stop wins ties`;
+
+/* ---------- sweep explorer ---------- */
+const STRATS=[["S1_traverse","S1 Traverse"],["S2_edge_fade","S2 Edge fade"],["S3_range_complete","S3 Range completion"]];
+const WINS=[["RTH","RTH 09:30-16:00"],["NYAM","NY AM 09:30-11:30"]];
+const METRICS=[["exp","Net expectancy"],["t","t-statistic"],["win","Win rate"],["n","Trades"]];
+const MINNS=[["150","150"],["40","40"],["400","400"]];
+const SCOL={S1_traverse:"var(--s1)",S2_edge_fade:"var(--s2)",S3_range_complete:"var(--s3)"};
+const PO3=[27,81,243,729,2187,6561];
+let state={strat:"S2_edge_fade",win:"RTH",metric:"exp",minN:"150",cost:1.0,hoverR:null};
+
+function seg(el,items,key){
+  el.innerHTML=items.map(([v,l])=>`<button data-v="${v}" aria-pressed="${state[key]===v}">${esc(l)}</button>`).join("");
+  el.onclick=e=>{const b=e.target.closest("button"); if(!b)return;
+    state[key]=b.dataset.v;
+    [...el.children].forEach(c=>c.setAttribute("aria-pressed", c.dataset.v===state[key]));
+    draw();};
+}
+seg($("#segStrat"),STRATS,"strat"); seg($("#segWin"),WINS,"win");
+seg($("#segMetric"),METRICS,"metric"); seg($("#segMinN"),MINNS,"minN");
+$("#cost").oninput=e=>{state.cost=+e.target.value; $("#costOut").textContent=state.cost.toFixed(2); draw();};
+
+const metricOf=(r,m,cost)=>{
+  if(m==="n") return r.n;
+  if(m==="win") return r.win_rate*100;
+  const net=r.exp_gross-cost;
+  if(m==="exp") return net;
+  return r.sd>0 ? net/(r.sd/Math.sqrt(r.n)) : 0;
+};
+const rowsFor=()=> (D.sweep[state.win+"|"+state.strat]||[])
+  .filter(r=>r.n>=+state.minN).sort((a,b)=>a.R-b.R);
+
+function draw(){
+  const rows=rowsFor(), m=state.metric, cost=state.cost;
+  const W=900,H=392,ml=54,mr=16,mt=30,mb=44;
+  const iw=W-ml-mr, ih=H-mt-mb;
+  const lx=v=>ml+(Math.log(v)-Math.log(27))/(Math.log(6561)-Math.log(27))*iw;
+  const vals=rows.map(r=>metricOf(r,m,cost));
+  let lo=Math.min(0,...vals), hi=Math.max(0,...vals);
+  if(m==="n"||m==="win"){lo=Math.min(...vals);hi=Math.max(...vals);}
+  const padv=(hi-lo)*0.1||1; lo-=padv; hi+=padv;
+  const ly=v=>mt+ih-(v-lo)/(hi-lo)*ih;
+
+  let g="";
+  // y grid
+  const nT=5;
+  for(let i=0;i<=nT;i++){const v=lo+(hi-lo)*i/nT, y=ly(v);
+    g+=`<line class="grid" x1="${ml}" y1="${y.toFixed(1)}" x2="${W-mr}" y2="${y.toFixed(1)}"/>`;
+    g+=`<text class="tick" x="${ml-7}" y="${(y+3).toFixed(1)}" text-anchor="end">${v.toFixed(m==="n"?0:(m==="win"?0:1))}</text>`;}
+  // t significance band
+  if(m==="t"&&lo<2&&hi>-2){
+    const y1=ly(Math.min(2,hi)), y2=ly(Math.max(-2,lo));
+    g+=`<rect class="band" x="${ml}" y="${y1.toFixed(1)}" width="${iw}" height="${Math.max(0,y2-y1).toFixed(1)}"/>`;}
+  // zero
+  if(lo<0&&hi>0) g+=`<line class="zero" x1="${ml}" y1="${ly(0).toFixed(1)}" x2="${W-mr}" y2="${ly(0).toFixed(1)}"/>`;
+  // PO3 rules
+  PO3.forEach(p=>{const x=lx(p);
+    g+=`<line class="po3rule" x1="${x.toFixed(1)}" y1="${mt}" x2="${x.toFixed(1)}" y2="${mt+ih}"/>`;
+    g+=`<text class="ticklab" x="${x.toFixed(1)}" y="${mt+ih+14}" text-anchor="middle">${p}</text>`;});
+  g+=`<line class="axis" x1="${ml}" y1="${mt+ih}" x2="${W-mr}" y2="${mt+ih}"/>`;
+  g+=`<text class="axlab" x="${ml}" y="${H-8}">Block size R &#183; log scale &#183; dashed = powers of three</text>`;
+  g+=`<text class="axlab" x="${ml-46}" y="14">${METRICS.find(x=>x[0]===m)[1]}</text>`;
+
+  // series line
+  const col=SCOL[state.strat];
+  const d=rows.map((r,i)=>`${i?"L":"M"}${lx(r.R).toFixed(1)} ${ly(metricOf(r,m,cost)).toFixed(1)}`).join(" ");
+  g+=`<path class="ser" d="${d}" stroke="${col}"/>`;
+  // PO3 markers on the series
+  rows.filter(r=>r.po3).forEach(r=>{
+    g+=`<circle class="dot" cx="${lx(r.R).toFixed(1)}" cy="${ly(metricOf(r,m,cost)).toFixed(1)}" r="4.5" fill="${col}"/>`;});
+  // hover
+  if(state.hoverR!=null){
+    const r=rows.reduce((a,b)=>Math.abs(Math.log(b.R)-Math.log(state.hoverR))<Math.abs(Math.log(a.R)-Math.log(state.hoverR))?b:a);
+    const x=lx(r.R),y=ly(metricOf(r,m,cost));
+    g+=`<line class="cross" x1="${x.toFixed(1)}" y1="${mt}" x2="${x.toFixed(1)}" y2="${mt+ih}"/>`;
+    g+=`<circle class="dot" cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="5" fill="${col}"/>`;
+  }
+  $("#sweep").innerHTML=g;
+
+  $("#sweepLegend").innerHTML =
+    `<span><i style="background:${col}"></i>${esc(STRATS.find(s=>s[0]===state.strat)[1])}, ${esc(state.win)}</span>`
+    + `<span class="dim">&#9679; marks a power of three</span>`
+    + (m==="t"?`<span class="dim">shaded band = |t| &lt; 2</span>`:``);
+
+  // readout: hovered R, else best by t
+  const pick = state.hoverR!=null
+    ? rows.reduce((a,b)=>Math.abs(Math.log(b.R)-Math.log(state.hoverR))<Math.abs(Math.log(a.R)-Math.log(state.hoverR))?b:a)
+    : rows.reduce((a,b)=>metricOf(b,"t",cost)>metricOf(a,"t",cost)?b:a, rows[0]);
+  if(pick){
+    const net=pick.exp_gross-cost, t=pick.sd>0?net/(pick.sd/Math.sqrt(pick.n)):0;
+    $("#readout").innerHTML=[
+      ["Block R", pick.R.toFixed(1)+(pick.po3?" · PO3":"")],
+      ["Trades", pick.n.toLocaleString()],
+      ["Stop", num(pick.risk_pts,1)+" pts"],
+      ["Win rate", pct(pick.win_rate)],
+      ["Tgt / stop", pct(pick.p_target)+" / "+pct(pick.p_stop)],
+      ["Net exp", fmt(net)+" pts"],
+      ["t", fmt(t)],
+      ["Total", fmt(net*pick.n,0)+" pts"]
+    ].map(([k,v])=>`<div><div class="k">${k}</div><div class="v">${v}</div></div>`).join("");
+  }
+
+  fill("#sweepTable", rows.map(r=>{
+    const net=r.exp_gross-cost, t=r.sd>0?net/(r.sd/Math.sqrt(r.n)):0;
+    return `<tr${r.po3?' class="hl"':''}><td class="num">${r.R.toFixed(1)}</td>
+     <td class="num dim">${r.po3?"yes":""}</td><td class="num dim">${r.n}</td>
+     <td class="num">${pct(r.win_rate)}</td><td class="num dim">${pct(r.p_target)}</td>
+     <td class="num dim">${pct(r.p_stop)}</td>
+     <td class="num ${cls(net)}">${fmt(net)}</td><td class="num ${cls(t)}">${fmt(t)}</td>
+     <td class="num ${cls(net*r.n)}">${fmt(net*r.n,0)}</td></tr>`;}));
+}
+
+(function(){
+  const svg=$("#sweep"), tip=$("#tip");
+  const move=e=>{
+    const pt=e.touches?e.touches[0]:e;
+    const b=svg.getBoundingClientRect();
+    const x=(pt.clientX-b.left)/b.width*900;
+    if(x<54||x>884){state.hoverR=null;tip.style.opacity=0;draw();return;}
+    const frac=(x-54)/(900-54-16);
+    state.hoverR=Math.exp(Math.log(27)+frac*(Math.log(6561)-Math.log(27)));
+    const rows=rowsFor(); if(!rows.length)return;
+    const r=rows.reduce((a,b2)=>Math.abs(Math.log(b2.R)-Math.log(state.hoverR))<Math.abs(Math.log(a.R)-Math.log(state.hoverR))?b2:a);
+    const net=r.exp_gross-state.cost, t=r.sd>0?net/(r.sd/Math.sqrt(r.n)):0;
+    tip.innerHTML=`<b>R = ${r.R.toFixed(1)}${r.po3?" · PO3":""}</b>`
+      +`<div class="row"><span>trades</span><span>${r.n}</span></div>`
+      +`<div class="row"><span>win</span><span>${pct(r.win_rate)}</span></div>`
+      +`<div class="row"><span>net exp</span><span>${fmt(net)}</span></div>`
+      +`<div class="row"><span>t</span><span>${fmt(t)}</span></div>`;
+    tip.style.opacity=1;
+    const tw=tip.offsetWidth, px=pt.clientX-b.left;
+    tip.style.left=Math.max(0,Math.min(b.width-tw, px-tw/2))+"px";
+    tip.style.top="8px";
+    draw();
+  };
+  svg.addEventListener("pointermove",move);
+  svg.addEventListener("pointerleave",()=>{state.hoverR=null;tip.style.opacity=0;draw();});
+  svg.addEventListener("touchmove",e=>{move(e);},{passive:true});
+})();
+
+$("#tblToggle").onclick=e=>{
+  const w=$("#sweepTableWrap"), open=w.classList.toggle("hidden")===false;
+  e.target.textContent=open?"Hide table":"Show as table";
+  e.target.setAttribute("aria-expanded",String(open));
+};
+
+/* ---------- penetration chart ---------- */
+(function(){
+  const cfgs=[...new Set(D.pen.map(r=>r.config))];
+  const cols=["var(--s1)","var(--s2)","var(--s3)"];
+  const W=900,H=344,ml=54,mr=124,mt=32,mb=42, iw=W-ml-mr, ih=H-mt-mb;
+  const pens=[...new Set(D.pen.map(r=>r.pen))].sort((a,b)=>a-b);
+  const vals=D.pen.map(r=>r.exp_pts);
+  let lo=Math.min(...vals,0), hi=Math.max(...vals,0);
+  const pad=(hi-lo)*0.12; lo-=pad; hi+=pad;
+  const lx=p=>ml+(p/5)*iw, ly=v=>mt+ih-(v-lo)/(hi-lo)*ih;
+  let g="";
+  for(let i=0;i<=4;i++){const v=lo+(hi-lo)*i/4,y=ly(v);
+    g+=`<line class="grid" x1="${ml}" y1="${y.toFixed(1)}" x2="${W-mr}" y2="${y.toFixed(1)}"/>`;
+    g+=`<text class="tick" x="${ml-7}" y="${(y+3).toFixed(1)}" text-anchor="end">${v.toFixed(1)}</text>`;}
+  g+=`<line class="zero" x1="${ml}" y1="${ly(0).toFixed(1)}" x2="${W-mr}" y2="${ly(0).toFixed(1)}"/>`;
+  pens.forEach(p=>{g+=`<text class="ticklab" x="${lx(p).toFixed(1)}" y="${mt+ih+15}" text-anchor="middle">${p}</text>`;});
+  g+=`<line class="axis" x1="${ml}" y1="${mt+ih}" x2="${W-mr}" y2="${mt+ih}"/>`;
+  g+=`<text class="axlab" x="${ml}" y="${H-8}">Points price must trade BEYOND the level before the limit is counted filled</text>`;
+  g+=`<text class="axlab" x="${ml-46}" y="12">Exp pts/trade</text>`;
+  const ends=[];
+  cfgs.forEach((c,i)=>{
+    const rs=D.pen.filter(r=>r.config===c).sort((a,b)=>a.pen-b.pen);
+    const d=rs.map((r,j)=>`${j?"L":"M"}${lx(r.pen).toFixed(1)} ${ly(r.exp_pts).toFixed(1)}`).join(" ");
+    g+=`<path class="ser" d="${d}" stroke="${cols[i]}"/>`;
+    rs.forEach(r=>{g+=`<circle class="dot" cx="${lx(r.pen).toFixed(1)}" cy="${ly(r.exp_pts).toFixed(1)}" r="4.5" fill="${cols[i]}"/>`;});
+    const last=rs[rs.length-1];
+    ends.push({x:lx(last.pen)+9, y:ly(last.exp_pts)+3.5, col:cols[i], label:c});
+  });
+  // direct labels: push apart when two series finish at nearly the same value
+  ends.sort((a,b)=>a.y-b.y);
+  for(let i=1;i<ends.length;i++){
+    if(ends[i].y-ends[i-1].y<12) ends[i].y=ends[i-1].y+12;
+  }
+  ends.forEach(e=>{
+    g+=`<text class="ticklab" x="${e.x.toFixed(1)}" y="${e.y.toFixed(1)}" fill="${e.col}">${esc(e.label)}</text>`;
+  });
+  $("#penChart").innerHTML=g;
+  $("#penLegend").innerHTML=cfgs.map((c,i)=>`<span><i style="background:${cols[i]}"></i>${esc(c)}</span>`).join("")
+    +`<span class="dim">all three cross zero by 3 points</span>`;
+})();
+
+draw();
+</script>
