@@ -2,3 +2,6 @@
 # backtest data (large, redistributable from HistData)
 backtest/data/
 *.pkl
+*.npz
+ranges/nq/
+__pycache__/
