@@ -5,3 +5,5 @@ backtest/data/
 *.npz
 ranges/nq/
 __pycache__/
+*.parquet
+futures/**/bars.npz
