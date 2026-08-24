@@ -144,6 +144,35 @@ def build():
                        if min(c["z_occ"], c["z_phase"], c["z_levelset"]) > 3)
     round_best = max(st["round"], key=lambda r: abs(r["z_phase"]))
 
+    # --- the three tests added after the framework was described as traded ---
+    resp = D["respect"]
+    ms = D["majorswing"]
+    su = D["setup"]
+    ms_z = [r["z"] for r in ms]
+    su_win = sorted(x["win"] for x in su)
+    su_ev = sorted(x["ev_R"] for x in su)
+    su_best = max(su, key=lambda x: x["z"])
+    ms_ext = [r for r in ms if r["R"] == 2187 and r["zone"] == "EXT_97_100"]
+    ms_r81 = [r for r in ms if r["R"] == 81]
+
+    resp_rows = "".join(
+        '<tr><td class="num">%d</td><td class="num">%s</td>'
+        '<td class="num">%.1f pts</td><td class="num">%.1f pts</td>'
+        '<td class="num">%+.1f%%</td><td class="num">%+.2f</td></tr>'
+        % (d["R"], "{:,}".format(d["n"]), d["median_pen"]["true"] * d["R"],
+           d["median_pen"]["null_mean"] * d["R"],
+           (d["median_pen"]["true"] / d["median_pen"]["null_mean"] - 1) * 100,
+           d["median_pen"]["z_signed"])
+        for d in resp)
+
+    ms_rows = "".join(
+        '<tr><td>%s</td><td class="num dim">%s</td><td class="num">%.4f</td>'
+        '<td class="num">%.4f</td><td class="num">%+.1f%%</td>'
+        '<td class="num">%.4f</td><td class="num">%+.2f</td></tr>'
+        % (r["swing"], "{:,}".format(r["n"]), r["rate"], r["null_mean"],
+           (r["rate"] / r["null_mean"] - 1) * 100, r["occ_rate"], r["z_occ_adj"])
+        for r in ms_ext)
+
     # headline verdict table
     rx60 = next(r for r in rx if r["R"] == 2187 and r["M"] == 60)
     sweep2187 = next(s for s in st["sweep"] if s["R"] == 2187)
@@ -267,6 +296,18 @@ def build():
         n_grid_z=len(allz),
         z_uniform="%+.2f" % p["z_uniform"],
         round_best_R=round_best["R"], round_best_z="%+.2f" % round_best["z_phase"],
+        resp_rows=resp_rows, ms_rows=ms_rows,
+        ms_cells=len(ms), ms_zlo="%+.2f" % min(ms_z), ms_zhi="%+.2f" % max(ms_z),
+        ms_r81_lo="%+.2f" % min(r["z"] for r in ms_r81),
+        ms_r81_hi="%+.2f" % max(r["z"] for r in ms_r81),
+        su_cells=len(su),
+        su_medwin="%.3f" % su_win[len(su_win) // 2],
+        su_medev="%+.3f" % su_ev[len(su_ev) // 2],
+        su_best_z="%+.2f" % su_best["z"], su_best_ev="%+.3f" % su_best["ev_R"],
+        su_best_win="%.3f" % su_best["win"],
+        su_best_desc="R=%d, %s, after a %s" % (su_best["R"],
+                                               su_best["zone"].replace("_", " "),
+                                               su_best["ctx"]),
         rx_rows=rx_rows, lvl_rows=lvl_rows,
         dwell_rows=dwell_rows, sweep_rows=sweep_rows, round_rows=round_rows,
         pw_h1=pw_h1, pw_rx=pw_rx,

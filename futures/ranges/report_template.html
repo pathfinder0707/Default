@@ -512,8 +512,98 @@ footer{padding-top:22px;font-family:"JetBrains Mono",monospace;
   </div>
 </section>
 
-<section id="limits">
+<section id="astraded">
   <span class="snum">08</span>
+  <h2>Tested as actually traded</h2>
+  <div class="col">
+  <p>Everything above tests the framework as written. A trader using it objected,
+  reasonably, that this is not what they do: they use three zones rather than all
+  twenty levels, only in context, and they judge the levels by where major swings
+  form &mdash; not by whether a touch predicts direction. Three further tests
+  followed, each validated on a positive control first.</p>
+  </div>
+
+  <h3>Does price stop at the level?</h3>
+  <div class="col">
+  <p>Direction-agnostic, and the strongest remaining version of the claim: a
+  level can be worthless for prediction and still be real support. Measured as
+  how far price overshoots a line before turning back.</p>
+  </div>
+  <div class="scroll"><table>
+    <thead><tr><th class="num">R</th><th class="num">Touches</th>
+      <th class="num">Goldbach</th><th class="num">Shifted lattices</th>
+      <th class="num">Difference</th><th class="num">z</th></tr></thead>
+    <tbody>{{resp_rows}}</tbody>
+  </table></div>
+  <div class="col">
+  <p>A control in which the levels were made true reflecting barriers cut median
+  penetration by <b>93%</b>. The observed difference is about 1%, in the wrong
+  direction. And overshoot is ~23 points at <em>both</em> block sizes &mdash; it is
+  set by the instrument's noise scale, not by which line was drawn.</p>
+  </div>
+
+  <h3>Do major swings form in the named zones?</h3>
+  <div class="col">
+  <p>The earlier swing test used pivots of at most 20 bars a side &mdash; a
+  40-minute local pivot, not a major swing &mdash; and pooled all twenty levels.
+  This uses percentage-reversal zigzags (the 1% threshold gives 5,982 swings in
+  16 years, about 1.7 a session) and pivots up to 480 bars a side, scoring only
+  the three named zones. Across {{ms_cells}} cells, z runs {{ms_zlo}} to {{ms_zhi}}.</p>
+  <p>One cell deserves care rather than dismissal. At R=2187 the range-extreme
+  zone is elevated by roughly 40% over the shifted-phase null, consistently
+  across all eight swing definitions &mdash; exactly the pattern a real effect
+  would produce.</p>
+  </div>
+  <div class="scroll"><table>
+    <thead><tr><th>Swing definition</th><th class="num">n</th><th class="num">Rate</th>
+      <th class="num">Null</th><th class="num">Lift</th>
+      <th class="num">Occupancy</th><th class="num">z, occ-adjusted</th></tr></thead>
+    <tbody>{{ms_rows}}</tbody>
+  </table></div>
+  <div class="col">
+  <div class="note key">
+    <p>Occupancy in that zone is <b>0.0852</b> and the swing rates are
+    0.082&ndash;0.088. Swings land there in exact proportion to the time price
+    spends there, and every occupancy-adjusted z falls between &minus;1.27 and
+    +0.39.</p>
+    <p>The elevation is itself a small-sample artifact: only <b>13.4 blocks</b> of
+    2187 span the whole 16-year price range, so block-position occupancy reflects
+    where price happened to sit rather than any property of the grid. Phase-to-phase
+    scatter in that occupancy is 0.0117 at R=2187 against 0.0021 at R=81 &mdash; the
+    signature of too few blocks. The eight agreeing rows are one observation, not
+    eight: overlapping swing sets measuring the same lump.</p>
+  </div>
+  <p>At R=81, the block actually used on a 1&ndash;5 minute chart, every zone and
+  swing-definition cell falls between z {{ms_r81_lo}} and {{ms_r81_hi}}.</p>
+  </div>
+
+  <h3>The full setup, in context, with confirmation</h3>
+  <div class="col">
+  <p>The three zones, on R=81/243/729, conditional on a liquidity sweep or a
+  higher-timeframe fair-value-gap tap, with and without a change-in-state
+  confirmation, scored on whether price then travels +1 ATR before &minus;1 ATR.
+  {{su_cells}} cells, each against its own 20-phase lattice null.</p>
+  <p>Median win rate across all cells is <b>{{su_medwin}}</b> and median expectancy
+  <b>{{su_medev}}R</b>. The best cell ({{su_best_desc}}) reaches {{su_best_win}} and
+  {{su_best_ev}}R at z&nbsp;=&nbsp;{{su_best_z}} &mdash; the ceiling that
+  {{su_cells}} draws from noise produce, and short of the Bonferroni threshold of
+  3.47.</p>
+  <div class="note bad">
+    <p><b>A look-ahead bug in the first run of this test was doing all the work.</b>
+    The bracket resolved from the entry bar inclusive, but entry is at that bar's
+    close, so its range had already happened. That inflated the headline cell from
+    a 49.3% win rate to 65.2%, and its expectancy from &minus;0.015R to +0.305R. It is
+    recorded here because a 65% win rate at 1:1 is exactly what a real edge feels
+    like, and it was an artifact of one wrong index.</p>
+  </div>
+  <p>The surviving cell is also far below cost. Risk is one 1-minute ATR, whose
+  sample median is 4.72 points, so a single point of round-trip cost is
+  <b>0.212R</b> &mdash; about seven times the best edge measured.</p>
+  </div>
+</section>
+
+<section id="limits">
+  <span class="snum">09</span>
   <h2>Limitations, stated plainly</h2>
   <ul>
     <li><b>The basis limitation is resolved.</b> The earlier run used HistData's
@@ -542,7 +632,7 @@ footer{padding-top:22px;font-family:"JetBrains Mono",monospace;
 </section>
 
 <section id="verdict">
-  <span class="snum">09</span>
+  <span class="snum">10</span>
   <h2>Conclusion</h2>
   <p>The pre-registration set three conditions for GB-Ranges to count as working:
   clear +3&#963; against all three nulls, survive the round-decimal check, and appear
