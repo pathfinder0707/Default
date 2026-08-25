@@ -9,6 +9,7 @@ import json
 import os
 
 import playbook_paths as pp
+import playbook_volume as pv
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 D = json.load(open(os.path.join(HERE, "ALL.json")))
@@ -778,6 +779,8 @@ def build():
   does not survive contact with a stop and a target.</p>
 </div>
 
+%(vol_html)s
+
 <div class="col">
 <section id="sizing">
   <div class="sec-head"><h2>R=81 no longer resolves</h2>
@@ -866,7 +869,11 @@ def build():
     and HTF confluence.</span></li>
     <li><span class="n">05</span><span><b>Trade wider than 2R or not at
     all.</b> Every tighter ratio is below its break-even before costs.</span></li>
-    <li><span class="n">06</span><span><b>Treat the levels as a map, not a
+    <li><span class="n">06</span><span><b>If you fade one, fade a quiet
+    arrival at the boundary or the EQ.</b> Small bar, low volume, at the 0 or
+    50 line: 53.9%% rejection, the best combination in sixteen years of data
+    &mdash; and a candidate rather than a confirmed edge.</span></li>
+    <li><span class="n">07</span><span><b>Treat the levels as a map, not a
     signal.</b> They tell you where you are. They do not tell you what
     happens next.</span></li>
   </ul>
@@ -903,6 +910,7 @@ def build():
         "l0": pct(next(r["reject"] for r in lvl if r["pct"] == 0), 2),
         "l3": pct(next(r["reject"] for r in lvl if r["pct"] == 3), 2),
         "paths_html": pp.html(D),
+        "vol_html": pv.html(D),
         "cost": COST, "costpct": COST / risk_pts * 100,
         "need2": pct((COST / risk_pts + 1) / 3.0),
         "ret120": pct(r81["rates"]["120"]),
