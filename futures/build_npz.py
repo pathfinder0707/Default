@@ -27,6 +27,12 @@ def main():
     ts_str = df.index.strftime("%Y%m%d%H%M%S")
     ts = ts_str.astype(np.int64).values
     o, h, l, c = (df[k].astype(np.float64).values for k in ("o", "h", "l", "c"))
+    # Volume was dropped from the original build and it should not have been.
+    # It is the one input in the source data that is not derivable from price,
+    # and it is exactly what would separate a sweep that gets absorbed from one
+    # that runs -- the "when" question every conditional test here has asked of
+    # price alone.
+    v = df["v"].astype(np.float64).values
 
     date = ts // 1000000
     tod = ts % 1000000
@@ -41,7 +47,7 @@ def main():
     print("years        %s" % np.unique(yr).tolist())
 
     out = os.path.join(HERE, "bars.npz")
-    np.savez_compressed(out, ts=ts, o=o, h=h, l=l, c=c,
+    np.savez_compressed(out, ts=ts, o=o, h=h, l=l, c=c, v=v,
                         date=date, yr=yr, mo=mo, hh=hh, mm=mm, sess=sess)
     print("wrote %s (%.1f MB)" % (out, os.path.getsize(out) / 1e6))
 
