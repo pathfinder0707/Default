@@ -8,6 +8,8 @@ organised by what you would do rather than by what was hypothesised.
 import json
 import os
 
+import playbook_paths as pp
+
 HERE = os.path.dirname(os.path.abspath(__file__))
 D = json.load(open(os.path.join(HERE, "ALL.json")))
 OUT = os.path.join(HERE, "..", "..", "gb-playbook.html")
@@ -542,6 +544,8 @@ def build():
   </div>
 </div>
 
+%(paths_html)s
+
 <div class="col">
 <section id="trade">
   <div class="sec-head"><h2>The trade itself</h2>
@@ -898,6 +902,7 @@ def build():
         "svdiff": sv["diff"] * 100, "svlo": sv["lo"] * 100, "svhi": sv["hi"] * 100,
         "l0": pct(next(r["reject"] for r in lvl if r["pct"] == 0), 2),
         "l3": pct(next(r["reject"] for r in lvl if r["pct"] == 3), 2),
+        "paths_html": pp.html(D),
         "cost": COST, "costpct": COST / risk_pts * 100,
         "need2": pct((COST / risk_pts + 1) / 3.0),
         "ret120": pct(r81["rates"]["120"]),
@@ -912,7 +917,7 @@ HEAD = """<title>Goldbach Base Rates</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
-<style>""" + CSS + """</style>
+<style>""" + CSS + pp.CSS + """</style>
 """
 
 if __name__ == "__main__":
