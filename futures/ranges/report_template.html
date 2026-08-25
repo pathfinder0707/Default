@@ -577,6 +577,53 @@ footer{padding-top:22px;font-family:"JetBrains Mono",monospace;
   swing-definition cell falls between z {{ms_r81_lo}} and {{ms_r81_hi}}.</p>
   </div>
 
+
+  <h3>Does a broken level hold as support on the retest?</h3>
+  <div class="col">
+  <p>The mechanism the source document actually describes, and the one every
+  test above misses. The trade plans say explicitly not to trade the first
+  touch: <em>"you don't buy at this level, but anticipate a rejection ... when
+  price indeed moves <b>through</b> the flow layer, you still don't buy ... they
+  will first retrace price, <b>back into</b> the flow layer. When price
+  retraces, <b>this</b> is where you buy."</em> Einstein describes the same
+  shape, and [17&ndash;83] is named the Goldbach <b>Inversion</b> Point.</p>
+  <p>The event chain is strict, so ordinary oscillation around a line cannot
+  satisfy it: cross the level, travel at least <b>1 ATR beyond</b> it, return to
+  touch it, then resolve whether price resumes the break direction by 0.5 ATR
+  before losing the same the other way.</p>
+  </div>
+  <div class="scroll"><table>
+    <thead><tr><th class="num">R</th><th class="num">Retests</th>
+      <th class="num">Hold rate</th><th class="num">Shifted lattices</th>
+      <th class="num">z</th></tr></thead>
+    <tbody>{{pol_rows}}</tbody>
+  </table></div>
+  <div class="col">
+  <div class="note good">
+    <p><b>Break-and-retest is real.</b> The hold rate is <b>{{pol_hold}}</b>
+    &mdash; comfortably above the 0.500 coin flip, and the largest genuine
+    effect anywhere in this investigation. The structure works.</p>
+  </div>
+  <p>But it is a property of retesting <em>any</em> line. The shifted-lattice
+  null sits in the same place, so the Goldbach grid contributes about
+  <b>{{pol_excess_pp}} percentage points</b> on top of it. Across
+  {{pol_cells}} cells z runs {{pol_zlo}} to {{pol_zhi}}, and the sign is not
+  even stable &mdash; R=2187 comes out negative.</p>
+  </div>
+  <div class="scroll"><table>
+    <thead><tr><th>Era</th><th class="num">R</th><th class="num">Retests</th>
+      <th class="num">Hold</th><th class="num">Null</th><th class="num">z</th></tr></thead>
+    <tbody>{{pol_era_rows}}</tbody>
+  </table></div>
+  <div class="col">
+  <p>Three positive controls were built before any of this was trusted, and the
+  first two were discarded as broken: one tracked a single broken level globally
+  so the injected effect washed out (z&nbsp;&minus;0.18), and one used distance
+  thresholds wider than the level spacing, so no level ever acquired polarity
+  state at all. The third &mdash; a mild decaying drift bias in the break
+  direction &mdash; is picked up at z&nbsp;+3.82, rank 1/20.</p>
+  </div>
+
   <h3>The full setup, in context, with confirmation</h3>
   <div class="col">
   <p>The three zones, on R=81/243/729, conditional on a liquidity sweep or a
@@ -646,6 +693,10 @@ footer{padding-top:22px;font-family:"JetBrains Mono",monospace;
   <p>That last contrast is what makes this a measurement rather than a shrug. The
   test can see line-specific behaviour. It sees it at round numbers. It does not
   see it at Goldbach levels.</p>
+  <p>The one mechanism that does carry a real effect is break-and-retest, at a
+  {{pol_hold}} hold rate. That is worth having &mdash; but it belongs to the
+  structure, not to this lattice, which adds {{pol_excess_pp}} percentage points
+  to it and changes sign between block sizes.</p>
   <p>The lattice reconstruction itself remains solid and worth keeping &mdash; the
   anchoring rule is exact and the chart evidence for it is unambiguous. What the
   data does not support is the idea that price behaves any differently on arriving

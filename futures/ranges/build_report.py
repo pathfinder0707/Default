@@ -155,6 +155,25 @@ def build():
     ms_ext = [r for r in ms if r["R"] == 2187 and r["zone"] == "EXT_97_100"]
     ms_r81 = [r for r in ms if r["R"] == 81]
 
+    pol = D["polarity"]
+    pol_all = [r for r in pol if r["label"] == "all"]
+    pol_z = [r["z"] for r in pol]
+    pol_excess = sum(r["hold_rate"] - r["null_mean"] for r in pol) / len(pol)
+    pol_rows = "".join(
+        '<tr><td class="num">%d</td><td class="num dim">%s</td>'
+        '<td class="num"><b>%.4f</b></td><td class="num">%.4f</td>'
+        '<td class="num %s">%+.2f</td></tr>'
+        % (r["R"], "{:,}".format(r["n"]), r["hold_rate"], r["null_mean"],
+           "neg" if r["z"] < 0 else "", r["z"])
+        for r in pol_all)
+    pol_era_rows = "".join(
+        '<tr><td>%s</td><td class="num">%d</td><td class="num dim">%s</td>'
+        '<td class="num">%.4f</td><td class="num">%.4f</td>'
+        '<td class="num %s">%+.2f</td></tr>'
+        % (r["label"], r["R"], "{:,}".format(r["n"]), r["hold_rate"],
+           r["null_mean"], "neg" if r["z"] < 0 else "", r["z"])
+        for r in pol if r["label"] != "all")
+
     resp_rows = "".join(
         '<tr><td class="num">%d</td><td class="num">%s</td>'
         '<td class="num">%.1f pts</td><td class="num">%.1f pts</td>'
@@ -297,6 +316,11 @@ def build():
         z_uniform="%+.2f" % p["z_uniform"],
         round_best_R=round_best["R"], round_best_z="%+.2f" % round_best["z_phase"],
         resp_rows=resp_rows, ms_rows=ms_rows,
+        pol_rows=pol_rows, pol_era_rows=pol_era_rows,
+        pol_hold="%.4f" % (sum(r["hold_rate"] for r in pol_all) / len(pol_all)),
+        pol_zlo="%+.2f" % min(pol_z), pol_zhi="%+.2f" % max(pol_z),
+        pol_excess_pp="%.2f" % (pol_excess * 100),
+        pol_cells=len(pol),
         ms_cells=len(ms), ms_zlo="%+.2f" % min(ms_z), ms_zhi="%+.2f" % max(ms_z),
         ms_r81_lo="%+.2f" % min(r["z"] for r in ms_r81),
         ms_r81_hi="%+.2f" % max(r["z"] for r in ms_r81),
