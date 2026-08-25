@@ -78,18 +78,24 @@ def find_retests(h, l, brk_idx, L, atr_at, up, n):
     Returns the retest bar index, or -1 where no qualifying retest occurred.
     """
     m = len(brk_idx)
-    gone = np.zeros(m, bool)          # excursion achieved
+    gone = np.zeros(m, bool)          # excursion achieved, on EARLIER bars only
     retest = np.full(m, -1, np.int64)
     thresh = L + BREAK_MIN * atr_at if up else L - BREAK_MIN * atr_at
     for w in range(1, RETEST_MAX + 1):
         j = np.clip(brk_idx + w, 0, n - 1)
-        far = (h[j] >= thresh) if up else (l[j] <= thresh)
-        gone |= far
         back = (l[j] <= L) if up else (h[j] >= L)
         hit = gone & back & (retest < 0)
         retest[hit] = j[hit]
         if (retest >= 0).all():
             break
+        # update the excursion flag AFTER testing for the return. Updating it
+        # first lets one wide bar be break, excursion and retest at once, which
+        # is not a tradeable sequence: the excursion filter is only known once
+        # that bar has closed, by which time no order could have been resting
+        # at the level. See edge.py -- this artifact alone was worth +11 points
+        # of hold rate.
+        still = retest < 0
+        gone |= still & ((h[j] >= thresh) if up else (l[j] <= thresh))
     return retest
 
 
@@ -102,7 +108,15 @@ def resolve_hold(h, l, idx, L, atr_at, up, n):
     tgt = L + BARRIER * atr_at if up else L - BARRIER * atr_at
     stp = L - BARRIER * atr_at if up else L + BARRIER * atr_at
     out = np.zeros(len(idx), np.int8)
-    live = np.ones(len(idx), bool)
+
+    # The retest bar itself is scored asymmetrically, on purpose. The position
+    # is taken at L because that bar traded back to L, so the part of the bar
+    # on the far side of L happened before the entry and cannot be counted as
+    # profit, while the part beyond L is heat taken after it.
+    over = (L - l[idx]) if up else (h[idx] - L)
+    out[over >= BARRIER * atr_at] = -1
+    live = out == 0
+
     for w in range(1, OUT_HORIZON + 1):
         j = np.clip(idx + w, 0, n - 1)
         ht = (h[j] >= tgt) if up else (l[j] <= tgt)

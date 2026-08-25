@@ -591,6 +591,23 @@ footer{padding-top:22px;font-family:"JetBrains Mono",monospace;
   satisfy it: cross the level, travel at least <b>1 ATR beyond</b> it, return to
   touch it, then resolve whether price resumes the break direction by 0.5 ATR
   before losing the same the other way.</p>
+  <div class="note warn">
+    <p><b>Corrected.</b> An earlier version of this section reported a
+    <b>0.5734</b> hold rate and called it the largest real effect in the study.
+    That number was an artifact of two measurement errors, both since fixed, and
+    the section below carries the corrected result.</p>
+    <p>First, the excursion flag was updated <em>before</em> testing for the
+    return, so a single wide bar could count as break, excursion and retest at
+    once. Fifty-four percent of events qualified that way, each already a full
+    ATR onside at its supposed entry &mdash; and no order could have been resting
+    at the level, because the filter that selects the event is only known once
+    that bar has closed. Second, the retest bar was scored symmetrically: a long
+    fills at the level <em>because</em> that bar traded down to it, so the bar's
+    far side happened before the fill and counting it as profit is look-ahead,
+    while the part beyond the level is real heat. Corrected, the entry bar can
+    stop you out but cannot pay you.</p>
+    <p>Together they were worth about <b>17 percentage points</b> of hold rate.</p>
+  </div>
   </div>
   <div class="scroll"><table>
     <thead><tr><th class="num">R</th><th class="num">Retests</th>
@@ -599,16 +616,21 @@ footer{padding-top:22px;font-family:"JetBrains Mono",monospace;
     <tbody>{{pol_rows}}</tbody>
   </table></div>
   <div class="col">
-  <div class="note good">
-    <p><b>Break-and-retest is real.</b> The hold rate is <b>{{pol_hold}}</b>
-    &mdash; comfortably above the 0.500 coin flip, and the largest genuine
-    effect anywhere in this investigation. The structure works.</p>
+  <div class="note key">
+    <p><b>The retest does not hold.</b> The hold rate is <b>{{pol_hold}}</b>
+    &mdash; not above the coin flip but well below it. Taking the level as
+    support once it has broken, with a symmetric 0.5 ATR bracket, loses about
+    three times in five.</p>
+    <p>That is not a statement about Goldbach. It is what a symmetric bracket
+    placed <em>inside</em> a level's own noise does: the retest bar routinely
+    penetrates far enough to take out a half-ATR stop before anything resumes.</p>
   </div>
-  <p>But it is a property of retesting <em>any</em> line. The shifted-lattice
-  null sits in the same place, so the Goldbach grid contributes about
-  <b>{{pol_excess_pp}} percentage points</b> on top of it. Across
-  {{pol_cells}} cells z runs {{pol_zlo}} to {{pol_zhi}}, and the sign is not
-  even stable &mdash; R=2187 comes out negative.</p>
+  <p>The lattice's own contribution is separately visible and separately tiny.
+  The shifted-lattice null sits about <b>{{pol_excess_pp}} percentage points</b>
+  below the true phase, and here the sign is at last consistent &mdash; the true
+  lattice ranks 1 of 20 at three of the four block sizes. Across {{pol_cells}}
+  cells z runs {{pol_zlo}} to {{pol_zhi}}. It is a real effect. It is roughly a
+  third of a percentage point, against a base rate that is 10 points underwater.</p>
   </div>
   <div class="scroll"><table>
     <thead><tr><th>Era</th><th class="num">R</th><th class="num">Retests</th>
@@ -635,7 +657,7 @@ footer{padding-top:22px;font-family:"JetBrains Mono",monospace;
   {{su_best_ev}}R at z&nbsp;=&nbsp;{{su_best_z}} &mdash; the ceiling that
   {{su_cells}} draws from noise produce, and short of the Bonferroni threshold of
   3.47.</p>
-  <div class="note bad">
+  <div class="note warn">
     <p><b>A look-ahead bug in the first run of this test was doing all the work.</b>
     The bracket resolved from the entry bar inclusive, but entry is at that bar's
     close, so its range had already happened. That inflated the headline cell from
@@ -693,10 +715,17 @@ footer{padding-top:22px;font-family:"JetBrains Mono",monospace;
   <p>That last contrast is what makes this a measurement rather than a shrug. The
   test can see line-specific behaviour. It sees it at round numbers. It does not
   see it at Goldbach levels.</p>
-  <p>The one mechanism that does carry a real effect is break-and-retest, at a
-  {{pol_hold}} hold rate. That is worth having &mdash; but it belongs to the
-  structure, not to this lattice, which adds {{pol_excess_pp}} percentage points
-  to it and changes sign between block sizes.</p>
+  <p>Break-and-retest &mdash; the one mechanism the source document actually
+  asks you to trade &mdash; does not rescue it either. Corrected for two
+  measurement artifacts that had inflated it by 17 points, the retest holds
+  {{pol_hold}} of the time, and entered properly at the close with the stop
+  beyond the retest bar's wick it is a martingale: exactly break-even at 3R
+  before costs, negative at every tighter ratio.</p>
+  <p>The lattice does leave one consistent fingerprint. Across the touch test
+  and the retest test, at every block size, the true phase beats its shifted
+  twins by roughly a third of a percentage point, and ranks first of twenty more
+  often than chance allows. That is the honest positive result of this study:
+  real, reproducible, and about thirty times too small to pay for a spread.</p>
   <p>The lattice reconstruction itself remains solid and worth keeping &mdash; the
   anchoring rule is exact and the chart evidence for it is unambiguous. What the
   data does not support is the idea that price behaves any differently on arriving
