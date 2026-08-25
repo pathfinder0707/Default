@@ -349,7 +349,7 @@ footer{padding-top:22px;font-family:"JetBrains Mono",monospace;
     </tbody>
   </table>
   </div>
-  <p>The last row matters because this is cash index data, not futures. Even
+  <p>The last row matters because it removes the last hiding place. Even
   allowing the lattice to find its <em>best</em> phase out of sixty, Goldbach's
   best is worse than the typical random level-set's best.</p>
 </section>
@@ -646,6 +646,87 @@ footer{padding-top:22px;font-family:"JetBrains Mono",monospace;
   direction &mdash; is picked up at z&nbsp;+3.82, rank 1/20.</p>
   </div>
 
+  <h3>The numbers you can actually use</h3>
+  <div class="col">
+  <p>A null result still leaves usable base rates behind. These are the
+  conditional probabilities the same event set supports &mdash; not edges, but
+  the frequencies a plan has to be built around. All at R=81, the block used on
+  a 1&ndash;5 minute chart.</p>
+  <p>The first is the one worth keeping. A break that runs a full ATR past the
+  level almost always gets a second chance at it:</p>
+  </div>
+  <div class="scroll"><table>
+    <thead><tr><th class="num">R</th><th class="num">Breaks</th>
+      <th class="num">Retested &#8804;60 min</th><th class="num">&#8804;120</th>
+      <th class="num">&#8804;240</th></tr></thead>
+    <tbody>{{br_retest_rows}}</tbody>
+  </table></div>
+  <div class="col">
+  <p><b>Do not chase the break.</b> Better than four times in five you get the
+  level back within two hours, and the rate barely moves across block sizes.</p>
+  <p>The second is where price actually stops, which is what sets the stop. This
+  is the penetration through the level on the retest bar itself:</p>
+  </div>
+  <div class="scroll"><table>
+    <thead><tr><th>Stop distance past the level</th>
+      <th class="num">In points at 2026 volatility</th>
+      <th class="num">Survives the retest bar</th></tr></thead>
+    <tbody>{{pen_rows}}</tbody>
+  </table></div>
+  <div class="col">
+  <p>Median penetration is <b>{{pen_med}} ATR</b>. Anything tighter than about
+  0.75 ATR beyond the line is inside the level's own noise &mdash; which is the
+  arithmetic behind the losing hold rate above.</p>
+  <p>The third is the trade itself, entered the way a discretionary trader would
+  rather than as a blind limit: at the <em>close</em> of the retest bar, once the
+  penetration is visible, with the stop just beyond that bar's extreme. Median
+  risk is <b>{{st_risk}} ATR</b>.</p>
+  </div>
+  <div class="scroll"><table>
+    <thead><tr><th class="num">Target</th><th class="num">Trades</th>
+      <th class="num">Win rate</th><th class="num">Break-even needs</th>
+      <th class="num">Shifted lattices</th><th class="num">Expectancy</th></tr></thead>
+    <tbody>{{st_rows}}</tbody>
+  </table></div>
+  <div class="col">
+  <div class="note key">
+    <p>Read the third and fourth columns together. At 1R the trade needs 50% and
+    delivers {{st_win1}}. At 3R it needs 25.0% and delivers {{st_win3}}
+    &mdash; <b>a martingale, to three decimal places</b>, before costs.</p>
+    <p>Every conditional cut leaves it there. The named zones land within 0.3pp
+    of each other; an aligned liquidity sweep is worth {{st_sweep_pp}}pp;
+    confluence with the R=729 lattice {{st_conf_pp}}pp. The New York open hour is
+    the one condition that moves the number appreciably, and it moves it
+    <em>down</em>.</p>
+  </div>
+  <p>Which leaves the plainest question of all: arriving at a level from at least
+  1 ATR away, does price turn or go through? Scored as a fade filled at the line,
+  with the retest bar's push past it counted as heat:</p>
+  </div>
+  <div class="scroll"><table>
+    <thead><tr><th class="num">R</th><th class="num">Touches</th>
+      <th class="num">P(reject)</th><th class="num">Shifted lattices</th>
+      <th class="num">Edge</th><th class="num">z</th></tr></thead>
+    <tbody>{{br_touch_rows}}</tbody>
+  </table></div>
+  <div class="col">
+  <p>Roughly <b>three in five</b> arrivals push through rather than turn. That is
+  an execution fact rather than a market law &mdash; a half-ATR bracket sits
+  inside the penetration distribution above &mdash; but it is the fact that
+  governs a limit order resting on the line.</p>
+  <div class="note key">
+    <p><b>And here the lattice finally shows something.</b> The true phase beats
+    its shifted twins at all three block sizes, same sign, z {{br_z81}},
+    {{br_z243}} and {{br_z729}}. Together with the retest test ranking 1 of 20 at
+    three of four block sizes, that is the one reproducible Goldbach effect in
+    this study.</p>
+    <p>It is <b>+0.31 percentage points</b>. The base rate it sits on is ten
+    points underwater, and one point of round-trip cost at 2026 volatility is
+    worth twenty times more than the effect. It is real, and it is not a
+    trade.</p>
+  </div>
+  </div>
+
   <h3>The full setup, in context, with confirmation</h3>
   <div class="col">
   <p>The three zones, on R=81/243/729, conditional on a liquidity sweep or a
@@ -742,7 +823,8 @@ footer{padding-top:22px;font-family:"JetBrains Mono",monospace;
 <hr class="end">
 <footer>
   {{bars}} bars &#183; {{sessions}} sessions &#183; {{start}} to {{end}} &#183;
-  HistData NSXUSD M1 &#183; America/New_York with DST &#183;
+  CME NQ front-month, unadjusted, rolled by daily volume &#183;
+  America/New_York with DST &#183;
   pre-registered, three matched nulls, power-calibrated
 </footer>
 

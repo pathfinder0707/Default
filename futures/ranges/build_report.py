@@ -174,6 +174,48 @@ def build():
            r["null_mean"], "neg" if r["z"] < 0 else "", r["z"])
         for r in pol if r["label"] != "all")
 
+    # --- the practical base rates ---
+    br = D["baserate"]
+    e81 = D["edge81"]
+    br_retest_rows = "".join(
+        '<tr><td class="num">%d</td><td class="num dim">%s</td>'
+        '<td class="num"><b>%.1f%%</b></td><td class="num">%.1f%%</td>'
+        '<td class="num">%.1f%%</td></tr>'
+        % (r["R"], "{:,}".format(r["n"]), r["rates"]["60"] * 100,
+           r["rates"]["120"] * 100, r["rates"]["240"] * 100)
+        for r in br["retest"])
+    br_touch_rows = "".join(
+        '<tr><td class="num">%d</td><td class="num dim">%s</td>'
+        '<td class="num"><b>%.1f%%</b></td><td class="num">%.1f%%</td>'
+        '<td class="num">%+.2fpp</td><td class="num">%+.2f</td></tr>'
+        % (r["R"], "{:,}".format(r["n"]), r["p"] * 100, r["null"] * 100,
+           (r["p"] - r["null"]) * 100, r["z"])
+        for r in br["touch"])
+    br_z = {int(r["R"]): r["z"] for r in br["touch"]}
+
+    pen = e81["penetration"]
+    a26 = pen["atr_2026_rth"]
+    pen_rows = "".join(
+        '<tr><td class="num">%.2f ATR</td><td class="num dim">%.0f pts</td>'
+        '<td class="num">%.1f%%</td></tr>'
+        % (float(s), float(s) * a26, v * 100)
+        for s, v in sorted(pen["stop_survival"].items(), key=lambda kv: float(kv[0])))
+
+    st_all = [r for r in e81["structure"] if r["cond"] == "ALL"]
+    st_rows = "".join(
+        '<tr><td class="num">%.1fR</td><td class="num dim">%s</td>'
+        '<td class="num"><b>%.1f%%</b></td><td class="num">%.1f%%</td>'
+        '<td class="num">%.1f%%</td><td class="num %s">%+.3fR</td></tr>'
+        % (r["rr"], "{:,}".format(r["n"]), r["p"] * 100,
+           100.0 / (1.0 + r["rr"]), r["null_p"] * 100,
+           "neg" if r["ev_r"] < 0 else "", r["ev_r"])
+        for r in st_all)
+
+    def st_pp(a, b, rr=1.0):
+        ra = next(x for x in e81["structure"] if x["cond"] == a and x["rr"] == rr)
+        rb = next(x for x in e81["structure"] if x["cond"] == b and x["rr"] == rr)
+        return (ra["p"] - rb["p"]) * 100
+
     resp_rows = "".join(
         '<tr><td class="num">%d</td><td class="num">%s</td>'
         '<td class="num">%.1f pts</td><td class="num">%.1f pts</td>'
@@ -332,6 +374,16 @@ def build():
         su_best_desc="R=%d, %s, after a %s" % (su_best["R"],
                                                su_best["zone"].replace("_", " "),
                                                su_best["ctx"]),
+        br_retest_rows=br_retest_rows, br_touch_rows=br_touch_rows,
+        br_z81="%+.2f" % br_z[81], br_z243="%+.2f" % br_z[243],
+        br_z729="%+.2f" % br_z[729],
+        pen_rows=pen_rows, pen_med="%.2f" % pen["percentiles"]["50"],
+        st_rows=st_rows,
+        st_risk="%.2f" % st_all[0]["risk_atr"],
+        st_win1="%.1f%%" % (st_all[0]["p"] * 100),
+        st_win3="%.1f%%" % (next(r for r in st_all if r["rr"] == 3.0)["p"] * 100),
+        st_sweep_pp="%+.1f" % st_pp("sweep=yes", "sweep=no"),
+        st_conf_pp="%+.1f" % st_pp("htf_conf=yes", "htf_conf=no"),
         rx_rows=rx_rows, lvl_rows=lvl_rows,
         dwell_rows=dwell_rows, sweep_rows=sweep_rows, round_rows=round_rows,
         pw_h1=pw_h1, pw_rx=pw_rx,
