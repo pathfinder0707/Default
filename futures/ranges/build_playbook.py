@@ -10,6 +10,7 @@ import os
 
 import playbook_paths as pp
 import playbook_volume as pv
+import playbook_clock as pc
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 D = json.load(open(os.path.join(HERE, "ALL.json")))
@@ -781,6 +782,8 @@ def build():
 
 %(vol_html)s
 
+%(clock_html)s
+
 <div class="col">
 <section id="sizing">
   <div class="sec-head"><h2>R=81 no longer resolves</h2>
@@ -911,6 +914,7 @@ def build():
         "l3": pct(next(r["reject"] for r in lvl if r["pct"] == 3), 2),
         "paths_html": pp.html(D),
         "vol_html": pv.html(D),
+        "clock_html": pc.html(D),
         "cost": COST, "costpct": COST / risk_pts * 100,
         "need2": pct((COST / risk_pts + 1) / 3.0),
         "ret120": pct(r81["rates"]["120"]),
@@ -925,7 +929,7 @@ HEAD = """<title>Goldbach Base Rates</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
-<style>""" + CSS + pp.CSS + """</style>
+<style>""" + CSS + pp.CSS + pc.CSS + """</style>
 """
 
 if __name__ == "__main__":
