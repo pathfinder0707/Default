@@ -1,0 +1,18 @@
+=== polarity flip: does broken resistance hold as support? ===
+    hold means price resumes the break direction by 0.5 ATR before
+    losing the same the other way. 0.500 is no polarity effect.
+
+  all        R=81     retests 467,551  hold 0.5734   null 0.5711  sd 0.0011   z=+2.06  rank 1/20
+  all        R=243    retests 192,765  hold 0.5741   null 0.5729  sd 0.0012   z=+0.98  rank 4/20
+  all        R=729    retests  65,739  hold 0.5760   null 0.5724  sd 0.0016   z=+2.15  rank 1/20
+  all        R=2187   retests  22,265  hold 0.5677   null 0.5739  sd 0.0041   z=-1.52  rank 18/20
+
+=== by era ===
+  2010-2014  R=243    retests   7,722  hold 0.5763   null 0.5719  sd 0.0055   z=+0.78  rank 7/20
+  2010-2014  R=729    retests   2,498  hold 0.5889   null 0.5711  sd 0.0079   z=+2.24  rank 1/20
+  2015-2019  R=243    retests  31,063  hold 0.5729   null 0.5679  sd 0.0035   z=+1.42  rank 2/20
+  2015-2019  R=729    retests  10,130  hold 0.5748   null 0.5693  sd 0.0036   z=+1.51  rank 2/20
+  2020-2026  R=243    retests 153,971  hold 0.5742   null 0.5740  sd 0.0012   z=+0.18  rank 9/20
+  2020-2026  R=729    retests  53,105  hold 0.5756   null 0.5731  sd 0.0015   z=+1.62  rank 2/20
+
+wrote polarity.json
