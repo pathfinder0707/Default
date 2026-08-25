@@ -454,6 +454,105 @@ a:focus-visible,button:focus-visible{outline:2px solid var(--accent);
 </div>
 
 <div class="col">
+<section id="scales">
+  <div class="sec-head"><h2>All eight scales at once</h2>
+    <span class="chip chip-acc">Real, doesn't pay</span></div>
+  <p>Everything above takes one block size at a time. The tool on the chart
+  does not &mdash; it shows all eight PO3 scales together, and the reported
+  experience is that some levels work and others do nothing. Scale agreement is
+  the obvious candidate for what separates them, and unlike most confluence
+  stories it is exactly computable, because the blocks nest: 729 = 3 &times; 243
+  = 9 &times; 81.</p>
+  <p>First, the lattice itself. Every one of the eight rows in the tool's table
+  reproduces from <code>floor(price / R) &times; R</code> to the point &mdash;
+  3, 9, 27, 81, 243, 729, 2187 and 6561. That is worth stating plainly: the
+  levels are exactly what this study has been testing all along, so the null
+  results are about the levels themselves, not about a bad reconstruction.</p>
+  <p>Major swings do not cluster where scales agree: 11 cells, z from
+  -0.44 to +1.50, nothing close.</p>
+  <p>Reaction was a different story. Counting how many of the other five scales
+  mark the same price, the rejection rate climbs monotonically &mdash; and
+  shifted lattices, which preserve the nesting exactly and move only where it
+  sits, stay flat:</p>
+</section>
+</div>
+
+<div class="scroll"><table>
+  <caption>Touch rejection by how many other PO3 scales mark the same price</caption>
+  <thead><tr><th class="num">Scales</th><th class="num">Touches</th>
+    <th class="num">Rejects</th><th class="num">Shifted lattices</th>
+    <th class="num">Edge</th><th class="num">z</th></tr></thead>
+  <tbody><tr><td class="num">0</td><td class="num dim">162,559</td><td class="num big">39.16%</td><td class="num">39.29%</td><td class="num neg">-0.13pp</td><td class="num neg">-0.75</td></tr><tr><td class="num">1</td><td class="num dim">207,711</td><td class="num big">39.05%</td><td class="num">39.27%</td><td class="num neg">-0.22pp</td><td class="num neg">-2.49</td></tr><tr><td class="num">2</td><td class="num dim">114,674</td><td class="num big">39.45%</td><td class="num">39.31%</td><td class="num pos">+0.14pp</td><td class="num pos">+0.64</td></tr><tr><td class="num">3</td><td class="num dim">28,814</td><td class="num big">40.59%</td><td class="num">39.30%</td><td class="num pos">+1.29pp</td><td class="num pos">+3.07</td></tr><tr><td class="num">4</td><td class="num dim">7,485</td><td class="num big">40.12%</td><td class="num">39.40%</td><td class="num pos">+0.72pp</td><td class="num pos">+0.66</td></tr><tr><td class="num">5</td><td class="num dim">1,301</td><td class="num big">42.43%</td><td class="num">39.05%</td><td class="num pos">+3.38pp</td><td class="num pos">+2.09</td></tr></tbody>
+</table></div>
+
+<div class="col">
+  <p>It survived every confound. Deep confluence is not nearer round numbers
+  &mdash; it is slightly further; excluding everything within 10 points of a
+  round hundred makes the effect <em>stronger</em>; a round-number map sorts
+  touches the opposite way; the small scales carry it rather than proximity to
+  a 2187 or 6561 level; it holds in all three eras; and resampling whole days
+  puts the advantage at <b>+1.46pp</b>, 95% CI
+  [+0.93, +2.00], with every one of 2,000 resamples above zero.</p>
+  <div class="note bad">
+    <p><strong>Then it dissolved.</strong> Confluence depth is entangled with
+    <em>which</em> level you are on: 81 = 3 &times; 27 means some percentages
+    are structurally better connected than others. Holding the level fixed and
+    comparing high against low confluence within it, the effect is worth
+    <b>+0.15 percentage points</b>, and only 12 of 20 levels move the right
+    way. It was level identity all along.</p>
+  </div>
+  <p>Which turns out to be a far bigger effect, and the strongest thing in this
+  study. Shuffling the level labels within each trading day &mdash; keeping
+  every outcome and all the intraday clustering, changing only which line each
+  touch belongs to &mdash; <b>none of 2,000 permutations</b> reached the
+  observed spread across the twenty levels. z = <b>+10.79</b>.</p>
+</div>
+
+<div class="scroll"><table>
+  <caption>Every Goldbach level, ranked &mdash; touch rejection rate</caption>
+  <thead><tr><th class="num">Level</th><th>Name</th><th class="num">Touches</th>
+    <th class="num">Rejects</th><th class="num">95% CI by day</th>
+    <th>&nbsp;</th></tr></thead>
+  <tbody><tr class="hi"><td class="num">50</td><td>equilibrium</td><td class="num dim">26,338</td><td class="num big">41.75%</td><td class="num dim">[0.412, 0.424]</td><td><span class="chip chip-acc">any grid</span></td></tr><tr class="hi"><td class="num">0</td><td>range extreme</td><td class="num dim">26,431</td><td class="num big">41.35%</td><td class="num dim">[0.408, 0.420]</td><td><span class="chip chip-acc">any grid</span></td></tr><tr><td class="num">71</td><td>flow middle</td><td class="num dim">25,795</td><td class="num big">39.83%</td><td class="num dim">[0.392, 0.404]</td><td></td></tr><tr><td class="num">23</td><td>flow outer</td><td class="num dim">26,069</td><td class="num big">39.61%</td><td class="num dim">[0.390, 0.402]</td><td></td></tr><tr><td class="num">93</td><td>LLOD</td><td class="num dim">26,405</td><td class="num big">39.52%</td><td class="num dim">[0.389, 0.401]</td><td></td></tr><tr><td class="num">7</td><td>LLOD</td><td class="num dim">26,039</td><td class="num big">39.52%</td><td class="num dim">[0.389, 0.401]</td><td></td></tr><tr><td class="num">3</td><td>internal rng liq</td><td class="num dim">26,123</td><td class="num big">39.49%</td><td class="num dim">[0.389, 0.401]</td><td></td></tr><tr><td class="num">35</td><td>flow inner</td><td class="num dim">26,133</td><td class="num big">39.34%</td><td class="num dim">[0.387, 0.399]</td><td></td></tr><tr><td class="num">65</td><td>flow inner</td><td class="num dim">25,901</td><td class="num big">39.33%</td><td class="num dim">[0.387, 0.399]</td><td></td></tr><tr><td class="num">47</td><td>int rebalance liq</td><td class="num dim">26,157</td><td class="num big">39.16%</td><td class="num dim">[0.386, 0.398]</td><td></td></tr><tr><td class="num">83</td><td>GIP</td><td class="num dim">26,041</td><td class="num big">38.97%</td><td class="num dim">[0.384, 0.396]</td><td></td></tr><tr><td class="num">89</td><td>internal rng liq</td><td class="num dim">26,289</td><td class="num big">38.97%</td><td class="num dim">[0.384, 0.396]</td><td></td></tr><tr><td class="num">29</td><td>flow middle</td><td class="num dim">26,154</td><td class="num big">38.90%</td><td class="num dim">[0.383, 0.395]</td><td></td></tr><tr><td class="num">53</td><td>int rebalance liq</td><td class="num dim">26,094</td><td class="num big">38.85%</td><td class="num dim">[0.383, 0.394]</td><td></td></tr><tr><td class="num">77</td><td>flow outer</td><td class="num dim">25,854</td><td class="num big">38.77%</td><td class="num dim">[0.382, 0.394]</td><td></td></tr><tr><td class="num">97</td><td>internal rng liq</td><td class="num dim">26,368</td><td class="num big">38.63%</td><td class="num dim">[0.380, 0.392]</td><td></td></tr><tr><td class="num">41</td><td>ext rebalance liq</td><td class="num dim">26,203</td><td class="num big">38.54%</td><td class="num dim">[0.380, 0.391]</td><td></td></tr><tr><td class="num">17</td><td>GIP</td><td class="num dim">26,124</td><td class="num big">38.49%</td><td class="num dim">[0.379, 0.391]</td><td></td></tr><tr><td class="num">59</td><td>ext rebalance liq</td><td class="num dim">26,069</td><td class="num big">38.34%</td><td class="num dim">[0.378, 0.389]</td><td></td></tr><tr><td class="num">11</td><td>internal rng liq</td><td class="num dim">25,957</td><td class="num big">38.19%</td><td class="num dim">[0.376, 0.388]</td><td></td></tr></tbody>
+</table></div>
+
+<div class="col">
+  <div class="note key">
+    <p><strong>The two lines at the top are the two that any evenly spaced grid
+    has.</strong> The block boundary and the midpoint reject <b>41.55%</b>
+    against <b>39.03%</b> for the eighteen Goldbach percentages &mdash; a gap
+    of <b>+2.52 pp</b> with a day-clustered CI of
+    [+2.11, +2.96].</p>
+    <p>Among the eighteen, dispersion is weak (z +3.52) and does not cohere:
+    the named Goldbach Inversion Point at 17/83 is among the <em>weakest</em>
+    lines on the board, and mirror pairs that the framework says are equivalent
+    agree only to within their error bars.</p>
+  </div>
+  <p>Your instinct to trade the extreme and the equilibrium is right, and this
+  is the first evidence in the study that supports any part of the framework.
+  But it is the <b>exact boundary and the exact midpoint</b> doing the work,
+  not the 3-point band around them: the 0 line rejects 41.35% while the 3 line
+  rejects only 39.49%.</p>
+  <p>And it still does not pay. Retests at those two lines are, if anything,
+  slightly worse than at the other eighteen:</p>
+</div>
+
+<div class="scroll"><table>
+  <caption>Structure entry &mdash; boundary and midpoint against everything else</caption>
+  <thead><tr><th class="num">Target</th><th class="num">Break-even</th>
+    <th class="num">Boundary + EQ win</th><th class="num">Other 18 win</th>
+    <th class="num">Boundary + EQ EV</th><th class="num">Other 18 EV</th></tr></thead>
+  <tbody><tr><td class="num">1.0R</td><td class="num dim">50.0%</td><td class="num">39.1%</td><td class="num">39.4%</td><td class="num neg">-0.218R</td><td class="num neg">-0.211R</td></tr><tr><td class="num">1.5R</td><td class="num dim">40.0%</td><td class="num">34.6%</td><td class="num">34.8%</td><td class="num neg">-0.136R</td><td class="num neg">-0.131R</td></tr><tr><td class="num">2.0R</td><td class="num dim">33.3%</td><td class="num">30.6%</td><td class="num">30.8%</td><td class="num neg">-0.082R</td><td class="num neg">-0.077R</td></tr><tr><td class="num">3.0R</td><td class="num dim">25.0%</td><td class="num">24.8%</td><td class="num">25.0%</td><td class="num neg">-0.006R</td><td class="num pos">+0.002R</td></tr></tbody>
+</table></div>
+
+<div class="col">
+  <p>So the levels are not all alike, and the difference is not luck &mdash;
+  but it lives in the grid's own geometry rather than in Goldbach's numbers,
+  it is worth about two and a half percentage points of rejection, and it
+  does not survive contact with a stop and a target.</p>
+</div>
+
+<div class="col">
 <section id="sizing">
   <div class="sec-head"><h2>R=81 no longer resolves</h2>
     <span class="chip chip-warn">Watch out</span></div>

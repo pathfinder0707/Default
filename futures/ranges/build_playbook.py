@@ -365,6 +365,46 @@ def build():
            (r["hold_rate"] - r["null_mean"]) * 100, r["rank"])
         for r in pol)
 
+    # ---- multi-scale / level identity -------------------------------------
+    lvl = sorted(D["levels"]["levels"], key=lambda r: -r["reject"])
+    lvl_rows = "".join(
+        '<tr%s><td class="num">%d</td><td>%s</td><td class="num dim">%s</td>'
+        '<td class="num big">%s</td><td class="num dim">[%.3f, %.3f]</td>'
+        '<td>%s</td></tr>'
+        % (' class="hi"' if r["structural"] else "", r["pct"], r["name"],
+           "{:,}".format(r["n"]), pct(r["reject"], 2), r["lo"], r["hi"],
+           '<span class="chip chip-acc">any grid</span>' if r["structural"] else "")
+        for r in lvl)
+
+    conf_rows = "".join(
+        '<tr><td class="num">%d</td><td class="num dim">%s</td>'
+        '<td class="num big">%s</td><td class="num">%s</td>'
+        '<td class="num %s">%+.2fpp</td><td class="num %s">%+.2f</td></tr>'
+        % (r["confluence"], "{:,}".format(r["n"]), pct(r["reject"], 2),
+           pct(r["null_mean"], 2),
+           "pos" if r["reject"] > r["null_mean"] else "neg",
+           (r["reject"] - r["null_mean"]) * 100,
+           "pos" if r["z"] > 0 else "neg", r["z"])
+        for r in D["confluence"])
+
+    lt = {(r["band"], r["rr"]): r for r in D["lvltrade"]}
+    lt_rows = "".join(
+        '<tr><td class="num">%.1fR</td><td class="num dim">%s</td>'
+        '<td class="num">%s</td><td class="num">%s</td>'
+        '<td class="num %s">%+.3fR</td><td class="num %s">%+.3fR</td></tr>'
+        % (rm, pct(1 / (1 + rm)),
+           pct(lt[("boundary + EQ", rm)]["p"]), pct(lt[("the other 18", rm)]["p"]),
+           "neg" if lt[("boundary + EQ", rm)]["ev_r"] < 0 else "pos",
+           lt[("boundary + EQ", rm)]["ev_r"],
+           "neg" if lt[("the other 18", rm)]["ev_r"] < 0 else "pos",
+           lt[("the other 18", rm)]["ev_r"])
+        for rm in (1.0, 1.5, 2.0, 3.0))
+
+    om = D["levels"]["omnibus"]
+    sv = D["levels"]["structural_vs_gb"]
+    db = D["controls"]["day_boot"]
+    nest_z = [r["z"] for r in D["nest"]]
+
     # ---- sizing ----------------------------------------------------------
     siz_rows = "".join(
         '<tr%s><td class="num">%d</td><td class="num dim">%.1f pts</td>'
@@ -636,6 +676,105 @@ def build():
 </div>
 
 <div class="col">
+<section id="scales">
+  <div class="sec-head"><h2>All eight scales at once</h2>
+    <span class="chip chip-acc">Real, doesn't pay</span></div>
+  <p>Everything above takes one block size at a time. The tool on the chart
+  does not &mdash; it shows all eight PO3 scales together, and the reported
+  experience is that some levels work and others do nothing. Scale agreement is
+  the obvious candidate for what separates them, and unlike most confluence
+  stories it is exactly computable, because the blocks nest: 729 = 3 &times; 243
+  = 9 &times; 81.</p>
+  <p>First, the lattice itself. Every one of the eight rows in the tool's table
+  reproduces from <code>floor(price / R) &times; R</code> to the point &mdash;
+  3, 9, 27, 81, 243, 729, 2187 and 6561. That is worth stating plainly: the
+  levels are exactly what this study has been testing all along, so the null
+  results are about the levels themselves, not about a bad reconstruction.</p>
+  <p>Major swings do not cluster where scales agree: 11 cells, z from
+  %(nestlo)+.2f to %(nesthi)+.2f, nothing close.</p>
+  <p>Reaction was a different story. Counting how many of the other five scales
+  mark the same price, the rejection rate climbs monotonically &mdash; and
+  shifted lattices, which preserve the nesting exactly and move only where it
+  sits, stay flat:</p>
+</section>
+</div>
+
+<div class="scroll"><table>
+  <caption>Touch rejection by how many other PO3 scales mark the same price</caption>
+  <thead><tr><th class="num">Scales</th><th class="num">Touches</th>
+    <th class="num">Rejects</th><th class="num">Shifted lattices</th>
+    <th class="num">Edge</th><th class="num">z</th></tr></thead>
+  <tbody>%(conf_rows)s</tbody>
+</table></div>
+
+<div class="col">
+  <p>It survived every confound. Deep confluence is not nearer round numbers
+  &mdash; it is slightly further; excluding everything within 10 points of a
+  round hundred makes the effect <em>stronger</em>; a round-number map sorts
+  touches the opposite way; the small scales carry it rather than proximity to
+  a 2187 or 6561 level; it holds in all three eras; and resampling whole days
+  puts the advantage at <b>%(dbobs)+.2fpp</b>, 95%% CI
+  [%(dblo)+.2f, %(dbhi)+.2f], with every one of 2,000 resamples above zero.</p>
+  <div class="note bad">
+    <p><strong>Then it dissolved.</strong> Confluence depth is entangled with
+    <em>which</em> level you are on: 81 = 3 &times; 27 means some percentages
+    are structurally better connected than others. Holding the level fixed and
+    comparing high against low confluence within it, the effect is worth
+    <b>+0.15 percentage points</b>, and only 12 of 20 levels move the right
+    way. It was level identity all along.</p>
+  </div>
+  <p>Which turns out to be a far bigger effect, and the strongest thing in this
+  study. Shuffling the level labels within each trading day &mdash; keeping
+  every outcome and all the intraday clustering, changing only which line each
+  touch belongs to &mdash; <b>none of 2,000 permutations</b> reached the
+  observed spread across the twenty levels. z = <b>%(omz)+.2f</b>.</p>
+</div>
+
+<div class="scroll"><table>
+  <caption>Every Goldbach level, ranked &mdash; touch rejection rate</caption>
+  <thead><tr><th class="num">Level</th><th>Name</th><th class="num">Touches</th>
+    <th class="num">Rejects</th><th class="num">95%% CI by day</th>
+    <th>&nbsp;</th></tr></thead>
+  <tbody>%(lvl_rows)s</tbody>
+</table></div>
+
+<div class="col">
+  <div class="note key">
+    <p><strong>The two lines at the top are the two that any evenly spaced grid
+    has.</strong> The block boundary and the midpoint reject <b>%(svst)s</b>
+    against <b>%(svgb)s</b> for the eighteen Goldbach percentages &mdash; a gap
+    of <b>%(svdiff)+.2f pp</b> with a day-clustered CI of
+    [%(svlo)+.2f, %(svhi)+.2f].</p>
+    <p>Among the eighteen, dispersion is weak (z +3.52) and does not cohere:
+    the named Goldbach Inversion Point at 17/83 is among the <em>weakest</em>
+    lines on the board, and mirror pairs that the framework says are equivalent
+    agree only to within their error bars.</p>
+  </div>
+  <p>Your instinct to trade the extreme and the equilibrium is right, and this
+  is the first evidence in the study that supports any part of the framework.
+  But it is the <b>exact boundary and the exact midpoint</b> doing the work,
+  not the 3-point band around them: the 0 line rejects %(l0)s while the 3 line
+  rejects only %(l3)s.</p>
+  <p>And it still does not pay. Retests at those two lines are, if anything,
+  slightly worse than at the other eighteen:</p>
+</div>
+
+<div class="scroll"><table>
+  <caption>Structure entry &mdash; boundary and midpoint against everything else</caption>
+  <thead><tr><th class="num">Target</th><th class="num">Break-even</th>
+    <th class="num">Boundary + EQ win</th><th class="num">Other 18 win</th>
+    <th class="num">Boundary + EQ EV</th><th class="num">Other 18 EV</th></tr></thead>
+  <tbody>%(lt_rows)s</tbody>
+</table></div>
+
+<div class="col">
+  <p>So the levels are not all alike, and the difference is not luck &mdash;
+  but it lives in the grid's own geometry rather than in Goldbach's numbers,
+  it is worth about two and a half percentage points of rejection, and it
+  does not survive contact with a stop and a target.</p>
+</div>
+
+<div class="col">
 <section id="sizing">
   <div class="sec-head"><h2>R=81 no longer resolves</h2>
     <span class="chip chip-warn">Watch out</span></div>
@@ -751,6 +890,14 @@ def build():
         "w1": pct(st[("ALL", 1.0)]["p"]), "w2": pct(st[("ALL", 2.0)]["p"]),
         "w3": pct(st[("ALL", 3.0)]["p"]),
         "base2": pct(base2),
+        "conf_rows": conf_rows, "lvl_rows": lvl_rows, "lt_rows": lt_rows,
+        "nestlo": min(nest_z), "nesthi": max(nest_z),
+        "dbobs": db["obs"] * 100, "dblo": db["lo"] * 100, "dbhi": db["hi"] * 100,
+        "omz": om["z"],
+        "svst": pct(sv["structural"], 2), "svgb": pct(sv["goldbach"], 2),
+        "svdiff": sv["diff"] * 100, "svlo": sv["lo"] * 100, "svhi": sv["hi"] * 100,
+        "l0": pct(next(r["reject"] for r in lvl if r["pct"] == 0), 2),
+        "l3": pct(next(r["reject"] for r in lvl if r["pct"] == 3), 2),
         "cost": COST, "costpct": COST / risk_pts * 100,
         "need2": pct((COST / risk_pts + 1) / 3.0),
         "ret120": pct(r81["rates"]["120"]),
