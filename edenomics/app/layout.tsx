@@ -1,43 +1,41 @@
 import type { Metadata, Viewport } from "next";
-import { Geist, Geist_Mono, Instrument_Serif } from "next/font/google";
+import { Bricolage_Grotesque, Plus_Jakarta_Sans, Geist_Mono } from "next/font/google";
 import "./globals.css";
 
-const geistSans = Geist({
-  variable: "--font-geist",
+const display = Bricolage_Grotesque({
+  variable: "--font-bricolage",
   subsets: ["latin"],
   display: "swap",
 });
 
-const geistMono = Geist_Mono({
+const sans = Plus_Jakarta_Sans({
+  variable: "--font-jakarta",
+  subsets: ["latin"],
+  display: "swap",
+});
+
+const mono = Geist_Mono({
   variable: "--font-geist-mono",
   subsets: ["latin"],
   display: "swap",
 });
 
-const instrumentSerif = Instrument_Serif({
-  variable: "--font-instrument",
-  subsets: ["latin"],
-  weight: "400",
-  style: ["normal", "italic"],
-  display: "swap",
-});
-
 export const metadata: Metadata = {
-  title: "Edenomics — Know what matters in money",
+  title: "Edenomics — the daily money game",
   description:
-    "Markets, companies and financial news, distilled into a few minutes a day. Follow what you care about and Edenomics tells you when something actually matters.",
+    "Five rounds a day. Learn how money actually moves by playing the market, not guessing it. Streaks, XP, a skill constellation and a portfolio you unlock by understanding it.",
   applicationName: "Edenomics",
   openGraph: {
-    title: "Edenomics — Know what matters in money",
+    title: "Edenomics — the daily money game",
     description:
-      "Markets, companies and financial news, distilled into a few minutes a day.",
+      "Five rounds a day. Learn how money actually moves by playing the market, not guessing it.",
     siteName: "Edenomics",
     type: "website",
   },
 };
 
 export const viewport: Viewport = {
-  themeColor: "#08090B",
+  themeColor: "#0D0B1A",
   colorScheme: "dark",
 };
 
@@ -45,9 +43,9 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html
       lang="en"
-      className={`${geistSans.variable} ${geistMono.variable} ${instrumentSerif.variable} h-full antialiased`}
+      className={`${display.variable} ${sans.variable} ${mono.variable} h-full antialiased`}
     >
-      <body className="bg-ink text-fg min-h-full">{children}</body>
+      <body className="bg-void text-fg min-h-full">{children}</body>
     </html>
   );
 }

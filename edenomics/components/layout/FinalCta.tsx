@@ -5,29 +5,29 @@ import { ButtonLink } from "@/components/ui/Button";
 
 export function FinalCta() {
   return (
-    <section className="grain relative overflow-hidden py-20 sm:py-24 lg:py-28">
+    <section className="grain clip-decor relative py-20 sm:py-28">
       <div
         aria-hidden
-        className="pointer-events-none absolute bottom-[-30%] left-1/2 h-[420px] w-[820px] -translate-x-1/2 rounded-full opacity-[0.11] blur-[120px]"
-        style={{
-          background: "radial-gradient(closest-side, var(--color-accent), transparent 70%)",
-        }}
+        className="pointer-events-none absolute bottom-0 left-1/2 h-[300px] w-[760px] -translate-x-1/2 rounded-full opacity-[0.12] blur-[120px]"
+        style={{ background: "radial-gradient(closest-side, var(--color-brand), transparent 70%)" }}
       />
       <Container className="relative">
         <Reveal className="mx-auto max-w-2xl text-center">
-          <h2 className="display text-[2.4rem] leading-[1.05] sm:text-[3.4rem]">
-            Your financial world
+          <h2 className="display text-[2.4rem] sm:text-[3.4rem]">
+            Three minutes a day
             <br />
-            in five minutes.
+            <span className="text-brand">for about a year.</span>
           </h2>
-          <div className="mt-9 flex flex-wrap items-center justify-center gap-3">
-            <ButtonLink href="#today" size="lg">
-              Start your daily brief
-              <ArrowRight size={16} aria-hidden />
-            </ButtonLink>
-          </div>
-          <p className="text-faint mt-6 text-[0.8125rem]">
-            Free to start. One email a day, only if you want it.
+          <p className="text-muted mx-auto mt-5 max-w-md text-[1.0625rem] leading-relaxed">
+            That is roughly what it takes to stop finding any of this intimidating.
+            It is a shorter road than anyone told you.
+          </p>
+          <ButtonLink href="#play" size="lg" className="mt-8">
+            Play today&rsquo;s run
+            <ArrowRight size={18} aria-hidden />
+          </ButtonLink>
+          <p className="text-faint mt-5 text-[0.8125rem]">
+            Free. No account. Your streak lives in this browser.
           </p>
         </Reveal>
       </Container>

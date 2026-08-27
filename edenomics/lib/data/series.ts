@@ -47,3 +47,34 @@ export function series(seed: number, points = 28, drift = 0): number[] {
   const span = max - min || 1;
   return smoothed.map((v) => (v - min) / span);
 }
+
+/**
+ * A spike that gives most of itself back — the shape of a stock popping on
+ * good news and then fading as the move gets sold into.
+ *
+ * @param peakAt   index of the high
+ * @param endLevel where it settles, 0–1 relative to the peak
+ */
+export function pumpAndFade(
+  seed: number,
+  points: number,
+  peakAt: number,
+  endLevel: number,
+): number[] {
+  const rand = mulberry32(seed);
+  const easeOut = (t: number) => 1 - Math.pow(1 - t, 2.2);
+  const raw: number[] = [];
+
+  for (let i = 0; i < points; i++) {
+    const base =
+      i <= peakAt
+        ? 0.12 + easeOut(i / peakAt) * 0.88
+        : 1 - easeOut((i - peakAt) / (points - 1 - peakAt)) * (1 - endLevel);
+    raw.push(base + (rand() - 0.5) * 0.09);
+  }
+
+  const min = Math.min(...raw);
+  const max = Math.max(...raw);
+  const span = max - min || 1;
+  return raw.map((v) => (v - min) / span);
+}

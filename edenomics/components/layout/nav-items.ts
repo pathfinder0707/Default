@@ -1,11 +1,12 @@
-import { BookOpen, LineChart, Newspaper, Star } from "lucide-react";
+import { BarChart3, Gamepad2, Trophy, Waypoints, User } from "lucide-react";
 
-/** One source of truth for the desktop nav, the mobile tab bar and scroll spy. */
+/** One source of truth for the header, the mobile tab bar and scroll spy. */
 export const NAV_ITEMS = [
-  { id: "today", label: "Today", icon: Newspaper },
-  { id: "markets", label: "Markets", icon: LineChart },
-  { id: "learn", label: "Learn", icon: BookOpen },
-  { id: "watchlist", label: "Watchlist", icon: Star },
+  { id: "play", label: "Play", icon: Gamepad2 },
+  { id: "progress", label: "You", icon: User },
+  { id: "skills", label: "Skills", icon: Waypoints },
+  { id: "lab", label: "Lab", icon: BarChart3 },
+  { id: "league", label: "League", icon: Trophy },
 ] as const;
 
 export const NAV_IDS: readonly string[] = NAV_ITEMS.map((item) => item.id);

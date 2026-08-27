@@ -1,32 +1,41 @@
 # Edenomics
 
-A homepage for a finance product built around one idea:
+A finance product built as a game, on one idea:
 
-> Make finance useful enough to visit every day, but simple enough that it never feels like homework.
+> The market is the level. You score by knowing **why** a price moved — never by
+> guessing which way it went.
 
-Most finance sites solve for coverage — hundreds of headlines, tickers and tables, all
-competing for the same attention. Edenomics solves for the opposite problem. The scarce
-resource is not information, it is judgement about which information deserves your
-attention. So the homepage answers four questions in a few seconds:
+Most attempts to gamify finance end up training the exact habit that costs people
+money: fast, confident, directional guessing. Edenomics is arranged so that is
+impossible to win at. Every round can be won by someone with no view on the
+market and lost by someone who guessed right.
 
-**What happened? Why does it matter? Does it affect anything I care about? Can I learn
-something while I'm here?**
+## The loop
 
-## What's on the page
+**A daily run** — five rounds, about three minutes, with a combo multiplier that
+carries between them. Five different shapes of thinking, so it never becomes one
+quiz format wearing different hats:
 
-| Section | What it does |
-| --- | --- |
-| **Hero** | A live greeting, today's date and real session status. The panel beside it is the brief itself — a contents page of the day, not a product mockup. |
-| **Daily brief** | Five stories, sized unevenly so the lead earns its space. Each one is a headline, a sentence, the tickers it moved and a folded-away "Why it matters". On phones the same five become a swipeable rail. |
-| **Your market** | The same day, filtered to what you follow. Editorial cards become an app-like list, so the two sections are never mistaken for each other. |
-| **Markets at a glance** | Six numbers, no table. Selecting one explains in a sentence what it actually measures. |
-| **Daily challenge** | Three questions, roughly a minute. A streak, a level and XP — every question explains the concept the moment you answer, right or wrong. |
-| **Money never sleeps** | An interactive globe of the five sessions that cover the trading day, with live open/closed state derived from your own clock. |
-| **Follow less. Know more.** | The watchlist picker and the notification promise, side by side. |
+| Round | What it asks | What it teaches |
+| --- | --- | --- |
+| **Chart call** | Read a price move, then find out what caused it | Prices move on expectations, not results |
+| **Order of magnitude** | Estimate a number on a log slider | Scale intuition — the thing prices hide |
+| **Chain reaction** | Put a transmission chain in order | Mechanism, not vocabulary |
+| **Name the business** | Identify a company from clues, XP decaying per clue | Where profits actually come from |
+| **Who wins** | One shock, three sectors | Shocks move money, they don't destroy it |
 
-Everything is wired together: following a company from a headline, from the command
-palette (`⌘K`), or from the chip picker all write to the same store — and the
-personalised feed updates immediately.
+**A skill constellation** — fourteen ideas, each unlocking the next. Rounds you
+win feed mastery into the node they belong to.
+
+**A portfolio lab** — ten lakh of play money, where an asset class stays locked
+until you have mastered its node. Master valuation, unlock single stocks. That is
+the opposite order to every brokerage app.
+
+**A weekly league** — nine players, promotion at the top three. Nothing at stake
+but next week's bracket, and nothing that can be bought.
+
+Everything is wired to one store, so finishing a run visibly moves the level ring,
+the streak calendar, the badge shelf, the skill map and your league row at once.
 
 ## Running it
 
@@ -43,71 +52,65 @@ npm run lint
 npm run build:standalone   # -> dist/edenomics.html
 ```
 
-Bundles the whole page — CSS, JS and fonts — into one HTML file you can
-double-click, email, or drop on any static host. It uses the same
-`app/globals.css` and the same components, so the tokens cannot drift from the
-Next build.
-
-Two things differ by necessity: the page renders on the client rather than the
-server, and three.js is bundled in rather than code-split (the globe still
-waits for an IntersectionObserver before creating the WebGL context). The Next
-app is the real one.
+Bundles the whole game — CSS, JS and fonts — into one ~780 KB HTML file you can
+double-click, email, or drop on any static host. It makes **zero** network
+requests. It uses the same `app/globals.css` and the same components, so the
+tokens cannot drift from the Next build; the only difference is that it renders
+on the client rather than the server.
 
 ## Stack
 
 Next.js 16 (App Router) · React 19 · TypeScript · Tailwind CSS v4 · Motion ·
-React Three Fiber · lucide-react. Charts are hand-rolled SVG rather than a charting
-library — a sparkline does not need 100 KB of dependency.
+lucide-react. No charting library and no 3D engine — the charts, the donut, the
+level ring and the constellation are all hand-rolled SVG, and the run's
+celebration is a single canvas.
 
 ## Structure
 
 ```
 app/                     layout, tokens, page composition
 components/
-  layout/                header, command palette, tab bar, footer, CTA
-  news/                  hero, daily brief, story card
-  markets/               snapshot, sparkline, delta
-  watchlist/             personalised feed, chips, notifications
-  learn/                 daily challenge, streak panel
-  3d/                    globe scene, fallback, lazy section wrapper
+  game/                  the run, its five round types, combo, results
+  player/                level ring, streak calendar, badges
+  skills/                the constellation
+  portfolio/             the lab and its donut
+  league/                weekly table
+  layout/                HUD header, tab bar, principles, footer
 lib/
-  data/                  mock financial content — one module per domain
-  state/                 localStorage-backed stores for watchlist and progress
+  game/                  types, round content, skills, portfolio, league, format
+  state/                 localStorage-backed player store
   hooks/                 mounted, clock, scroll spy
-  types.ts               every shape the UI renders
-  geo.ts, market-clock.ts
-scripts/gen-land-mask.mjs  regenerates the globe's land data
+scripts/build-standalone.mjs
 ```
 
 ## Data
 
-All prices, stories and figures are **illustrative sample data** — nothing here is live,
-and nothing here is investment advice.
+All prices, companies, figures and rivals are **illustrative sample data**. It is
+a learning game: nothing here is investment advice, and nothing is for sale.
 
-The mock content lives entirely in `lib/data`, and every component reads through the
-interfaces in `lib/types.ts`. Swapping in a real API means implementing those shapes;
-no component changes. `lib/data/series.ts` generates deterministic price walks from a
-seed so the server and client render identical paths and the demo looks the same every
-time.
+Content lives entirely in `lib/game` behind the interfaces in `lib/game/types.ts`.
+Adding a sixth round type means adding a variant to that union and a renderer —
+nothing else changes.
 
 ## Notes on a few decisions
 
-**The accent is amber, not green.** Market green and red appear only on price movement,
-at small sizes. If something on this page changes colour, it is because a number moved.
+**Colour is information.** Cyan is the brand, gold is XP, coral is the streak,
+lime is correct, rose is wrong. Nothing else on the page is saturated, which is
+why a single gold number reads as "you earned something" with no other signal.
 
-**Progressive disclosure everywhere.** "Why it matters", "Why it moved" and the market
-explainers are all folded away by default. A beginner can open them; an experienced
-investor never has to look at them.
+**The hero is the game.** No screenshot, no "get started" — the run is playable
+before anyone has decided whether they want it.
 
-**The globe ships one bit per point.** `scripts/gen-land-mask.mjs` samples Natural Earth
-land polygons against a 9,000-point Fibonacci sphere and writes a base64 bitmask
-(~1.1 KB). The browser regenerates the same point positions and keeps the ones over
-land — no coordinate payload, no texture. Three.js itself (229 KB gzipped) is loaded
-only when the section approaches the viewport, and falls back to a static SVG globe
-where WebGL is unavailable.
+**Playable entirely from the keyboard.** Number keys answer, Enter advances. All
+43 interactive elements are named and have a visible focus state, and every text
+colour clears WCAG AA on the surface it actually sits on.
 
-**Accessibility is not a pass at the end.** Semantic sectioning, one `h1`, a skip link,
-visible focus on all 78 interactive elements, `aria-expanded` on every disclosure,
-labelled charts, and a `prefers-reduced-motion` path that collapses durations rather
-than swapping element types — that swap strands Motion's inline opacity and leaves
-blocks invisible. All text clears WCAG AA contrast on every surface it sits on.
+**Decoration never scrolls.** The soft glows use a `.clip-decor` utility
+(`overflow: clip`, with `hidden` as fallback) rather than `overflow: hidden`.
+`hidden` makes an element scrollable, so a glow poking past the right edge can be
+scrolled to — the browser does exactly that when something inside takes focus,
+and the whole section slides sideways under the fixed header.
+
+**Reduced motion collapses durations** rather than swapping element types.
+Swapping strands Motion's inline opacity — React never set that style, so it
+never cleans it up — and the block is left invisible.

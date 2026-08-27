@@ -4,29 +4,27 @@ import { useEffect, useRef } from "react";
 import { animate, useInView, useReducedMotion } from "motion/react";
 
 /**
- * Counts a pre-formatted price up to its final value the first time it
- * scrolls into view.
+ * Counts up to a value the first time it scrolls into view, and re-counts
+ * whenever the value changes — which is most of the point in a game, where
+ * XP and balances move constantly.
  *
- * The display string is treated as a template: only its digits are replaced,
- * so currency symbols, decimal points and grouping — including Indian
- * grouping like ₹1,04,280 — survive untouched. The count starts at the
- * smallest number with the same digit count, which keeps the width stable and
- * avoids layout shift mid-animation.
- *
- * Frames are written straight to the DOM node rather than through state: a
- * counter re-rendering React sixty times a second buys nothing, and the
- * server-rendered markup already holds the final value for anyone without JS.
+ * Frames are written straight to the DOM node. A counter that re-renders React
+ * sixty times a second buys nothing, and the server-rendered markup already
+ * holds the final value for anyone without JS.
  */
 export function AnimatedNumber({
-  display,
+  value,
+  format = (n) => Math.round(n).toLocaleString("en-IN"),
   className = "",
-  duration = 1.1,
+  duration = 0.9,
 }: {
-  display: string;
+  value: number;
+  format?: (n: number) => string;
   className?: string;
   duration?: number;
 }) {
   const ref = useRef<HTMLSpanElement>(null);
+  const previous = useRef(value);
   const inView = useInView(ref, { once: true, margin: "-40px" });
   const reduceMotion = useReducedMotion();
 
@@ -34,48 +32,33 @@ export function AnimatedNumber({
     const node = ref.current;
     if (!node) return;
 
-    if (reduceMotion) {
-      // Restore the real figure in case a previous pass parked it at the
-      // starting value before the media query resolved.
-      node.textContent = display;
+    if (reduceMotion || !inView) {
+      node.textContent = format(value);
+      previous.current = value;
       return;
     }
 
-    const digits = display.replace(/\D/g, "");
-    const target = Number(digits);
-    const from = Math.pow(10, digits.length - 1);
-    if (!digits.length || digits.length > 15 || target <= from) return;
+    // Count from zero on first sight, then from the last value on every change.
+    const from = previous.current === value ? 0 : previous.current;
+    previous.current = value;
 
-    const paint = (value: number) => {
-      const next = String(Math.round(value)).padStart(digits.length, "0");
-      let cursor = 0;
-      node.textContent = display.replace(/\d/g, () => next[cursor++] ?? "0");
-    };
-
-    if (!inView) {
-      // Hold at the starting value until the number is actually on screen.
-      paint(from);
-      return;
-    }
-
-    const controls = animate(from, target, {
+    const controls = animate(from, value, {
       duration,
       ease: [0.22, 1, 0.36, 1],
-      onUpdate: paint,
+      onUpdate: (v) => {
+        node.textContent = format(v);
+      },
       onComplete: () => {
-        node.textContent = display;
+        node.textContent = format(value);
       },
     });
 
-    return () => {
-      controls.stop();
-      node.textContent = display;
-    };
-  }, [inView, reduceMotion, display, duration]);
+    return () => controls.stop();
+  }, [inView, reduceMotion, value, format, duration]);
 
   return (
     <span ref={ref} className={className}>
-      {display}
+      {format(value)}
     </span>
   );
 }

@@ -3,33 +3,36 @@ import type { ComponentPropsWithoutRef, ReactNode } from "react";
 type Variant = "primary" | "secondary" | "ghost";
 type Size = "sm" | "md" | "lg";
 
+/*
+  Game buttons want weight. The hard bottom edge plus a downward nudge on
+  press is what sells "this is a thing I pushed" rather than "this is a link".
+*/
 const base =
-  "inline-flex items-center justify-center gap-2 rounded-full font-medium whitespace-nowrap transition-[background-color,border-color,color,transform,box-shadow] duration-200 ease-out-quint active:translate-y-px disabled:pointer-events-none disabled:opacity-50";
+  "relative inline-flex items-center justify-center gap-2 rounded-2xl font-semibold whitespace-nowrap select-none transition-[transform,background-color,border-color,box-shadow] duration-150 ease-pop disabled:pointer-events-none disabled:opacity-45";
 
 const variants: Record<Variant, string> = {
   primary:
-    "bg-accent text-ink hover:bg-[#f7c85c] shadow-[0_1px_0_rgba(255,255,255,0.25)_inset,0_8px_24px_-12px_rgba(239,182,64,0.7)]",
+    "bg-brand text-void shadow-[0_4px_0_var(--color-brand-deep)] hover:brightness-110 hover:-translate-y-px active:translate-y-[3px] active:shadow-[0_1px_0_var(--color-brand-deep)]",
   secondary:
-    "border border-line-strong bg-white/[0.03] text-fg hover:bg-white/[0.07] hover:border-white/25",
-  ghost: "text-muted hover:text-fg hover:bg-white/[0.05]",
+    "piece piece-hover text-fg",
+  ghost: "text-muted hover:text-fg hover:bg-white/[0.06]",
 };
 
 const sizes: Record<Size, string> = {
-  sm: "h-8 px-3.5 text-[0.8125rem]",
-  md: "h-10 px-5 text-sm",
-  lg: "h-12 px-6 text-[0.9375rem]",
+  sm: "h-9 px-4 text-[0.8125rem]",
+  md: "h-11 px-5 text-[0.9375rem]",
+  lg: "h-14 px-7 text-base",
 };
 
-interface CommonProps {
+interface Common {
   variant?: Variant;
   size?: Size;
   className?: string;
   children: ReactNode;
 }
 
-type ButtonProps = CommonProps &
-  Omit<ComponentPropsWithoutRef<"button">, "className" | "children">;
-type LinkProps = CommonProps &
+type ButtonProps = Common & Omit<ComponentPropsWithoutRef<"button">, "className" | "children">;
+type LinkProps = Common &
   Omit<ComponentPropsWithoutRef<"a">, "className" | "children"> & { href: string };
 
 export function Button({

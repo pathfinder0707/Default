@@ -6,9 +6,8 @@
  *
  *   node scripts/build-standalone.mjs   ->  dist/edenomics.html
  *
- * The Next app remains the real one: it server-renders, code-splits three.js
- * into its own chunk, and self-hosts fonts. This build trades those for a
- * single portable file.
+ * The Next app remains the real one: it server-renders and self-hosts fonts.
+ * This build trades those for a single portable file.
  */
 import { execFileSync } from "node:child_process";
 import { mkdirSync, readFileSync, rmSync, writeFileSync, statSync } from "node:fs";
@@ -39,8 +38,7 @@ execFileSync(
   { cwd: root, stdio: ["ignore", "ignore", "inherit"] },
 );
 
-// 2. One JS bundle. `next/dynamic` is aliased to a React.lazy shim, since a
-//    single file has nowhere to fetch a chunk from.
+// 2. One JS bundle.
 console.log("bundling js…");
 await esbuild.build({
   entryPoints: [join(root, "standalone/entry.tsx")],
@@ -51,17 +49,14 @@ await esbuild.build({
   jsx: "automatic",
   legalComments: "none",
   define: { "process.env.NODE_ENV": '"production"' },
-  alias: {
-    "@": root,
-    "next/dynamic": join(root, "standalone/next-dynamic.tsx"),
-  },
+  alias: { "@": root },
   outfile: join(tmp, "app.js"),
   logLevel: "warning",
 });
 
 
 const FONT_CSS_URL =
-  "https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&family=Instrument+Serif:ital@0;1&display=swap";
+  "https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400..800&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Geist+Mono:wght@400;500;700&display=swap";
 
 // A desktop UA is what makes Google serve woff2 rather than older formats.
 const DESKTOP_UA =
@@ -122,7 +117,7 @@ const js = readFileSync(join(tmp, "app.js"), "utf8").replace(/<\/script/gi, "<\\
 
 // 3. Compose. No <html>/<head>/<body> — the host page supplies those.
 const html = `<title>Edenomics</title>
-<meta name="description" content="Markets, companies and financial news, distilled into a few minutes a day." />
+<meta name="description" content="Five rounds a day. Learn how money actually moves by playing the market, not guessing it." />
 
 ${fontLink}
 <style>
@@ -137,9 +132,9 @@ ${css}
   /* The Next build injects these three via next/font; here they come from the
      inlined @font-face rules above, with the same fallback stacks. */
   :root {
-    --font-geist: "Geist";
+    --font-bricolage: "Bricolage Grotesque";
+    --font-jakarta: "Plus Jakarta Sans";
     --font-geist-mono: "Geist Mono";
-    --font-instrument: "Instrument Serif";
   }
 
   /* Painted before the bundle parses, so there is never a white flash. */
@@ -148,11 +143,12 @@ ${css}
     inset: 0;
     display: grid;
     place-items: center;
-    background: var(--color-ink, #08090b);
-    color: #f5f6f7;
-    font-family: var(--font-instrument), Georgia, serif;
-    font-size: 1.25rem;
-    letter-spacing: -0.01em;
+    background: var(--color-void, #0d0b1a);
+    color: #f4f2ff;
+    font-family: var(--font-bricolage), "Trebuchet MS", sans-serif;
+    font-size: 1.35rem;
+    font-weight: 700;
+    letter-spacing: -0.03em;
     transition: opacity 0.4s ease;
   }
   #edenomics-root[data-ready="true"] + #edenomics-boot {

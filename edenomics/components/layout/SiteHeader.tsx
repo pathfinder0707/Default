@@ -1,18 +1,24 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { motion, useReducedMotion } from "motion/react";
-import { Search } from "lucide-react";
+import { Flame, Zap } from "lucide-react";
 import { Wordmark } from "@/components/layout/Wordmark";
 import { NAV_IDS, NAV_ITEMS } from "@/components/layout/nav-items";
-import { CommandPalette } from "@/components/layout/CommandPalette";
-import { Button, ButtonLink } from "@/components/ui/Button";
+import { ButtonLink } from "@/components/ui/Button";
 import { useScrollSpy } from "@/lib/hooks/useScrollSpy";
+import { usePlayer } from "@/lib/state/player";
+import { formatXp } from "@/lib/game/format";
 
+/**
+ * A game HUD rather than a marketing nav. Streak and XP are pinned to the top
+ * of every screen, because in a game those two numbers are the reason you are
+ * here — and they move while you play.
+ */
 export function SiteHeader() {
   const [scrolled, setScrolled] = useState(false);
-  const [searchOpen, setSearchOpen] = useState(false);
   const active = useScrollSpy(NAV_IDS);
+  const player = usePlayer();
   const reduceMotion = useReducedMotion();
 
   useEffect(() => {
@@ -22,36 +28,23 @@ export function SiteHeader() {
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
-  useEffect(() => {
-    const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "k" && (event.metaKey || event.ctrlKey)) {
-        event.preventDefault();
-        setSearchOpen((open) => !open);
-      }
-    };
-    window.addEventListener("keydown", onKeyDown);
-    return () => window.removeEventListener("keydown", onKeyDown);
-  }, []);
-
-  const closeSearch = useCallback(() => setSearchOpen(false), []);
-
   return (
     <>
       <a
-        href="#today"
-        className="bg-accent text-ink sr-only rounded-full px-4 py-2 text-sm font-medium focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-[70]"
+        href="#play"
+        className="bg-brand text-void sr-only rounded-full px-4 py-2 text-sm font-semibold focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-[70]"
       >
-        Skip to today&rsquo;s brief
+        Skip to today&rsquo;s run
       </a>
 
       <header
         className={`fixed inset-x-0 top-0 z-50 transition-[background-color,border-color,backdrop-filter] duration-300 ${
           scrolled
-            ? "border-line bg-ink/75 border-b backdrop-blur-xl"
+            ? "border-line bg-void/80 border-b backdrop-blur-xl"
             : "border-b border-transparent"
         }`}
       >
-        <div className="mx-auto flex h-16 w-full max-w-[1240px] items-center gap-4 px-5 sm:px-8 lg:px-10">
+        <div className="mx-auto flex h-16 w-full max-w-[1220px] items-center gap-4 px-5 sm:px-8">
           <a href="#top" className="text-fg shrink-0" aria-label="Edenomics home">
             <Wordmark />
           </a>
@@ -65,15 +58,15 @@ export function SiteHeader() {
                     <a
                       href={`#${item.id}`}
                       aria-current={isActive ? "true" : undefined}
-                      className={`relative inline-flex h-8 items-center rounded-full px-3.5 text-[0.8125rem] transition-colors duration-200 ${
+                      className={`relative inline-flex h-9 items-center rounded-xl px-3.5 text-[0.875rem] font-medium transition-colors duration-200 ${
                         isActive ? "text-fg" : "text-muted hover:text-fg"
                       }`}
                     >
                       {isActive && (
                         <motion.span
                           layoutId={reduceMotion ? undefined : "nav-pill"}
-                          className="absolute inset-0 -z-10 rounded-full bg-white/[0.07]"
-                          transition={{ type: "spring", stiffness: 380, damping: 32 }}
+                          className="absolute inset-0 -z-10 rounded-xl bg-white/[0.08]"
+                          transition={{ type: "spring", stiffness: 400, damping: 34 }}
                         />
                       )}
                       {item.label}
@@ -84,43 +77,31 @@ export function SiteHeader() {
             </ul>
           </nav>
 
-          <div className="ml-auto flex items-center gap-2">
-            <button
-              type="button"
-              onClick={() => setSearchOpen(true)}
-              aria-label="Search"
-              className="text-muted hover:text-fg border-line hover:border-line-strong inline-flex h-9 items-center gap-2 rounded-full border px-3 transition-colors sm:pr-2"
+          <div className="ml-auto flex items-center gap-2 sm:gap-2.5">
+            <span
+              className="border-line flex items-center gap-1.5 rounded-xl border bg-white/[0.03] px-2.5 py-1.5"
+              title={`${player.streak} day streak`}
             >
-              <Search size={15} aria-hidden />
-              <kbd className="border-line text-faint hidden rounded border px-1.5 py-px font-mono text-[0.625rem] sm:block">
-                ⌘K
-              </kbd>
-            </button>
+              <Flame size={15} className="text-streak" aria-hidden />
+              <span className="tabular text-[0.8125rem] font-bold">{player.streak}</span>
+              <span className="sr-only">day streak</span>
+            </span>
 
-            <a
-              href="#top"
-              className="text-muted hover:text-fg hidden px-2 text-[0.8125rem] transition-colors md:block"
+            <span
+              className="border-line flex items-center gap-1.5 rounded-xl border bg-white/[0.03] px-2.5 py-1.5"
+              title={`${formatXp(player.xp)} XP`}
             >
-              Sign in
-            </a>
+              <Zap size={15} className="text-xp" aria-hidden />
+              <span className="tabular text-[0.8125rem] font-bold">{formatXp(player.xp)}</span>
+              <span className="sr-only">total XP</span>
+            </span>
 
-            <ButtonLink href="#watchlist" size="sm" className="max-sm:hidden">
-              Start your feed
+            <ButtonLink href="#play" size="sm" className="max-sm:hidden">
+              Play
             </ButtonLink>
-            <Button
-              size="sm"
-              className="sm:hidden"
-              onClick={() =>
-                document.getElementById("watchlist")?.scrollIntoView({ block: "start" })
-              }
-            >
-              Start
-            </Button>
           </div>
         </div>
       </header>
-
-      <CommandPalette open={searchOpen} onClose={closeSearch} />
     </>
   );
 }
