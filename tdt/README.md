@@ -175,6 +175,73 @@ python build_report.py
 Count 21 is untestable on D1 in principle, not just here: only ~3% of legs survive that
 long, so NQ's entire daily history yields about nine legs at risk. It needs H1 or below.
 
+## The full search (`sweep.py`)
+
+The study above tests one parameterisation. `sweep.py` searches **25,920** configurations
+— four timeframes, three counting modes, five swing degrees, both trade polarities, both
+signal timings, and the reward/timeout/pad grid — selecting on **2016–2022** and paying
+out on **2023–2026**, which selection never sees. Costs are 0.75 NQ points per round turn
+($4 commission plus a tick of slippage each way at $20/point).
+
+```sh
+python sweep.py             # the grid -> SWEEP.json
+python holdtest.py          # offset, hold and k-scan -> HOLD.json
+python build_sweep_report.py   # -> ../tdt-sweep-report.html
+```
+
+**Result: 0 of 12 readings passed.** The bar was |t| > 2.87 on held-out data (Bonferroni
+over 12 finalists) plus beating a matched control.
+
+### Why the counts cannot work, mechanically
+
+The search's strongest survivor was `reach 7, follow` on classic counting. Classic
+counting numbers every candle, so "the count reaches 7" *is* "six candles after the
+pivot". Tested against a plain origin+6 entry the contrast is **+0.0000R, t=+0.00** — not
+near zero, the same trades. No counting occurs.
+
+That leaves one question: is offset 6 better than its neighbours? It is — but only at
+k=6. Scanning the swing strength:
+
+| swing k | peak offset | = count |
+|---|---|---|
+| 2 | 2 | 3 |
+| 3 | 3 | 4 |
+| 4 | 4 | 5 |
+| 6 | 6 | **7** |
+| 8 | 8 | 9 |
+
+The best count is always **k+1** — the first candle on which the pivot is knowable.
+Offsets below k are masked because the swing has not confirmed yet. TDT's 7 coincides with
+the peak only when the swing strength happens to be 6; change k and the "magic number"
+moves with it. The number is a property of the pivot filter, not of the market.
+
+### What the search did find
+
+A real effect, and it is not TDT's: **when a swing pivot of strength k confirms, enter on
+the next candle in the direction of the leg that just completed.** Stop beyond the leg's
+extreme padded by 0.25 × its mean candle range, target 3R, timeout 20 candles. M15 NQ,
+costs charged, non-overlapping (one position at a time):
+
+| k | period | trades | win | mean pts | total $ | max DD $ | return/DD | t |
+|---|---|---|---|---|---|---|---|---|
+| 6 | train | 6,710 | 43.2% | +1.66 | +$223,358 | $60,487 | 3.69 | +2.44 |
+| 6 | test | 3,640 | 43.7% | +4.17 | +$303,799 | $82,072 | 3.70 | +2.63 |
+| 8 | train | 5,745 | 45.0% | +1.92 | +$220,181 | $67,566 | 3.26 | +2.52 |
+| 8 | test | 3,119 | 44.3% | +3.78 | +$235,703 | $104,272 | 2.26 | +2.00 |
+
+It is momentum after a confirmed pivot, decaying with every candle of delay — which is
+exactly why the best count is k+1. The return-to-drawdown ratio at k=6 is 3.69 on train
+and 3.70 on test, which is the kind of stability that makes an effect worth pursuing.
+The t-statistics are modest and it came out of a 25,920-configuration search, so it needs
+its own out-of-sample confirmation before it is a strategy rather than a candidate.
+
+### Fixed-time hold
+
+Strip the stop and target out entirely — enter, hold N candles, exit at the close — and
+the TDT signal has no directional content: at k=6 it *loses* $119,470 on train and makes
+$307,105 on test, a sign flip that is regime, not edge. The stop/target structure, not the
+signal, is what makes the rule above work.
+
 ## The counter tool
 
 `tdt-counter.html` — open it in any browser. No dependencies, no network, remembers your
