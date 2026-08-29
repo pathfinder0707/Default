@@ -131,28 +131,31 @@ could hold while the others fail:</p>
 <h2><span class="n">07</span>Finding 3 — the count is the confirmation lag</h2>
 <div id="f3"></div>
 
-<h2><span class="n">08</span>The residual strategy</h2>
+<h2><span class="n">08</span>Is the conclusion an artefact of where I start counting?</h2>
+<div id="origins"></div>
+
+<h2><span class="n">09</span>The residual strategy</h2>
 <div id="strategy"></div>
 
-<h2><span class="n">09</span>Performance</h2>
+<h2><span class="n">10</span>Performance</h2>
 <div id="perf"></div>
 
-<h2><span class="n">10</span>Trade anatomy</h2>
+<h2><span class="n">11</span>Trade anatomy</h2>
 <div id="anatomy"></div>
 
-<h2><span class="n">11</span>Overfitting assessment</h2>
+<h2><span class="n">12</span>Overfitting assessment</h2>
 <div id="overfit"></div>
 
-<h2><span class="n">12</span>Robustness</h2>
+<h2><span class="n">13</span>Robustness</h2>
 <div id="robust"></div>
 
-<h2><span class="n">13</span>Risk, sizing and capacity</h2>
+<h2><span class="n">14</span>Risk, sizing and capacity</h2>
 <div id="risk"></div>
 
-<h2><span class="n">14</span>Verdict and recommendation</h2>
+<h2><span class="n">15</span>Verdict and recommendation</h2>
 <div id="final"></div>
 
-<h2><span class="n">15</span>Appendix — search results</h2>
+<h2><span class="n">16</span>Appendix — search results</h2>
 <div id="appendix"></div>
 
 <div class="foot" id="foot"></div>
@@ -428,7 +431,104 @@ the only defence is deciding in advance what would count as one.</p>
   the market. H4 rejected as stated.</p>`;
 })();
 
-/* ------------------------------------------------------------- 08 STRATEGY */
+/* -------------------------------------------------------------- 08 ORIGINS */
+(function(){
+  const G = D.origins;
+  if(!G){ $("origins").innerHTML=""; return; }
+  const res=G.results||[];
+  const zs=res.map(r=>r.z).filter(z=>isFinite(z));
+  const mx=Math.max(...zs), mn=Math.min(...zs);
+  const exp=G.meta.expected_max_z_null;
+  const over=res.filter(r=>isFinite(r.z)&&r.z>=exp);
+
+  // grid: origin x mode, best key z
+  const orgs=[...new Set(res.map(r=>r.origin))];
+  const tfs=[...new Set(res.map(r=>r.tf))];
+  let t='<div class="scroll"><table><thead><tr><th>origin definition</th>'
+    + tfs.flatMap(tf=>["classic","wick","body"].map(m=>`<th>${tf} ${m}</th>`)).join("")
+    + '</tr></thead><tbody>';
+  for(const o of orgs){
+    t+=`<tr><td class="mono">${esc(o)}</td>`;
+    for(const tf of tfs) for(const m of ["classic","wick","body"]){
+      const cell=res.filter(r=>r.origin===o&&r.tf===tf&&r.mode===m&&isFinite(r.z));
+      if(!cell.length){t+="<td></td>";continue;}
+      const best=cell.reduce((a,b)=>b.z>a.z?b:a);
+      const hot=best.z>=exp;
+      t+=`<td class="num ${cls(best.z)}" style="${hot?"font-weight:700;background:color-mix(in srgb,var(--s2) 18%,transparent)":""}"
+        title="best key ${best.key}">${sg(best.z)}</td>`;
+    }
+    t+="</tr>";
+  }
+  t+="</tbody></table></div>";
+
+  // clock table
+  const ck=(G.clock||[]).slice(0,6), ckLo=(G.clock||[]).slice(-4);
+  let c='<div class="scroll"><table><thead><tr><th>NY time</th><th>turn rate</th>'
+    +'<th></th><th>NY time</th><th>turn rate</th></tr></thead><tbody>';
+  for(let i=0;i<Math.max(ck.length,ckLo.length);i++){
+    const a=ck[i], b=ckLo[i];
+    c+=`<tr><td class="mono">${a?a.time:""}</td><td class="num pos">${a?pc(a.p):""}</td>`
+      +`<td></td><td class="mono">${b?b.time:""}</td>`
+      +`<td class="num dim">${b?pc(b.p):""}</td></tr>`;
+  }
+  c+="</tbody></table></div>";
+
+  const sh=(G.htf_shift_control||[]).filter(r=>r.key===7);
+  let sct='<div class="scroll"><table><thead><tr><th>block grid</th><th>count 7 lands on</th>'
+    +'<th>turn rate</th><th>z</th></tr></thead><tbody>';
+  const lands=["09:30 — the cash open","10:30","11:30","12:30"];
+  sh.forEach((r,i)=>{
+    sct+=`<tr class="${r.shift_hours===0?"hi":""}"><td class="mono">${
+      r.shift_hours===0?"00/04/08/12/16/20":"shifted +"+r.shift_hours+"h"}</td>`
+      +`<td class="mono">${lands[i]||""}</td>`
+      +`<td class="num">${pc(r.p)}</td>`
+      +`<td class="num ${cls(r.z)}">${sg(r.z)}</td></tr>`;
+  });
+  sct+="</tbody></table></div>";
+
+  $("origins").innerHTML = `
+  <p>Everything above is conditional on one choice the slides never make: where the count
+  starts. I inferred a fractal swing pivot. If that is the wrong guess, the entire review
+  tests a method nobody teaches — which is the most likely way for it to be wrong.</p>
+  <p>So this stops guessing and tries the alternatives: ten origin definitions spanning
+  the readings a practitioner might plausibly mean, each counted three ways on two
+  timeframes, each asked whether the candle at count 7, 13 or 21 is unusually likely to be
+  a turn. The test is deliberately generous — a turn is a local extreme in
+  <em>either</em> direction, so it cannot fail by picking the wrong side, and there are no
+  costs, stops or execution assumptions to get wrong.</p>
+  <div class="kpi">
+   <div><div class="lab">tests run</div><div class="val">${G.meta.n_tests}</div>
+     <div class="sub">10 origins × 3 modes × 3 counts × 2 timeframes</div></div>
+   <div><div class="lab">largest z</div><div class="val">${sg(mx)}</div></div>
+   <div><div class="lab">expected largest, pure noise</div><div class="val">${sg(exp)}</div>
+     <div class="sub">√(2·ln N)</div></div>
+   <div><div class="lab">most negative z</div><div class="val">${sg(mn)}</div>
+     <div class="sub">symmetric — the signature of noise</div></div>
+  </div>
+  <p>Best key count per origin and mode. Anything at or above the noise threshold of
+  ${f(exp)} is highlighted.</p>${t}
+  <p><strong>One cell clears the threshold, and it is a clock artefact.</strong>
+  ${over.length===1?"":"Of the "+over.length+" that do, the largest is worth chasing: "}
+  H4 block open, classic counting, count 7. Classic count 7 is "six candles after the
+  origin", and with blocks on the 00/04/08/12/16/20 grid that lands — from the 08:00
+  block — on exactly 09:30 New York.</p>
+  <h4>Time of day dwarfs everything</h4>
+  <p>NQ has enormous clock structure. The highest and lowest turn rates by New York time:</p>${c}
+  <p>09:30, the cash open, turns three times as often as an average candle. Any origin on
+  a fixed clock grid can drop a key count on top of it and inherit the effect.</p>
+  <h4>The control that settles it</h4>
+  <p>Shift the block grid by an hour so count 7 lands somewhere else:</p>${sct}
+  <p><strong>The hit does not survive the shift.</strong> It was the equity open,
+  rediscovered through an arbitrary alignment of block boundaries, with nothing to do with
+  the number 7. Across ${G.meta.n_tests} tests spanning every plausible definition of
+  candle 1, nothing survives. The conclusion no longer depends on my choice of origin.</p>
+  <p class="note">This does not close the question completely. If TDT's origin is
+  something only a discretionary reader can identify — a structure they recognise rather
+  than a rule a machine can apply — then no automated test reaches it. That limitation is
+  real and is stated in section 16.</p>`;
+})();
+
+/* ------------------------------------------------------------- 09 STRATEGY */
 $("strategy").innerHTML = `
 <p>What the search actually found, stated as a specification. It is a momentum effect
 after a confirmed pivot; the counting is not part of it.</p>

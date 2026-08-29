@@ -6,7 +6,7 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 TPL = os.path.join(HERE, "research_template.html")
 OUT = os.path.join(HERE, "..", "tdt-research-review.html")
 STAGES = {"research": "RESEARCH.json", "sweep": "SWEEP.json",
-          "hold": "HOLD.json", "base": "ALL.json"}
+          "hold": "HOLD.json", "base": "ALL.json", "origins": "ORIGINS.json"}
 
 
 def main():

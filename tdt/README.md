@@ -292,6 +292,50 @@ a $100k account — not a survivable sizing. Quarter it.
 Break-even cost is ~3.5 points per round turn against the 0.75 assumed, so there is real
 execution margin.
 
+## Origin sensitivity (`origins.py`)
+
+The whole review rests on one choice the slides never make: **where the count starts.** I
+inferred a fractal swing pivot. If that guess is wrong, everything above tests a method
+nobody teaches — the most likely way for this work to be mistaken.
+
+So `origins.py` stops guessing and tries the alternatives: **ten origin definitions**
+(swing pivots at k=2/3/5, CME session open, RTH open, H4 block open, sweeps of the prior
+session high and low, range-expansion candles, engulfing candles), each counted three
+ways on two timeframes — **180 tests**. The test is deliberately generous: a "turn" is a
+local extreme in *either* direction, so it cannot fail by picking the wrong side, and
+there are no costs, stops or execution assumptions.
+
+```sh
+python origins.py       # -> ORIGINS.json
+```
+
+| | |
+|---|---|
+| largest z across 180 tests | **+3.44** |
+| expected largest under pure noise, √(2·ln N) | **+3.22** |
+| most negative z | **−2.95** (symmetric — the signature of noise) |
+
+**One cell clears the threshold, and it is a clock artefact.** H4 block open + classic
+counting + count 7. Classic count 7 is "six candles after the origin", and with blocks on
+the 00/04/08/12/16/20 grid that lands — from the 08:00 block — on exactly **09:30 New
+York**, whose base turn rate is 0.337 against a 0.114 average. It is the cash open.
+
+Shift the block grid and it evaporates:
+
+| block grid | count 7 lands on | turn rate | z |
+|---|---|---|---|
+| 00/04/08/12/16/20 | 09:30 — the cash open | 14.4% | **+3.44** |
+| shifted +1h | 10:30 | 10.4% | −1.11 |
+| shifted +2h | 11:30 | 10.9% | +0.14 |
+| shifted +3h | 12:30 | 10.5% | −0.83 |
+
+Across every plausible definition of candle 1, nothing survives. **The conclusion no
+longer depends on the origin I chose.**
+
+What this does *not* close: if TDT's origin is something only a discretionary reader can
+identify — a structure they recognise rather than a rule a machine can apply — no
+automated test reaches it.
+
 ## The counter tool
 
 `tdt-counter.html` — open it in any browser. No dependencies, no network, remembers your
