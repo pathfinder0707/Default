@@ -242,6 +242,56 @@ the TDT signal has no directional content: at k=6 it *loses* $119,470 on train a
 $307,105 on test, a sign flip that is regime, not edge. The stop/target structure, not the
 signal, is what makes the rule above work.
 
+## The research review (`research.py`)
+
+The full evaluation, structured as a research document rather than a set of findings:
+`../tdt-research-review.html`. Fifteen sections — executive summary, hypotheses, data,
+methodology, three findings, the residual strategy specification, performance, trade
+anatomy, overfitting, robustness, risk and capacity, verdict, appendix.
+
+```sh
+python sweep.py && python holdtest.py && python research.py
+python build_research_report.py     # -> ../tdt-research-review.html
+```
+
+`analytics.py` carries the statistics: daily-equity construction at constant fractional
+risk, Sharpe/Sortino/Calmar, drawdown depth and duration, MAE/MFE, the deflated Sharpe
+ratio (Bailey & López de Prado) and probability of backtest overfitting via
+combinatorially symmetric cross-validation. Both PBO and the inverse-normal are validated
+against known cases in-repo.
+
+### The two numbers that matter
+
+| statistic | value | bar | reading |
+|---|---|---|---|
+| Deflated Sharpe (25,920 trials) | **0.235** | > 0.95 | fails |
+| PBO (60 configs, 252 splits) | **0.012** | < 0.50 | passes |
+
+They disagree, and the disagreement is the finding. PBO says the ranking among
+configurations is *stable* — pick a winner in one period and it stays a winner, which
+noise does not do. Deflated Sharpe says the observed 1.75 is not large enough to stand
+out from what a 25,920-configuration search produces from nothing (expected best under
+null: 2.12). The effect is probably real and this study is not powerful enough to have
+established it.
+
+The DSR is entirely a function of how many trials you admit to:
+
+| trials | expected best Sharpe under null | DSR |
+|---|---|---|
+| 1 (pre-specified) | 0.27 | 0.998 |
+| 12 | 0.86 | 0.958 |
+| 60 | 1.22 | 0.852 |
+| 25,920 | 2.12 | 0.235 |
+
+### Risk
+
+Monte-Carlo over 5,000 reorderings of the same out-of-sample trades: realised drawdown
+$47,249, median $38,490, **99th percentile $72,072**. At 1% risk per trade that is 72% of
+a $100k account — not a survivable sizing. Quarter it.
+
+Break-even cost is ~3.5 points per round turn against the 0.75 assumed, so there is real
+execution margin.
+
 ## The counter tool
 
 `tdt-counter.html` — open it in any browser. No dependencies, no network, remembers your
