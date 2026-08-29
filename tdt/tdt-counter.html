@@ -1,0 +1,532 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>TDT Counter</title>
+<style>
+:root{
+  color-scheme:light;
+  --ground:#FBFBFA; --raise:#FFFFFF; --sunk:#F1F1EE; --rail:#E7E7E2;
+  --ink:#15171A; --ink2:#4A4E52; --ink3:#7A7F84;
+  --rule:#DEDED8; --rule2:#C6C7C0;
+  --s1:#2a78d6; --s2:#eb6834; --s3:#1baf7a;
+  --up:#1baf7a; --dn:#15171A; --warn:#fab219; --neg:#d03b3b;
+  --shadow:0 1px 2px rgba(21,23,26,.06),0 4px 14px rgba(21,23,26,.05);
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    color-scheme:dark;
+    --ground:#131619; --raise:#1A1E22; --sunk:#20252A; --rail:#262C31;
+    --ink:#E8EAE7; --ink2:#B4B9BC; --ink3:#848A8F;
+    --rule:#2B3238; --rule2:#3B434A;
+    --s1:#3987e5; --s2:#d95926; --s3:#199e70;
+    --up:#199e70; --dn:#C6CBD0;
+    --shadow:0 1px 2px rgba(0,0,0,.45),0 6px 22px rgba(0,0,0,.32);
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme:dark;
+  --ground:#131619; --raise:#1A1E22; --sunk:#20252A; --rail:#262C31;
+  --ink:#E8EAE7; --ink2:#B4B9BC; --ink3:#848A8F;
+  --rule:#2B3238; --rule2:#3B434A;
+  --s1:#3987e5; --s2:#d95926; --s3:#199e70;
+  --up:#199e70; --dn:#C6CBD0;
+  --shadow:0 1px 2px rgba(0,0,0,.45),0 6px 22px rgba(0,0,0,.32);
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--ground);color:var(--ink);
+  font:400 15px/1.55 ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;
+  -webkit-font-smoothing:antialiased}
+.wrap{max-width:1180px;margin:0 auto;padding:20px 16px 60px}
+header{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;margin-bottom:4px}
+h1{font:700 22px/1.2 ui-sans-serif,system-ui,sans-serif;letter-spacing:-.015em;margin:0}
+.sub{color:var(--ink3);font-size:13px;margin:0 0 16px}
+.mono{font-family:ui-monospace,"SF Mono","IBM Plex Mono",Menlo,monospace}
+.bar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;
+  background:var(--raise);border:1px solid var(--rule);border-radius:10px;
+  padding:10px 12px;margin-bottom:12px;box-shadow:var(--shadow)}
+.bar label{font-size:12px;color:var(--ink3);display:flex;align-items:center;gap:6px}
+select,input[type=number],button,textarea{
+  font:inherit;color:var(--ink);background:var(--sunk);
+  border:1px solid var(--rule2);border-radius:7px;padding:6px 9px}
+button{cursor:pointer;background:var(--raise)}
+button:hover{border-color:var(--s1);color:var(--s1)}
+button.pri{background:var(--s1);color:#fff;border-color:var(--s1)}
+button.pri:hover{opacity:.9;color:#fff}
+.seg{display:inline-flex;border:1px solid var(--rule2);border-radius:7px;overflow:hidden}
+.seg button{border:0;border-radius:0;background:var(--raise);padding:6px 11px;font-size:13px}
+.seg button[aria-pressed="true"]{background:var(--s1);color:#fff}
+.grid{display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:14px;align-items:start}
+.grid>*{min-width:0}
+@media (max-width:880px){.grid{grid-template-columns:1fr}}
+.card{background:var(--raise);border:1px solid var(--rule);border-radius:10px;
+  padding:13px 15px;box-shadow:var(--shadow)}
+.card h2{font:600 13px/1.2 ui-sans-serif,system-ui,sans-serif;letter-spacing:.03em;
+  text-transform:uppercase;color:var(--ink3);margin:0 0 10px}
+.chartbox{overflow-x:auto;-webkit-overflow-scrolling:touch;
+  background:var(--raise);border:1px solid var(--rule);border-radius:10px;
+  padding:8px;box-shadow:var(--shadow)}
+svg{display:block}
+.big{font:700 34px/1 ui-monospace,monospace;letter-spacing:-.02em}
+.due{color:var(--s2)}
+.kv{display:grid;grid-template-columns:auto 1fr;gap:5px 12px;font-size:13.5px;margin:0}
+.kv dt{color:var(--ink3);font-size:12px}
+.kv dd{margin:0;text-align:right;font-family:ui-monospace,monospace}
+.pill{display:inline-block;font:600 11px/1 ui-monospace,monospace;letter-spacing:.05em;
+  text-transform:uppercase;padding:4px 7px;border-radius:5px;background:var(--sunk);
+  border:1px solid var(--rule);color:var(--ink2)}
+.pill.ok{color:var(--s3);border-color:color-mix(in srgb,var(--s3) 45%,var(--rule))}
+.pill.bad{color:var(--neg);border-color:color-mix(in srgb,var(--neg) 45%,var(--rule))}
+.pill.warn{color:var(--warn);border-color:color-mix(in srgb,var(--warn) 55%,var(--rule))}
+textarea{width:100%;min-height:110px;font-family:ui-monospace,monospace;font-size:12.5px;
+  resize:vertical}
+table{border-collapse:collapse;width:100%;font-size:13px}
+th,td{text-align:right;padding:4px 6px;border-bottom:1px solid var(--rule)}
+th:first-child,td:first-child{text-align:left}
+th{font:600 11px/1.2 ui-monospace,monospace;text-transform:uppercase;color:var(--ink3)}
+.note{font-size:12.5px;color:var(--ink3);margin:10px 0 0}
+details{margin-top:12px}
+summary{cursor:pointer;font-size:13px;color:var(--ink2)}
+.err{color:var(--neg);font-size:13px;margin-top:8px;min-height:1.2em}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <h1>TDT Counter</h1>
+  <span class="pill" id="srcpill">demo data</span>
+  <span style="flex:1"></span>
+  <div class="seg" role="group" aria-label="theme">
+    <button id="thL" aria-pressed="false">light</button>
+    <button id="thD" aria-pressed="false">dark</button>
+    <button id="thS" aria-pressed="true">auto</button>
+  </div>
+</header>
+<p class="sub">Counts a candle series the way the TDT slides do — classic, or contraction
+by wick or body — and tells you how far the live leg is from 7, 13 and 21.
+Offline, no dependencies, remembers your settings.</p>
+
+<div class="bar">
+  <label>mode
+    <div class="seg" role="group" aria-label="counting mode">
+      <button data-mode="classic" aria-pressed="true">classic</button>
+      <button data-mode="wick" aria-pressed="false">wick</button>
+      <button data-mode="body" aria-pressed="false">body</button>
+    </div>
+  </label>
+  <label>origin
+    <select id="originSel"><option value="auto">latest swing</option></select>
+  </label>
+  <label>swing k <input id="k" type="number" min="1" max="12" value="3" style="width:62px"></label>
+  <label>show <input id="show" type="number" min="30" max="400" value="120" style="width:70px"></label>
+  <button id="loadBtn">Load data…</button>
+  <button id="demoBtn">Demo series</button>
+</div>
+
+<div class="grid">
+  <div>
+    <div class="chartbox"><svg id="chart" role="img" aria-label="counted candles"></svg></div>
+    <div class="card" style="margin-top:14px">
+      <h2>Every leg in view</h2>
+      <div style="overflow-x:auto"><table id="legtab"><thead><tr>
+        <th>leg</th><th>dir</th><th>from</th><th>to</th><th>terminal</th><th>read</th>
+      </tr></thead><tbody></tbody></table></div>
+    </div>
+  </div>
+
+  <div>
+    <div class="card">
+      <h2>Live leg</h2>
+      <div class="big" id="liveCount">—</div>
+      <div class="note" id="liveDir" style="margin-top:2px">no leg</div>
+      <hr style="border:0;border-top:1px solid var(--rule);margin:12px 0">
+      <dl class="kv" id="nextKv"></dl>
+    </div>
+
+    <div class="card" style="margin-top:14px">
+      <h2>Model #3 signature</h2>
+      <div class="big mono" id="sigTxt" style="font-size:26px">—</div>
+      <div style="margin-top:8px" id="sigVerdict"></div>
+      <p class="note" id="sigNote"></p>
+    </div>
+
+    <div class="card" style="margin-top:14px">
+      <h2>Reference</h2>
+      <dl class="kv">
+        <dt>[1-7]</dt><dd>continuation</dd>
+        <dt>[1-13]</dt><dd>reversal inside</dd>
+        <dt>13-7-7</dt><dd class="mono">ok</dd>
+        <dt>7-13-7</dt><dd class="mono">ok</dd>
+        <dt>7-7-7</dt><dd class="mono">ok</dd>
+        <dt>any 21</dt><dd class="mono">not advised</dd>
+      </dl>
+    </div>
+  </div>
+</div>
+
+<details id="dataPanel">
+  <summary>Load your own series — CSV, one candle per line</summary>
+  <div class="card" style="margin-top:10px">
+    <p class="note" style="margin:0 0 8px">Accepts <span class="mono">o,h,l,c</span> or
+    <span class="mono">date,o,h,l,c</span> or <span class="mono">date,time,o,h,l,c</span>,
+    comma/tab/semicolon separated. A header line is skipped automatically. Oldest candle
+    first.</p>
+    <textarea id="csv" spellcheck="false"
+      placeholder="2024-01-02,16820.5,16901.0,16780.25,16874.75&#10;..."></textarea>
+    <div style="margin-top:8px;display:flex;gap:8px;flex-wrap:wrap">
+      <button class="pri" id="parseBtn">Parse and count</button>
+      <button id="clearBtn">Clear</button>
+    </div>
+    <div class="err" id="err"></div>
+  </div>
+</details>
+</div>
+
+<script>
+"use strict";
+const KEYS = [7, 13, 21];
+const UP = 1, DOWN = -1;
+const LS = "tdt-counter-v1";
+const $ = s => document.querySelector(s);
+
+let state = {mode:"classic", k:3, show:120, origin:"auto", theme:"auto"};
+let bars = [];        // {o,h,l,c}
+let srcName = "demo data";
+
+/* ------------------------------------------------------------- persistence */
+try { Object.assign(state, JSON.parse(localStorage.getItem(LS) || "{}")); } catch (e) {}
+function save(){ try{ localStorage.setItem(LS, JSON.stringify(state)); }catch(e){} }
+
+/* ------------------------------------------------------------------ engine */
+function rail(b, mode, dir){
+  if (mode === "wick") return dir === UP ? b.h : b.l;
+  return dir === UP ? Math.max(b.o, b.c) : Math.min(b.o, b.c);
+}
+
+/** Count forward from `origin`; returns {idx:[bar…], x:[bar…]} where idx[n-1] took n. */
+function countFrom(series, origin, dir, mode, stop){
+  const end = stop === undefined ? series.length : Math.min(series.length, stop);
+  if (!(origin >= 0 && origin < end)) return {idx:[], x:[]};
+  if (mode === "classic"){
+    const idx = []; for (let i = origin; i < end; i++) idx.push(i);
+    return {idx, x:[]};
+  }
+  const better = dir === UP ? (a,b) => a > b : (a,b) => a < b;
+  const idx = [origin], x = [];
+  let ref = rail(series[origin], mode, dir);
+  for (let i = origin + 1; i < end; i++){
+    const v = rail(series[i], mode, dir);
+    if (better(v, ref)){ idx.push(i); ref = v; } else x.push(i);
+  }
+  return {idx, x};
+}
+
+/** Fractal swing pivots of strength k. */
+function swings(series, k){
+  const hi = [], lo = [];
+  for (let i = k; i < series.length - k; i++){
+    let isH = true, isL = true;
+    for (let j = 1; j <= k && (isH || isL); j++){
+      if (series[i].h <= series[i-j].h || series[i].h <= series[i+j].h) isH = false;
+      if (series[i].l >= series[i-j].l || series[i].l >= series[i+j].l) isL = false;
+    }
+    if (isH) hi.push(i);
+    if (isL) lo.push(i);
+  }
+  return {hi, lo};
+}
+
+/** Alternating swing-to-swing legs, same collapse rule as models.py. */
+function legs(series, k, mode){
+  const {hi, lo} = swings(series, k);
+  const piv = hi.map(i => [i, DOWN]).concat(lo.map(i => [i, UP]))
+                .sort((a,b) => a[0]-b[0]);
+  const kept = [];
+  for (const [i, d] of piv){
+    if (kept.length && kept[kept.length-1][1] === d){
+      const prev = kept[kept.length-1][0];
+      const better = d === DOWN ? series[i].h > series[prev].h
+                                : series[i].l < series[prev].l;
+      if (better) kept[kept.length-1] = [i, d];
+    } else kept.push([i, d]);
+  }
+  const out = [];
+  for (let n = 0; n + 1 < kept.length; n++){
+    const [a, d] = kept[n], b = kept[n+1][0];
+    const c = countFrom(series, a, d, mode, b + 1);
+    let terminal = c.idx.indexOf(b);
+    terminal = terminal >= 0 ? terminal + 1 : c.idx.length;
+    out.push({start:a, end:b, dir:d, count:c, terminal});
+  }
+  return {legs: out, kept};
+}
+
+const bucket = (n, tol=1) => {
+  if (n === null || n === undefined || n < 0) return null;
+  let best = KEYS[0];
+  for (const kk of KEYS) if (Math.abs(kk-n) < Math.abs(best-n)) best = kk;
+  return Math.abs(best - n) <= tol ? best : null;
+};
+
+function grade(sig){
+  if (!sig || sig.some(s => s === null)) return ["unclassified", ""];
+  if (sig.includes(21)) return ["not advised", "contains a 21"];
+  const s = sig.join("-");
+  if (s === "13-7-7") return ["ok", "Reversal inside of a Continuation"];
+  if (s === "7-13-7") return ["ok", "Contunuation of a Continuation"];
+  if (s === "7-7-7")  return ["ok", ""];
+  return ["unlisted", ""];
+}
+
+/* -------------------------------------------------------------------- data */
+function demoSeries(n=260, seed=9){
+  let s = seed, out = [], px = 16000;
+  const rnd = () => (s = (s*1103515245 + 12345) & 0x7fffffff) / 0x7fffffff;
+  for (let i = 0; i < n; i++){
+    const o = px;
+    px += (rnd() - 0.5) * 90 + Math.sin(i/13) * 9;
+    const c = px, w = 12 + rnd()*40;
+    out.push({o, c, h: Math.max(o,c) + rnd()*w, l: Math.min(o,c) - rnd()*w});
+  }
+  return out;
+}
+
+function parseCSV(text){
+  const rows = text.trim().split(/\r?\n/).filter(l => l.trim());
+  if (!rows.length) throw new Error("nothing to parse");
+  const out = [];
+  for (let r = 0; r < rows.length; r++){
+    const f = rows[r].split(/[,;\t]/).map(x => x.trim()).filter(x => x !== "");
+    const nums = f.map(Number);
+    // take the last four parseable numbers on the line as o,h,l,c
+    const tail = [];
+    for (let i = nums.length - 1; i >= 0 && tail.length < 4; i--)
+      if (Number.isFinite(nums[i])) tail.unshift(nums[i]); else break;
+    if (tail.length < 4){
+      if (r === 0) continue;                        // header
+      throw new Error("line " + (r+1) + ": need four numbers (o,h,l,c)");
+    }
+    const [o,h,l,c] = tail;
+    if (h < Math.max(o,c) - 1e-9 || l > Math.min(o,c) + 1e-9)
+      throw new Error("line " + (r+1) + ": high/low do not contain open/close");
+    out.push({o,h,l,c});
+  }
+  if (out.length < 12) throw new Error("need at least 12 candles, got " + out.length);
+  return out;
+}
+
+/* ------------------------------------------------------------------ render */
+function render(){
+  const n = bars.length;
+  if (!n) return;
+  const show = Math.max(30, Math.min(state.show, n));
+  const view = bars.slice(n - show);
+  const off  = n - show;
+
+  const {legs: L, kept} = legs(bars, state.k, state.mode);
+
+  // origin choices
+  const sel = $("#originSel");
+  const prev = sel.value;
+  sel.innerHTML = '<option value="auto">latest swing</option>' + kept
+    .filter(([i]) => i >= off).slice(-40).reverse()
+    .map(([i,d]) => `<option value="${i}">${d===UP?"▼ low":"▲ high"} @ ${i}</option>`)
+    .join("");
+  sel.value = [...sel.options].some(o => o.value === prev) ? prev : "auto";
+  state.origin = sel.value;
+
+  // the live leg: from the last confirmed pivot to the last candle
+  const last = kept.length ? kept[kept.length-1] : null;
+  let live = null;
+  if (last){
+    const c = countFrom(bars, last[0], last[1], state.mode);
+    live = {origin:last[0], dir:last[1], count:c, num:c.idx.length};
+  }
+  const chosen = state.origin === "auto" ? live
+    : (() => { const i = +state.origin;
+               const p = kept.find(([j]) => j === i);
+               if (!p) return live;
+               const c = countFrom(bars, i, p[1], state.mode);
+               return {origin:i, dir:p[1], count:c, num:c.idx.length}; })();
+
+  drawChart(view, off, chosen, L);
+  drawLive(chosen);
+  drawSignature(bars);
+  drawLegs(L, off);
+  $("#srcpill").textContent = srcName + " · " + n + " candles";
+}
+
+function drawChart(view, off, chosen, L){
+  const W = Math.max(760, view.length * 13), H = 430;
+  const P = {l:8, r:54, t:26, b:16};
+  let lo = Infinity, hi = -Infinity;
+  for (const b of view){ if (b.l < lo) lo = b.l; if (b.h > hi) hi = b.h; }
+  const pad = (hi - lo) * 0.12 || 1;
+  lo -= pad; hi += pad;
+  const y = v => P.t + (hi - v) / (hi - lo) * (H - P.t - P.b);
+  const bw = (W - P.l - P.r) / view.length;
+  const cw = Math.max(1.5, Math.min(9, bw * 0.62));
+
+  const label = new Map();   // bar index -> text
+  if (chosen){
+    chosen.count.idx.forEach((b, i) => label.set(b, String(i + 1)));
+    chosen.count.x.forEach(b => label.set(b, "x"));
+  }
+
+  let s = "";
+  view.forEach((b, i) => {
+    const gi = i + off, x = P.l + i * bw + bw / 2;
+    const up = b.c >= b.o;
+    const col = up ? "var(--up)" : "var(--dn)";
+    s += `<line x1="${x.toFixed(1)}" y1="${y(b.h).toFixed(1)}" x2="${x.toFixed(1)}"
+           y2="${y(b.l).toFixed(1)}" stroke="${col}" stroke-width="1"/>`;
+    const yo = y(b.o), yc = y(b.c);
+    s += `<rect x="${(x-cw/2).toFixed(1)}" y="${Math.min(yo,yc).toFixed(1)}"
+           width="${cw.toFixed(1)}" height="${Math.max(1,Math.abs(yc-yo)).toFixed(1)}"
+           fill="${col}"/>`;
+
+    const t = label.get(gi);
+    if (t){
+      const isKey = KEYS.includes(+t);
+      const above = chosen.dir === UP;
+      const ly = above ? y(b.h) - 6 : y(b.l) + 13;
+      const fill = t === "x" ? "var(--ink3)" : isKey ? "var(--s2)" : "var(--s1)";
+      if (isKey)
+        s += `<circle cx="${x.toFixed(1)}" cy="${(ly-4).toFixed(1)}" r="8.5"
+               fill="none" stroke="var(--s2)" stroke-width="1.2"/>`;
+      s += `<text x="${x.toFixed(1)}" y="${ly.toFixed(1)}" text-anchor="middle"
+             font-size="${t==="x"?9:10.5}" font-weight="${isKey?700:500}"
+             font-family="ui-monospace,monospace" fill="${fill}">${t}</text>`;
+    }
+  });
+
+  // origin marker
+  if (chosen && chosen.origin >= off){
+    const x = P.l + (chosen.origin - off) * bw + bw / 2;
+    s += `<line x1="${x.toFixed(1)}" y1="${P.t}" x2="${x.toFixed(1)}" y2="${H-P.b}"
+           stroke="var(--s1)" stroke-width="1" stroke-dasharray="2 4" opacity=".55"/>`;
+  }
+
+  // price axis
+  for (let g = 0; g <= 4; g++){
+    const v = lo + (hi - lo) * g / 4, yy = y(v);
+    s += `<line x1="${P.l}" y1="${yy.toFixed(1)}" x2="${W-P.r}" y2="${yy.toFixed(1)}"
+           stroke="var(--rule)" opacity=".7"/>`
+      + `<text x="${W-P.r+5}" y="${(yy+3.5).toFixed(1)}" font-size="10"
+          font-family="ui-monospace,monospace" fill="var(--ink3)">${v.toFixed(1)}</text>`;
+  }
+  const el = $("#chart");
+  el.setAttribute("viewBox", `0 0 ${W} ${H}`);
+  el.setAttribute("width", W);
+  el.setAttribute("height", H);
+  el.innerHTML = s;
+  // the live leg is always at the right edge, and it is the thing being read
+  const box = el.parentElement;
+  if (box) box.scrollLeft = box.scrollWidth;
+}
+
+function drawLive(ch){
+  if (!ch){ $("#liveCount").textContent = "—"; $("#liveDir").textContent = "no leg";
+            $("#nextKv").innerHTML = ""; return; }
+  const num = ch.num;
+  const isKey = KEYS.includes(num);
+  $("#liveCount").innerHTML = `<span class="${isKey?"due":""}">${num}</span>`;
+  $("#liveDir").textContent =
+    (ch.dir === UP ? "up leg from a swing low" : "down leg from a swing high")
+    + " at candle " + ch.origin
+    + (ch.count.x.length ? " · " + ch.count.x.length + " skipped" : "");
+  $("#nextKv").innerHTML = KEYS.map(kk => {
+    const away = kk - num;
+    const txt = away === 0 ? '<span class="due">on it now</span>'
+      : away > 0 ? away + " to go"
+      : `<span style="color:var(--ink3)">passed</span>`;
+    return `<dt>count ${kk}</dt><dd>${txt}</dd>`;
+  }).join("");
+}
+
+function drawSignature(series){
+  const ks = [Math.max(2, state.k + 2), state.k, Math.max(1, state.k - 1)];
+  const degs = ks.map(k => legs(series, k, state.mode).legs);
+  const d1 = degs[0][degs[0].length - 1];
+  if (!d1){ $("#sigTxt").textContent = "—"; $("#sigVerdict").innerHTML = "";
+            $("#sigNote").textContent = "not enough structure yet"; return; }
+  const inner = (arr, lo, hi, end) => {
+    let best = null, gap = Infinity;
+    for (const lg of arr){
+      if (lg.start < lo || lg.end > hi) continue;
+      const g = Math.abs(lg.end - end);
+      if (g < gap){ best = lg; gap = g; }
+    }
+    return best;
+  };
+  const d2 = inner(degs[1], d1.start, d1.end, d1.end);
+  const d3 = d2 ? inner(degs[2], d2.start, d2.end, d2.end) : null;
+  const sig = [d1, d2, d3].map(l => l ? bucket(l.terminal) : null);
+  const [verdict, label] = grade(sig);
+  $("#sigTxt").textContent = sig.map(s => s === null ? "?" : s).join("-");
+  const cls = verdict === "ok" ? "ok" : verdict === "not advised" ? "bad" : "warn";
+  $("#sigVerdict").innerHTML = `<span class="pill ${cls}">${verdict}</span>`
+    + (label ? ` <span class="note">${label}</span>` : "");
+  $("#sigNote").textContent = "degrees k=" + ks.join("/") + " · raw terminals "
+    + [d1,d2,d3].map(l => l ? l.terminal : "—").join(", ");
+}
+
+function drawLegs(L, off){
+  const rows = L.filter(l => l.end >= off).slice(-14).reverse();
+  $("#legtab").querySelector("tbody").innerHTML = rows.map((l, i) => {
+    const key = bucket(l.terminal);
+    const read = key === 7 ? "continuation" : key === 13 ? "reversal inside"
+      : key === 21 ? "not advised" : "—";
+    return `<tr><td class="mono">${L.length - i}</td>`
+      + `<td>${l.dir === UP ? "▲ up" : "▼ down"}</td>`
+      + `<td class="mono">${l.start}</td><td class="mono">${l.end}</td>`
+      + `<td class="mono" style="${key?"color:var(--s2);font-weight:600":""}">`
+      + `${l.terminal}${key?" ("+key+")":""}</td>`
+      + `<td>${read}</td></tr>`;
+  }).join("");
+}
+
+/* ------------------------------------------------------------------ wiring */
+document.querySelectorAll("[data-mode]").forEach(b => b.onclick = () => {
+  state.mode = b.dataset.mode; save();
+  document.querySelectorAll("[data-mode]").forEach(o =>
+    o.setAttribute("aria-pressed", String(o.dataset.mode === state.mode)));
+  render();
+});
+$("#k").oninput = e => { state.k = Math.max(1, +e.target.value || 3); save(); render(); };
+$("#show").oninput = e => { state.show = Math.max(30, +e.target.value || 120); save(); render(); };
+$("#originSel").onchange = e => { state.origin = e.target.value; save(); render(); };
+$("#demoBtn").onclick = () => { bars = demoSeries(); srcName = "demo data"; render(); };
+$("#loadBtn").onclick = () => { $("#dataPanel").open = true;
+  $("#dataPanel").scrollIntoView({behavior:"smooth", block:"nearest"}); $("#csv").focus(); };
+$("#clearBtn").onclick = () => { $("#csv").value = ""; $("#err").textContent = ""; };
+$("#parseBtn").onclick = () => {
+  try {
+    const b = parseCSV($("#csv").value);
+    bars = b; srcName = "pasted"; $("#err").textContent = "";
+    $("#dataPanel").open = false; render();
+  } catch (e){ $("#err").textContent = e.message; }
+};
+
+function setTheme(t){
+  state.theme = t; save();
+  if (t === "auto") document.documentElement.removeAttribute("data-theme");
+  else document.documentElement.setAttribute("data-theme", t);
+  $("#thL").setAttribute("aria-pressed", String(t === "light"));
+  $("#thD").setAttribute("aria-pressed", String(t === "dark"));
+  $("#thS").setAttribute("aria-pressed", String(t === "auto"));
+}
+$("#thL").onclick = () => setTheme("light");
+$("#thD").onclick = () => setTheme("dark");
+$("#thS").onclick = () => setTheme("auto");
+
+document.querySelectorAll("[data-mode]").forEach(o =>
+  o.setAttribute("aria-pressed", String(o.dataset.mode === state.mode)));
+$("#k").value = state.k; $("#show").value = state.show;
+setTheme(state.theme || "auto");
+bars = demoSeries();
+render();
+</script>
+</body>
+</html>

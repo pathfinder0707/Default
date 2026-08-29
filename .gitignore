@@ -8,3 +8,6 @@ __pycache__/
 *.parquet
 futures/**/bars.npz
 futures/ranges/zz_*.npz
+
+# tdt feed (symlink or copy of futures/bars.npz)
+tdt/bars.npz
