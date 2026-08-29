@@ -18,17 +18,28 @@ BARS = os.path.join(HERE, "bars.npz")
 TF_MINUTES = {"M1": 1, "M5": 5, "M15": 15, "M30": 30,
               "H1": 60, "H4": 240, "D1": 1440}
 
+# The CME session opens at 18:00 New York and the dead hour is 17:00 -- verified
+# against this feed, where 17:00 holds 37 bars in four years and 18:00 holds
+# ~59,000. A daily candle therefore runs 18:00 -> 17:00 the next day.
+SESSION_OPEN_HOUR = 18
+
 # The counts TDT treats as meaningful. 7 and 13 carry the two model readings;
 # 21 is the count the Model #3 slide explicitly warns off.
 KEY_COUNTS = (7, 13, 21)
 
 
-def load(path=BARS):
-    """Load bars.npz into a dict of arrays.
+def load(path=BARS, from_year=None, to_year=None):
+    """Load bars.npz into a dict of arrays, optionally clipped by year.
 
     Raises a readable error rather than a numpy one when the data is absent --
     the feed is gitignored, so a fresh checkout has no bars until you run
     ../futures/build_npz.py.
+
+    from_year matters more than it looks. The NQ feed's session coverage ramps
+    from under two hours a day in 2010 to a full 23 by 2022, so a daily candle
+    from 2011 is built on a couple of hours of trade and a 2023 one on the
+    whole session. Those are not the same object, and counting across the join
+    silently mixes them. Anything intraday is meaningless before 2016.
     """
     if not os.path.exists(path):
         raise SystemExit(
@@ -37,26 +48,70 @@ def load(path=BARS):
             "    python futures/build_npz.py   (writes futures/bars.npz)\n"
             "    ln -s ../futures/bars.npz tdt/bars.npz" % path)
     b = np.load(path)
-    d = {k: b[k] for k in ("ts", "o", "h", "l", "c", "date", "yr", "hh", "mm")}
+    keys = ["ts", "o", "h", "l", "c", "date", "yr", "hh", "mm"]
+    if "sess" in b.files:
+        keys.append("sess")
     if "v" in b.files:
-        d["v"] = b["v"]
+        keys.append("v")
+    d = {k: b[k] for k in keys}
+
+    if from_year is not None or to_year is not None:
+        sel = np.ones(len(d["yr"]), bool)
+        if from_year is not None:
+            sel &= d["yr"] >= int(from_year)
+        if to_year is not None:
+            sel &= d["yr"] <= int(to_year)
+        d = {k: v[sel] for k, v in d.items()}
+        if not len(d["ts"]):
+            raise SystemExit("no bars left after the year filter")
+
     d["tod"] = d["hh"] * 100 + d["mm"]
     return d
 
 
 # ------------------------------------------------------------------ resample
+def session_index(bars):
+    """A counter that increments once per CME session open, one id per session.
+
+    Counts transitions into the 18:00 hour rather than doing calendar
+    arithmetic, so a session runs unbroken from 18:00 to 17:00 the next day and
+    the Friday-to-Sunday weekend gap costs exactly one increment. Requires
+    time-sorted bars, which bars.npz guarantees.
+    """
+    hh = bars["hh"].astype(np.int64)
+    open_ = hh >= SESSION_OPEN_HOUR
+    opened = np.zeros(len(hh), bool)
+    opened[0] = open_[0]
+    opened[1:] = open_[1:] & ~open_[:-1]
+    return np.cumsum(opened).astype(np.int64)
+
+
 def _bucket(bars, tf):
     """Integer bucket id per 1-min bar, one distinct id per output candle.
 
-    D1 buckets on the trading date. Intraday timeframes bucket on elapsed
-    minutes within the date, so an H1 candle is 09:00-09:59 local and never
-    straddles the maintenance break.
+    D1 buckets on the CME trading session, not the calendar date. The feed's
+    dead hour is 17:00 NY and the session opens at 18:00, so a daily candle
+    runs 18:00 -> 17:00 the next day. Bucketing on the calendar date instead
+    would cut every daily candle in half at midnight, straight through the
+    middle of the overnight session -- and since a count is a sequence of
+    candles, that does not merely move the boundaries, it changes every count.
+
+    Note that build_npz.py's own `sess` field cannot be used for this: it tags
+    the evening half of a session (hh>=18) and the following morning half with
+    two different ids, so bucketing on it splits every session in two. See
+    session_index below.
+
+    Intraday timeframes bucket on elapsed minutes within the session for the
+    same reason, so an H1 candle never straddles the break.
     """
+    sess = session_index(bars)
     if tf == "D1":
-        return bars["date"].astype(np.int64)
+        return sess
     step = TF_MINUTES[tf]
     mins = bars["hh"].astype(np.int64) * 60 + bars["mm"].astype(np.int64)
-    return bars["date"].astype(np.int64) * 10000 + mins // step
+    # minutes since the session opened, so the grid starts at 18:00 not 00:00
+    since = (mins - SESSION_OPEN_HOUR * 60) % (24 * 60)
+    return sess * 10000 + since // step
 
 
 def resample(bars, tf):
@@ -110,3 +165,21 @@ def rank_of(observed, null_samples, higher_is_better=True):
     if higher_is_better:
         return int((null_samples >= observed).sum() + 1)
     return int((null_samples <= observed).sum() + 1)
+
+
+def exec_map(raw, count_tf, exec_tf):
+    """Bridge a counting timeframe to a finer execution timeframe.
+
+    Returns {"bars": <exec series>, "xmap": <array>} where xmap[i] is the index
+    of the first execution candle that opens at or after counting candle i.
+    Both series are resampled from the same 1-minute feed, so the mapping is
+    exact rather than interpolated.
+    """
+    if TF_MINUTES[exec_tf] > TF_MINUTES[count_tf]:
+        raise ValueError("execution timeframe %s is coarser than the counting "
+                         "timeframe %s" % (exec_tf, count_tf))
+    cnt = resample(raw, count_tf)
+    ex = resample(raw, exec_tf)
+    # both `src` arrays index the same 1-min feed and are sorted ascending
+    xmap = np.searchsorted(ex["src"], cnt["src"], side="left")
+    return {"bars": ex, "xmap": np.clip(xmap, 0, len(ex["src"]) - 1)}

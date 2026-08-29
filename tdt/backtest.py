@@ -34,37 +34,57 @@ def _atr(bars, lo, hi, fallback=1.0):
     return m if np.isfinite(m) and m > 0 else fallback
 
 
-def simulate(bars, signals, rr=2.0, pad=0.25, timeout=20, cost=0.0):
+def simulate(bars, signals, rr=2.0, pad=0.25, timeout=20, cost=0.0, exec_bars=None):
     """Run one signal set through the same entry/stop/target rules.
 
-    A trade resolves on whichever of stop or target the bar touches. When a
+    A trade resolves on whichever bar touches stop or target first. When a
     single bar spans both, the stop is taken -- the pessimistic assumption,
     since intrabar order is unknowable from OHLC.
+
+    `exec_bars` is what makes Model #2's "counts on D1, execution on H1"
+    real. Pass a finer series (with the `xmap` from tdtcore.exec_map) and the
+    signal is still read on the counting timeframe, but entry, stop and target
+    resolve on the finer one. It matters more than it sounds: on daily bars a
+    single candle routinely spans both stop and target, so the pessimistic
+    tie-break fires constantly and every such trade is booked a loss. On hourly
+    bars the two are usually separated and the tie-break is rare, which is the
+    difference between measuring the model and measuring the tie-break rule.
+
+    timeout is counted in execution bars, so it scales with whichever series
+    is doing the executing.
     """
     n = len(bars["c"])
+    xb = exec_bars["bars"] if exec_bars else bars
+    xmap = exec_bars["xmap"] if exec_bars else None
+    xn = len(xb["c"])
     trades = []
     for sig in signals:
         entry_i = int(sig["confirmed_at"]) + 1
         if entry_i >= n - 1:
             continue
         d = int(sig["expect"])
-        entry = float(bars["o"][entry_i])
 
-        # the extreme the count terminated on
+        # the extreme the count terminated on, always read on the count series
         seg_lo, seg_hi = int(sig["start"]), int(sig["end"]) + 1
         ext = float(bars["l"][seg_lo:seg_hi].min()) if d == UP \
             else float(bars["h"][seg_lo:seg_hi].max())
         buf = pad * _atr(bars, seg_lo, seg_hi)
         stop = ext - buf if d == UP else ext + buf
+
+        # entry opens the first execution bar at or after the signal candle
+        x0 = int(xmap[entry_i]) if xmap is not None else entry_i
+        if x0 >= xn - 1:
+            continue
+        entry = float(xb["o"][x0])
         risk = abs(entry - stop)
         if risk <= 0 or not np.isfinite(risk):
             continue
         target = entry + d * rr * risk
 
-        out, exit_i, exit_px = "timeout", min(n - 1, entry_i + timeout), None
-        for i in range(entry_i, min(n, entry_i + timeout + 1)):
-            hit_stop = bars["l"][i] <= stop if d == UP else bars["h"][i] >= stop
-            hit_tgt = bars["h"][i] >= target if d == UP else bars["l"][i] <= target
+        out, exit_i, exit_px = "timeout", min(xn - 1, x0 + timeout), None
+        for i in range(x0, min(xn, x0 + timeout + 1)):
+            hit_stop = xb["l"][i] <= stop if d == UP else xb["h"][i] >= stop
+            hit_tgt = xb["h"][i] >= target if d == UP else xb["l"][i] <= target
             if hit_stop:
                 out, exit_i, exit_px = "stop", i, stop
                 break
@@ -72,14 +92,14 @@ def simulate(bars, signals, rr=2.0, pad=0.25, timeout=20, cost=0.0):
                 out, exit_i, exit_px = "target", i, target
                 break
         if exit_px is None:
-            exit_px = float(bars["c"][exit_i])
+            exit_px = float(xb["c"][exit_i])
 
         pts = (exit_px - entry) * d - cost
         trades.append({
-            "entry_i": entry_i, "exit_i": int(exit_i), "dir": d,
+            "entry_i": x0, "exit_i": int(exit_i), "dir": d,
             "entry": entry, "stop": stop, "target": target,
             "risk": risk, "pts": float(pts), "r": float(pts / risk),
-            "outcome": out, "bars": int(exit_i - entry_i),
+            "outcome": out, "bars": int(exit_i - x0),
             "key": sig.get("key"), "sig": sig.get("sig_str"),
             "verdict": sig.get("verdict"),
         })
@@ -138,11 +158,12 @@ def equity(trades, cap=400):
 
 # ------------------------------------------------------------------- driver
 def run(bars, k=3, ks=(5, 3, 2), modes=counting.MODES,
-        rr_grid=(1.0, 1.5, 2.0, 3.0), timeout=20, pad=0.25, cost=0.0, tol=1):
+        rr_grid=(1.0, 1.5, 2.0, 3.0), timeout=20, pad=0.25, cost=0.0, tol=1,
+        exec_bars=None, exec_tf=None):
     """Both models, every counting mode, swept over the reward multiple."""
     out = {"model2": {}, "model3": {}, "sweep": [], "params": {
         "k": k, "ks": list(ks), "timeout": timeout, "pad": pad, "cost": cost,
-        "tol": tol, "rr_grid": list(rr_grid)}}
+        "tol": tol, "rr_grid": list(rr_grid), "exec_tf": exec_tf}}
 
     for mode in modes:
         m2 = models.model2(bars, k=k, mode=mode, tol=tol)
@@ -150,13 +171,16 @@ def run(bars, k=3, ks=(5, 3, 2), modes=counting.MODES,
 
         for rr in rr_grid:
             for name, sigs in (("model2", m2), ("model3", m3)):
-                tr = simulate(bars, sigs, rr=rr, pad=pad, timeout=timeout, cost=cost)
+                tr = simulate(bars, sigs, rr=rr, pad=pad, timeout=timeout,
+                              cost=cost, exec_bars=exec_bars)
                 row = {"model": name, "mode": mode, "rr": rr}
                 row.update(stats(tr))
                 out["sweep"].append(row)
 
-        base2 = simulate(bars, m2, rr=2.0, pad=pad, timeout=timeout, cost=cost)
-        base3 = simulate(bars, m3, rr=2.0, pad=pad, timeout=timeout, cost=cost)
+        base2 = simulate(bars, m2, rr=2.0, pad=pad, timeout=timeout, cost=cost,
+                         exec_bars=exec_bars)
+        base3 = simulate(bars, m3, rr=2.0, pad=pad, timeout=timeout, cost=cost,
+                         exec_bars=exec_bars)
         out["model2"][mode] = {"n_signals": len(m2), "stats": stats(base2),
                                "by_key": by(base2, "key"),
                                "equity": equity(base2)}

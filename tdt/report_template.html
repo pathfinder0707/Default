@@ -95,6 +95,16 @@ ul{color:var(--ink2);max-width:70ch}li{margin:5px 0}
 literally and asks the only question that matters: does a leg turn at 7 more often than
 it turns at 6 or 8?</p>
 
+<h2 id="verdict">The result</h2>
+<p>Hold the entry, stop, target and timeout fixed and change only <em>which legs get
+traded</em>: the ones TDT selects, every leg regardless, and the ones TDT explicitly
+rejects. If the count is doing work, the TDT set wins.</p>
+<div id="filter"></div>
+<p class="sub">This is the comparison that decides what every other number here means. A
+backtest of the model alone can show a healthy t-statistic whether or not the counting
+contributes anything — because the entry, the stop and the target are also doing work.
+Only the contrast separates them.</p>
+
 <h2>What the material actually specifies</h2>
 <p>Three counting modes, read off the <em>Advanced Counting Examples</em> slides. A count
 starts at a swing candle numbered 1 and runs forward.</p>
@@ -198,8 +208,11 @@ const esc = s => String(s).replace(/[&<>]/g, c => ({"&":"&amp;","<":"&lt;",">":"
 /* ---------------------------------------------------------------- header */
 const m = D.meta;
 document.getElementById("sub").textContent =
-  `${m.bars.toLocaleString()} candles · ${m.tf} · swing k=${m.k} · Model #3 degrees `
-  + `${m.ks.join("/")} · key-count tolerance ±${m.tol} · built ${m.built}`;
+  `${m.bars.toLocaleString()} candles · counts on ${m.tf}`
+  + (m.exec_tf && m.exec_tf !== m.tf ? ` · execution on ${m.exec_tf}` : "")
+  + (m.from_year ? ` · ${m.from_year}\u2013${m.to_year||"now"}` : "")
+  + ` · swing k=${m.k} · Model #3 degrees ${m.ks.join("/")}`
+  + ` · key-count tolerance ±${m.tol} · built ${m.built}`;
 
 if (m.synthetic) {
   document.getElementById("banner").innerHTML =
@@ -441,6 +454,36 @@ function equitySVG(series){
 }
 
 /* ----------------------------------------------------------------- sweep */
+function drawFilter(){
+  const F = D.null.filter || {};
+  const NAME = {tdt:"TDT selects (terminal 7 or 13)", all:"every leg, no count filter",
+                rejected:"legs TDT rejects (no key count)"};
+  let h = "";
+  for (const mode of M){
+    const f = F[mode]; if (!f) continue;
+    const by = {}; for (const r of f.rows||[]) by[r.set]=r;
+    const c = f.contrast||{};
+    const bad = /worse/.test(f.verdict), none = /no detectable/.test(f.verdict);
+    h += `<div class="card"><h3 style="margin-top:0">${mode}</h3>`
+      + '<div class="scroll"><table><thead><tr><th></th><th>trades</th><th>win</th>'
+      + '<th>exp R</th><th>t</th></tr></thead><tbody>';
+    for (const k of ["tdt","all","rejected"]){
+      const r = by[k]; if (!r) continue;
+      h += `<tr${k==="tdt"?' class="key"':""}><td class="mono">${NAME[k]}</td>`
+        + `<td class="num">${(r.n||0).toLocaleString()}</td>`
+        + `<td class="num">${isFinite(r.win_rate)?(r.win_rate*100).toFixed(1)+"%":"—"}</td>`
+        + `<td class="num ${cls(r.exp_r)}">${sign(r.exp_r,4)}</td>`
+        + `<td class="num ${cls(r.t)}">${sign(r.t,2)}</td></tr>`;
+    }
+    h += "</tbody></table></div>"
+      + `<p class="sub" style="margin:10px 0 0">TDT minus rejected: `
+      + `<b class="${cls(c.diff_r)}">${sign(c.diff_r,4)}R</b>`
+      + ` &middot; t = <b class="${cls(c.t)}">${sign(c.t,2)}</b> &rarr; `
+      + `<span class="tag ${bad?"bad":none?"":"ok"}">${esc(f.verdict)}</span></p></div>`;
+  }
+  document.getElementById("filter").innerHTML = h;
+}
+
 function drawSweep(){
   const rows=D.backtest.sweep||[];
   let h='<div class="scroll"><table><thead><tr><th>model</th><th>mode</th><th>R:R</th>'
@@ -456,7 +499,7 @@ function drawSweep(){
   document.getElementById("sweep").innerHTML=h+"</tbody></table></div>";
 }
 
-census(); hazardTabs(); drawHazard(); drawNeighbour(); drawOffset();
+census(); drawFilter(); hazardTabs(); drawHazard(); drawNeighbour(); drawOffset();
 drawM2(); drawM3(); drawSweep();
 const p=D.backtest.params;
 document.getElementById("foot").innerHTML =

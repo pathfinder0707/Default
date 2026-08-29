@@ -31,6 +31,16 @@ And one direct test of the Model #3 conclusion slide:
             the ones it calls not advised (anything with a 21)? Measured as
             forward move in the expected direction, entered no earlier than
             the signal could have been known.
+
+And the one that decides what any backtest number means:
+
+  filter    Hold the entry, stop and target fixed and change only which legs
+            are traded: those TDT selects, every leg regardless, and the legs
+            TDT explicitly rejects. If the count is doing work, the TDT set
+            wins. If all three pay the same, the edge is in the trade
+            structure and the counting is only shrinking the sample -- which
+            is a thing a backtest of the model alone cannot tell you, because
+            a healthy t-statistic looks identical either way.
 """
 import numpy as np
 
@@ -197,12 +207,69 @@ def grade_test(bars, ks=(5, 3, 2), mode="classic", horizon=10, tol=1):
 
 
 # ------------------------------------------------------------------- driver
-def run(bars, k=3, ks=(5, 3, 2), modes=counting.MODES, horizon=10):
-    out = {"hazard": {}, "neighbour": {}, "offset": {}, "grade": {}}
+def run(bars, k=3, ks=(5, 3, 2), modes=counting.MODES, horizon=10,
+        exec_bars=None, tol=1):
+    out = {"hazard": {}, "neighbour": {}, "offset": {}, "grade": {}, "filter": {}}
     for mode in modes:
         h = hazard(bars, k=k, mode=mode)
         out["hazard"][mode] = h
         out["neighbour"][mode] = neighbour_z(h)
         out["offset"][mode] = offset_null(bars, k=k, mode=mode)
         out["grade"][mode] = grade_test(bars, ks=ks, mode=mode, horizon=horizon)
+        out["filter"][mode] = filter_test(bars, k=k, mode=mode, tol=tol,
+                                          exec_bars=exec_bars)
     return out
+
+
+# ------------------------------------------------------------- filter test
+def filter_test(bars, k=3, mode="classic", tol=1, rr=2.0, exec_bars=None,
+                pad=0.25, timeout=20, cost=0.0):
+    """TDT's leg selection against trading every leg, and against its rejects.
+
+    The three sets share entry, stop, target and timeout exactly; only
+    membership differs. Reported side by side because the comparison, not the
+    TDT row on its own, is the finding.
+    """
+    import backtest as bt
+
+    lgs = models.legs(bars, k=k, mode=mode, tol=tol)
+
+    def sigs_from(sel):
+        return [{"start": l.start, "end": l.end, "dir": l.direction,
+                 "confirmed_at": l.confirmed_at, "expect": -l.direction,
+                 "key": l.key} for l in sel]
+
+    sets = {
+        "tdt": sigs_from([l for l in lgs if l.key in models.MODEL2_READ]),
+        "all": sigs_from(lgs),
+        "rejected": sigs_from([l for l in lgs if l.key is None]),
+    }
+    rows, samples = [], {}
+    for name, sigs in sets.items():
+        tr = bt.simulate(bars, sigs, rr=rr, pad=pad, timeout=timeout,
+                         cost=cost, exec_bars=exec_bars)
+        samples[name] = np.array([t["r"] for t in tr], float)
+        row = {"set": name}
+        row.update(bt.stats(tr))
+        rows.append(row)
+
+    # The contrast is the whole point, so it gets a real two-sample test rather
+    # than a comparison of point estimates. Selecting 120 legs out of 400 will
+    # differ from the remainder by some margin every time; the question is
+    # whether the margin survives its own standard error.
+    a, b = samples["tdt"], samples["rejected"]
+    contrast = {"n_tdt": len(a), "n_rejected": len(b)}
+    verdict = "inconclusive -- too few trades"
+    if len(a) > 30 and len(b) > 30:
+        diff = float(a.mean() - b.mean())
+        se = float(np.sqrt(a.var(ddof=1) / len(a) + b.var(ddof=1) / len(b)))
+        t = diff / se if se > 0 else float("nan")
+        contrast.update({"diff_r": diff, "se": se, "t": float(t)})
+        if not np.isfinite(t) or abs(t) < 2.0:
+            verdict = ("no detectable difference -- the count is not selecting "
+                       "better legs, only fewer")
+        elif t > 0:
+            verdict = "the count selects better legs"
+        else:
+            verdict = "the count selects worse legs than the ones it rejects"
+    return {"mode": mode, "rows": rows, "contrast": contrast, "verdict": verdict}

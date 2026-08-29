@@ -111,14 +111,69 @@ Read the **at-risk column first**. Few legs survive to 21, so that row is the on
 likely to show a large z off almost nothing — on a random walk it produced a hazard of
 100% from two legs.
 
-## Status
+## Status — run on real NQ, 2016–2026
 
-The committed `ALL.json` and `tdt-report.html` were built with `--synthetic`, on a random
-walk, because no price feed was present. They are stamped `synthetic: true` and the
-report banners it. **They are a null, not a result**: they show what the tests return
-when there is provably nothing to find, which is the right thing to check before pointing
-them at real data. Rebuild with `python run_all.py && python build_report.py` once
-`bars.npz` is in place.
+`bars.npz` is built from 4,778,135 NQ 1-minute bars (2010-07-07 → 2026-08-06), merged
+from five parquet files. Data checks: no duplicate timestamps, monotonic, no OHLC
+violations, no nulls, no zero-volume bars, and no contract-roll artifact (roll months
+average 0.0208% absolute bar-to-bar move against 0.0196% elsewhere).
+
+**The study starts at 2016 by default,** because session coverage ramps hard:
+
+| years | median bars/day | usable for |
+|---|---|---|
+| 2010–2012 | 113–283 (1.9–4.7 h) | nothing |
+| 2013–2015 | 960–1101 (16–18.4 h) | D1 with caution |
+| 2016–2021 | 1282–1365 (21.4–22.8 h) | all timeframes |
+| 2022–2026 | 1380 (23 h) | all timeframes |
+
+A daily candle built on two hours of trade is not the same object as one built on
+twenty-three, and counting across the join silently mixes them. `--from-year` controls it.
+
+### What the data says
+
+**The counts do not mark turns.** On H1, where the sample is large enough to matter, the
+turn rate at each key count against its own neighbours:
+
+| count | mode | turn rate | neighbours | z | legs at risk |
+|---|---|---|---|---|---|
+| 7 | classic | 18.4% | 14.0% | +1.12 | 4,475 |
+| 13 | classic | 19.2% | 17.1% | +1.29 | 1,457 |
+| 21 | classic | 16.5% | 19.6% | −0.67 | 328 |
+| 7 | body | 26.8% | 25.0% | +0.43 | 2,029 |
+| 13 | body | 24.4% | 27.7% | −1.56 | 316 |
+
+Nine tests, largest |z| = 1.56, and that one is negative. On D1 the only |z| above 2 is
+count 13 at **−3.11** — legs turn there *less* often than at neighbouring counts.
+
+**And the counting adds nothing to the trading.** Holding entry, stop, target and timeout
+fixed and changing only which legs are traded (H1, classic):
+
+| signal set | trades | exp R | t |
+|---|---|---|---|
+| TDT selects (terminal 7 or 13) | 3,233 | +0.0817 | +5.14 |
+| every leg, no count filter | 9,023 | +0.0872 | +9.11 |
+| legs TDT **rejects** | 5,622 | +0.0899 | +7.38 |
+
+The legs TDT rejects pay slightly *more* than the ones it selects. Across both timeframes
+and all three modes the difference never reaches |t| = 2. Model #2's +5.14 t-statistic is
+real, but it belongs to the trade structure — fade a completed swing leg with an ATR stop
+and a 2R target — not to the counting. The count only shrinks the sample.
+
+That contrast is the point of `filter_test`, and it is why a backtest of the model alone
+cannot settle the question: a healthy t-statistic looks identical whether the counting
+contributes or not.
+
+### Reproduce
+
+```sh
+python run_all.py --tf D1 --exec-tf H1     # the models as taught
+python run_all.py --tf H1 --exec-tf M15    # where count 21 is testable at all
+python build_report.py
+```
+
+Count 21 is untestable on D1 in principle, not just here: only ~3% of legs survive that
+long, so NQ's entire daily history yields about nine legs at risk. It needs H1 or below.
 
 ## The counter tool
 

@@ -68,6 +68,14 @@ def main():
                     help="forward bars for the grade test")
     ap.add_argument("--cost", type=float, default=0.0,
                     help="points charged per round turn")
+    ap.add_argument("--exec-tf", default=None, choices=sorted(tdtcore.TF_MINUTES),
+                    help="finer timeframe to resolve entries/stops/targets on "
+                         "(Model #2 teaches D1 counts with H1 execution)")
+    ap.add_argument("--from-year", type=int, default=2016,
+                    help="first year to include; the NQ feed's session coverage "
+                         "ramps from under 2h/day in 2010 to 23h/day by 2022, so "
+                         "earlier daily candles are not comparable (default 2016)")
+    ap.add_argument("--to-year", type=int, default=None)
     ap.add_argument("--n", type=int, default=4000,
                     help="candles to generate in --synthetic mode")
     ap.add_argument("--out", default=OUT)
@@ -77,23 +85,37 @@ def main():
     if len(ks) != 3:
         raise SystemExit("--ks needs exactly three strengths, got %r" % args.ks)
 
+    exec_bars = None
     if args.synthetic:
         # already at the study timeframe; resampling a structure-free walk
         # would only shrink the sample for nothing.
         bars = synthetic(args.n)
         source = "synthetic random walk (no market data)"
+        if args.exec_tf:
+            raise SystemExit("--exec-tf needs real bars; it has no meaning on a "
+                             "synthetic series generated at one timeframe")
     else:
-        bars = tdtcore.resample(tdtcore.load(), args.tf)
+        raw = tdtcore.load(from_year=args.from_year, to_year=args.to_year)
+        bars = tdtcore.resample(raw, args.tf)
         source = "bars.npz"
+        if args.exec_tf and args.exec_tf != args.tf:
+            exec_bars = tdtcore.exec_map(raw, args.tf, args.exec_tf)
     meta = describe(bars, "synthetic" if args.synthetic else args.tf, source)
     meta["synthetic"] = bool(args.synthetic)
     meta["k"] = args.k
     meta["ks"] = list(ks)
     meta["tol"] = args.tol
     meta["cost"] = args.cost
-    print("%s  %s  %s candles on %s"
+    meta["exec_tf"] = args.exec_tf if exec_bars else args.tf
+    meta["from_year"] = None if args.synthetic else args.from_year
+    meta["to_year"] = None if args.synthetic else args.to_year
+    if exec_bars:
+        meta["exec_bars"] = int(len(exec_bars["bars"]["c"]))
+    print("%s  %s  %s candles on %s%s"
           % ("SYNTHETIC" if args.synthetic else "real", source,
-             "{:,}".format(meta["bars"]), args.tf))
+             "{:,}".format(meta["bars"]), args.tf,
+             ("  (execution on %s, %s candles)"
+              % (args.exec_tf, "{:,}".format(meta["exec_bars"]))) if exec_bars else ""))
 
     t0 = time.time()
     print("counting legs ...")
@@ -113,7 +135,8 @@ def main():
                  leg_summary[mode]["median_terminal"]))
 
     print("null tests ...")
-    nulls = nulltest.run(bars, k=args.k, ks=ks, horizon=args.horizon)
+    nulls = nulltest.run(bars, k=args.k, ks=ks, horizon=args.horizon,
+                         exec_bars=exec_bars, tol=args.tol)
     for mode in counting.MODES:
         for row in nulls["neighbour"][mode]:
             if np.isfinite(row.get("z", float("nan"))):
@@ -121,8 +144,22 @@ def main():
                       % (mode, row["key"], row["hazard"], row["baseline"],
                          row["z"], row["at_risk"]))
 
+    print("does the count select better legs? ...")
+    for mode in counting.MODES:
+        ft = nulls["filter"][mode]
+        by = {r["set"]: r for r in ft["rows"]}
+        c = ft.get("contrast", {})
+        print("  %-8s tdt %+.4fR (n=%d)  every leg %+.4fR (n=%d)  "
+              "rejects %+.4fR (n=%d)  diff t=%s"
+              % (mode, by["tdt"]["exp_r"], by["tdt"]["n"],
+                 by["all"]["exp_r"], by["all"]["n"],
+                 by["rejected"]["exp_r"], by["rejected"]["n"],
+                 ("%+.2f" % c["t"]) if "t" in c else "n/a"))
+        print("           -> %s" % ft["verdict"])
+
     print("backtest ...")
-    bt = backtest.run(bars, k=args.k, ks=ks, cost=args.cost, tol=args.tol)
+    bt = backtest.run(bars, k=args.k, ks=ks, cost=args.cost, tol=args.tol,
+                      exec_bars=exec_bars, exec_tf=meta["exec_tf"])
     for mode in counting.MODES:
         s = bt["model2"][mode]["stats"]
         if s.get("n"):

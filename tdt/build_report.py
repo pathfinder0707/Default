@@ -33,6 +33,7 @@ def slim(d):
                        for m, h in d["null"]["hazard"].items()},
             "neighbour": d["null"]["neighbour"],
             "offset": d["null"]["offset"],
+            "filter": d["null"].get("filter", {}),
         },
         "backtest": {
             "params": bt["params"],
