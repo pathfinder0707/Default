@@ -11,6 +11,7 @@ import os
 import playbook_paths as pp
 import playbook_volume as pv
 import playbook_clock as pc
+import playbook_verdict as pvd
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 D = json.load(open(os.path.join(HERE, "ALL.json")))
@@ -430,8 +431,9 @@ def build():
   <div class="eyebrow">NQ futures &middot; 1-minute &middot; 2010&ndash;2026 &middot; %(nret)s retests</div>
   <h1>Goldbach<br>Base Rates</h1>
   <p class="lede">What actually happens at a PO3 level, stated as frequencies you
-  can put in a plan. Two of these numbers are worth trading around. The rest are
-  here so you stop paying for the ones that aren't.</p>
+  can put in a plan &mdash; then the same events priced in points, which is where
+  the frequencies stop meaning what they appear to mean. Read to the last section
+  before acting on any number above it.</p>
   <div class="mast-meta">
     <span><b>4,778,135</b> bars</span>
     <span><b>4,885</b> trading days</span>
@@ -823,6 +825,8 @@ def build():
 </div>
 
 <div class="col">
+%(verdict_html)s
+
 <section id="cost">
   <div class="sec-head"><h2>The cost hurdle</h2>
     <span class="eyebrow">Arithmetic</span></div>
@@ -839,10 +843,12 @@ def build():
   <div class="sec-head"><h2>What this does not cover</h2>
     <span class="eyebrow">Honest limits</span></div>
   <p>Your actual entry is a confirmation signal &mdash; tCISD, an inverted
-  fair-value gap, a market-structure shift. The structure entry tested here is
-  the closest mechanical proxy for it, but <b>it is not your signal</b>. If the
-  edge lives in the confirmation rather than in the level, nothing on this page
-  can see it, and I cannot rule that out.</p>
+  fair-value gap, a market-structure shift. Eight of them are now tested above,
+  and none is positive on both sides of the block. But a detector is a
+  mechanical proxy for a read, and <b>a proxy that fails is not proof the read
+  fails</b>. If the edge lives in how you recognise the signal rather than in
+  the rule I wrote for it, nothing on this page can see it, and I cannot rule
+  that out.</p>
   <p>What this page does establish is narrower and still worth having: the lines
   alone carry no edge. Any edge you have is in the reading, not the grid &mdash;
   which means it is worth knowing whether the reading survives measurement.</p>
@@ -872,11 +878,15 @@ def build():
     and HTF confluence.</span></li>
     <li><span class="n">05</span><span><b>Trade wider than 2R or not at
     all.</b> Every tighter ratio is below its break-even before costs.</span></li>
-    <li><span class="n">06</span><span><b>If you fade one, fade a quiet
-    arrival at the boundary or the EQ.</b> Small bar, low volume, at the 0 or
-    50 line: 53.9%% rejection, the best combination in sixteen years of data
-    &mdash; and a candidate rather than a confirmed edge.</span></li>
-    <li><span class="n">07</span><span><b>Treat the levels as a map, not a
+    <li><span class="n">06</span><span><b>Do not size a directional stat
+    until you have seen it in points.</b> Quiet arrival and the 30-minute close
+    were the two biggest spreads here, and both survive as facts about the
+    candle. Neither survives conversion to points: the win rates were reading
+    long-side drift through a statistic that cannot see position size.</span></li>
+    <li><span class="n">07</span><span><b>The line is worth about +0.07 a
+    trade.</b> Same setup fired at a random time, with no level involved, pays
+    what the level pays. That is the number to plan against.</span></li>
+    <li><span class="n">08</span><span><b>Treat the levels as a map, not a
     signal.</b> They tell you where you are. They do not tell you what
     happens next.</span></li>
   </ul>
@@ -915,6 +925,7 @@ def build():
         "paths_html": pp.html(D),
         "vol_html": pv.html(D),
         "clock_html": pc.html(D),
+        "verdict_html": pvd.html(),
         "cost": COST, "costpct": COST / risk_pts * 100,
         "need2": pct((COST / risk_pts + 1) / 3.0),
         "ret120": pct(r81["rates"]["120"]),
@@ -929,7 +940,7 @@ HEAD = """<title>Goldbach Base Rates</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
-<style>""" + CSS + pp.CSS + pc.CSS + """</style>
+<style>""" + CSS + pp.CSS + pc.CSS + pvd.CSS + """</style>
 """
 
 if __name__ == "__main__":

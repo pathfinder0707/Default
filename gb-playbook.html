@@ -286,6 +286,49 @@ details.tbl summary:hover{color:var(--ink-2)}
   stroke-linejoin:round}
 .clockwarn{font-family:"IBM Plex Mono",monospace;font-size:.72rem;
   color:var(--ink-3);margin:.6rem 0}
+
+/* ---- dumbbell comparison ---- */
+.dumb{margin:1.6rem 0}
+.dumb svg{display:block;width:100%;height:auto;overflow:visible}
+.dumb .ax{stroke:var(--rule);stroke-width:1}
+.dumb .zero{stroke:var(--rule-2);stroke-width:1;stroke-dasharray:3 3}
+.dumb .conn{stroke:var(--rule-2);stroke-width:2}
+.dumb .d1{fill:var(--s1)}
+.dumb .d2{fill:var(--s2)}
+.dumb .ring{stroke:var(--card);stroke-width:2}
+.dumb .rowlab{font-family:"IBM Plex Mono",monospace;font-size:10.5px;
+  fill:var(--ink-2)}
+.dumb .val{font-family:"IBM Plex Mono",monospace;font-size:9.5px;
+  fill:var(--ink-3);font-variant-numeric:tabular-nums}
+.dumb .tick{font-family:"IBM Plex Mono",monospace;font-size:9px;fill:var(--ink-3)}
+.dumb g.mark:hover circle:not(.ring){r:7}
+
+/* ---- max-statistic strip ---- */
+.strip{margin:1.6rem 0}
+.strip svg{display:block;width:100%;height:auto;overflow:visible}
+.strip .band{fill:var(--sunk)}
+.strip .med{stroke:var(--ink-3);stroke-width:2}
+.strip .true{stroke:var(--bad);stroke-width:2.5}
+.strip .lab{font-family:"IBM Plex Mono",monospace;font-size:9.5px;fill:var(--ink-3)}
+.strip .lab.hot{fill:var(--bad)}
+
+.legend{display:flex;gap:1.3rem;flex-wrap:wrap;
+  font-family:"IBM Plex Mono",monospace;font-size:.7rem;color:var(--ink-2);
+  margin:.2rem 0 1.1rem}
+.legend i{display:inline-block;width:9px;height:9px;border-radius:50%;
+  margin-right:.42rem;vertical-align:baseline}
+
+/* ---- shape grid: the long/short pattern in stack.py ---- */
+.shape{display:grid;grid-template-columns:auto 1fr 1fr;gap:1px;
+  background:var(--rule);border:1px solid var(--rule);margin:1.6rem 0}
+.shape > div{background:var(--card);padding:.7rem .9rem}
+.shape .hd{font-family:"IBM Plex Mono",monospace;font-size:.65rem;
+  font-weight:600;letter-spacing:.09em;text-transform:uppercase;
+  color:var(--ink-3);background:var(--sunk)}
+.shape .v{font-family:"IBM Plex Mono",monospace;font-variant-numeric:tabular-nums;
+  font-size:1.05rem;font-weight:600}
+.shape .v small{display:block;font-size:.62rem;font-weight:500;letter-spacing:.1em;
+  text-transform:uppercase;color:var(--ink-3);margin-top:.3rem}
 </style>
 
 <div class="wrap">
@@ -294,8 +337,9 @@ details.tbl summary:hover{color:var(--ink-2)}
   <div class="eyebrow">NQ futures &middot; 1-minute &middot; 2010&ndash;2026 &middot; 456,622 retests</div>
   <h1>Goldbach<br>Base Rates</h1>
   <p class="lede">What actually happens at a PO3 level, stated as frequencies you
-  can put in a plan. Two of these numbers are worth trading around. The rest are
-  here so you stop paying for the ones that aren't.</p>
+  can put in a plan &mdash; then the same events priced in points, which is where
+  the frequencies stop meaning what they appear to mean. Read to the last section
+  before acting on any number above it.</p>
   <div class="mast-meta">
     <span><b>4,778,135</b> bars</span>
     <span><b>4,885</b> trading days</span>
@@ -1422,6 +1466,194 @@ details.tbl summary:hover{color:var(--ink-2)}
 </div>
 
 <div class="col">
+
+<section id="plans">
+  <div class="sec-head"><h2>The book's five plans, as written</h2>
+    <span class="eyebrow">Source material</span></div>
+  <p>Everything above tests my paraphrase of the framework. That is not the same
+  as testing the framework, so the five named plans are scored here exactly as
+  the book states them, on R=243.</p>
+  <p>The <b>literal</b> column is the book's own criterion. It is not a
+  probability you can trade: <span class="chip chip-warn">Rebalance</span> scores
+  100% because the plan sets no invalidation, and over a full day price always
+  covers the 18% of a block between the [41] and [59] lines. A rule that cannot
+  lose has not been tested. So each plan is re-scored <b>symmetric</b> &mdash;
+  the target raced against an equally distant adverse level &mdash; which is the
+  weakest assumption that still makes the number mean something.</p>
+  <div class="scroll"><table>
+    <caption>five plans, R=243, symmetric race against 20 shifted lattices</caption>
+    <thead><tr><th>Plan</th><th class="num">n</th><th class="num">Literal</th>
+    <th class="num">Symmetric</th><th class="num">Null</th><th class="num">z</th>
+    <th class="num">Median heat</th></tr></thead>
+    <tbody><tr class="hi"><td><b>Liquidity</b></td><td class="num dim">15,145</td><td class="num dim">66.7%</td><td class="num big">59.8%</td><td class="num dim">60.4%</td><td class="num neg">-1.56</td><td class="num dim">23 pts</td></tr><tr><td><b>Flow Continuation</b></td><td class="num dim">14,681</td><td class="num dim">16.3%</td><td class="num big">49.7%</td><td class="num dim">50.2%</td><td class="num neg">-0.94</td><td class="num dim">40 pts</td></tr><tr><td><b>Flow Rejection</b></td><td class="num dim">14,798</td><td class="num dim">21.0%</td><td class="num big">50.3%</td><td class="num dim">49.8%</td><td class="num pos">+1.08</td><td class="num dim">39 pts</td></tr><tr><td><b>Rebalance</b></td><td class="num dim">10,055</td><td class="num dim">100.0%</td><td class="num big">29.3%</td><td class="num dim">30.0%</td><td class="num neg">-1.24</td><td class="num dim">97 pts</td></tr><tr><td><b>Einstein</b></td><td class="num dim">7,841</td><td class="num dim">34.6%</td><td class="num big">50.0%</td><td class="num dim">50.2%</td><td class="num neg">-0.19</td><td class="num dim">75 pts</td></tr></tbody>
+  </table></div>
+  <div class="note"><p><strong>Liquidity is the only plan that clears a coin
+  flip</strong> &mdash; 59.8% symmetric against roughly 50% for the other four
+  &mdash; and it is also the only plan in the book that states its own
+  invalidation: price through the external GIP [17-83] kills the trade. That is
+  not a coincidence. The invalidation is what puts the target close enough to
+  reach, and it shows in the heat column, 23 points against 39 to 97.</p>
+  <p>But read the null column before getting attached to it. <strong>Even
+  Liquidity sits fractionally below its own shifted lattice</strong>, 59.8%
+  against 60.4%. The 59.8% is real and it is the best number on this page; it
+  comes from the plan's geometry &mdash; a near target and a far stop &mdash;
+  and not from where the lines are. Every one of the five scores its own null to
+  within about a point.</p></div>
+</section>
+
+<section id="modules">
+  <div class="sec-head"><h2>Nine ways to enter, none of them positive</h2>
+    <span class="eyebrow">Entry modules</span></div>
+  <p>Boundary touch, then an entry trigger, then take profit at equilibrium.
+  Eight trigger modules &times; two directions &times; two scales &times; both
+  sides of the block. The requirement is the same one that has killed every
+  candidate on this page: a real effect at a line appears at the block high
+  <em>and</em> the block low, because they are mirror images of each other.</p>
+  <div class="scroll"><table>
+    <caption>R=243 reversal, expectancy in R, block high vs block low</caption>
+    <thead><tr><th>Trigger</th><th class="num">n</th><th class="num">Win</th>
+    <th class="num">EV at high</th><th class="num">EV at low</th></tr></thead>
+    <tbody><tr><td>immediate</td><td class="num dim">10,680</td><td class="num">4.7%</td><td class="num pos">+0.016R</td><td class="num neg">-0.197R</td></tr><tr><td>htf3</td><td class="num dim">3,878</td><td class="num">9.3%</td><td class="num neg">-0.162R</td><td class="num neg">-0.313R</td></tr><tr><td>htf5</td><td class="num dim">4,660</td><td class="num">10.6%</td><td class="num neg">-0.141R</td><td class="num neg">-0.287R</td></tr><tr><td>htf15</td><td class="num dim">5,167</td><td class="num">15.3%</td><td class="num neg">-0.196R</td><td class="num neg">-0.278R</td></tr><tr><td>htf30</td><td class="num dim">5,193</td><td class="num">19.7%</td><td class="num neg">-0.153R</td><td class="num neg">-0.275R</td></tr><tr><td>mss</td><td class="num dim">3,608</td><td class="num">14.4%</td><td class="num neg">-0.008R</td><td class="num neg">-0.394R</td></tr><tr><td>cisd</td><td class="num dim">10,473</td><td class="num">8.5%</td><td class="num neg">-0.199R</td><td class="num neg">-0.277R</td></tr><tr><td>ifvg</td><td class="num dim">8,960</td><td class="num">12.4%</td><td class="num neg">-0.172R</td><td class="num neg">-0.265R</td></tr></tbody>
+  </table></div>
+  <p><b>0 of 32 pairs</b> were positive on both sides. Not one.</p>
+  <div class="note bad"><p><strong>One number here was wrong before it was
+  right.</strong> An early run reported average R:R of 635 on a 0.6% win rate.
+  The stop was structural &mdash; beyond the swing extreme &mdash; with no floor
+  under it, so on bars where the extreme sat almost at the entry the risk went
+  to nearly zero and the ratio exploded. A 0.50 ATR floor on risk removes it,
+  and the summary is a median rather than a mean.</p></div>
+</section>
+
+<section id="htfclose">
+  <div class="sec-head"><h2>The thirty-minute close</h2>
+    <span class="eyebrow">Largest measured spread</span></div>
+  <p>Price reaches the block boundary. Does the candle close back inside, or
+  through? This produced the biggest spread anywhere in the study, and it grows
+  monotonically with the timeframe &mdash; which is exactly what a real
+  confirmation effect should do.</p>
+  <div class="scroll"><table>
+    <caption>P(returns to equilibrium) split by where the candle closed, R=243 block high</caption>
+    <thead><tr><th class="num">Timeframe</th><th class="num">Spread</th>
+    <th class="num">Same, shifted</th><th class="num">Closed inside</th>
+    <th class="num">Closed through</th></tr></thead>
+    <tbody><tr><td class="num">3 min</td><td class="num big">+7.3pp</td><td class="num dim">+7.9pp</td><td class="num">53.6%</td><td class="num">46.2%</td></tr><tr><td class="num">5 min</td><td class="num big">+8.7pp</td><td class="num dim">+10.2pp</td><td class="num">54.3%</td><td class="num">45.6%</td></tr><tr><td class="num">15 min</td><td class="num big">+16.0pp</td><td class="num dim">+16.8pp</td><td class="num">57.7%</td><td class="num">41.7%</td></tr><tr class="hi"><td class="num">30 min</td><td class="num big">+21.6pp</td><td class="num dim">+22.2pp</td><td class="num">61.0%</td><td class="num">39.4%</td></tr></tbody>
+  </table></div>
+  <div class="note"><p>Read the second column against the third. The spread is
+  real and it is large. It is also <strong>the same size on a lattice with no
+  Goldbach content in it at all</strong>. What the thirty-minute close tells you
+  is whether a push has been rejected &mdash; a fact about the candle, available
+  at any line you care to draw. The block boundary contributes
+  -0.6 percentage points of it.</p></div>
+</section>
+
+<section id="benchmark">
+  <div class="sec-head"><h2>Can this framework find an edge at all?</h2>
+    <span class="eyebrow">Control</span></div>
+  <p>Every null on this page says Goldbach adds nothing, and there are two
+  reasons that could happen. Either the lattice is empty, or the measurement
+  &mdash; the cost model, the entry-bar convention, the day-clustered intervals
+  &mdash; is harsh enough to report <em>anything</em> as flat. Those demand
+  opposite responses, and until it is settled none of the nulls above mean
+  much.</p>
+  <p>So the identical machinery is pointed at six classic effects with no level
+  in them anywhere.</p>
+  <div class="scroll"><table>
+    <caption>net points per trade after 0.45 cost, 95% interval clustered by day</caption>
+    <thead><tr><th>Strategy</th><th class="num">n</th><th class="num">Win</th>
+    <th class="num">Net</th><th class="num">Total</th><th class="num">PF</th>
+    <th class="num">95% CI</th></tr></thead>
+    <tbody><tr class="hi"><td><b>overnight</b></td><td class="num dim">3,596</td><td class="num">55.8%</td><td class="num big pos">+5.56</td><td class="num dim">+20,010</td><td class="num">1.20</td><td class="num dim">[+2.10, +9.00]</td></tr><tr><td><b>rth long</b></td><td class="num dim">3,597</td><td class="num">54.5%</td><td class="num big ">+1.23</td><td class="num dim">+4,439</td><td class="num">1.03</td><td class="num dim">[-2.94, +5.59]</td></tr><tr><td><b>orb</b></td><td class="num dim">3,574</td><td class="num">50.3%</td><td class="num big ">+1.80</td><td class="num dim">+6,433</td><td class="num">1.06</td><td class="num dim">[-1.95, +5.62]</td></tr><tr><td><b>pdh pdl</b></td><td class="num dim">3,215</td><td class="num">51.7%</td><td class="num big ">+1.68</td><td class="num dim">+5,405</td><td class="num">1.05</td><td class="num dim">[-2.44, +5.94]</td></tr><tr><td><b>gap follow</b></td><td class="num dim">3,596</td><td class="num">50.1%</td><td class="num big ">-0.32</td><td class="num dim">-1,147</td><td class="num">0.99</td><td class="num dim">[-4.77, +4.02]</td></tr><tr><td><b>gap fade</b></td><td class="num dim">3,596</td><td class="num">49.3%</td><td class="num big ">-0.58</td><td class="num dim">-2,089</td><td class="num">0.99</td><td class="num dim">[-4.92, +3.87]</td></tr></tbody>
+  </table></div>
+  <div class="note good"><p><strong>The overnight session clears, and holds in
+  both halves</strong> &mdash; +2.02 before 2019, +8.52 after, on
+  3,596 nights. Same cost, same intervals, same execution rules that returned
+  flat on every lattice test. <strong>The nulls above are informative, not
+  artifacts of over-harsh testing.</strong></p></div>
+  <div class="note bad"><p><strong>The first version of this table was
+  wrong.</strong> Prior-day high/low reported +27.20 a day, which is not a
+  plausible number for a rule that simple. 42% of sessions <em>open</em> already
+  beyond the prior day's level, by a median of 26 points &mdash; price was never
+  there during the session, so a fill at the level is impossible, and crediting
+  one books the overnight gap as instant profit. Filling at
+  <code>max(level, bar open)</code> collapses it to the +1.68 above, with an
+  interval straddling zero.</p></div>
+</section>
+
+<section id="overnightgb">
+  <div class="sec-head"><h2>Does the lattice improve the one thing that pays?</h2>
+    <span class="eyebrow">The easiest test</span></div>
+  <p>This is the fair question the lattice had never been asked. Not <em>be an
+  edge from nothing</em>, which is what every test above demanded, but
+  <em>improve an edge that already exists</em>. If the framework is a map of
+  where price sits in a dealing range, then holding overnight from the range
+  middle should differ from holding from its edge. The conditioning value is the
+  block position of the RTH close, which is the entry price and is known before
+  the trade.</p>
+  <div class="scroll"><table>
+    <caption>overnight net per night by block position &middot; disc and val are relative to that era's own baseline</caption>
+    <thead><tr><th class="num">R</th><th>Block position</th>
+    <th class="num">Nights</th><th class="num">Net</th><th class="num">95% CI</th>
+    <th class="num">Disc</th><th class="num">Val</th></tr></thead>
+    <tbody><tr><td class="num">729</td><td>0-10</td><td class="num dim">373</td><td class="num big">-9.75</td><td class="num dim">[-22.51, +2.05]</td><td class="num neg">-1.46</td><td class="num neg">-28.86</td></tr><tr><td class="num">729</td><td>10-25</td><td class="num dim">600</td><td class="num big">+4.16</td><td class="num dim">[-3.83, +12.00]</td><td class="num neg">-3.38</td><td class="num pos">+1.42</td></tr><tr><td class="num">729</td><td>25-40</td><td class="num dim">518</td><td class="num big">+0.90</td><td class="num dim">[-7.44, +8.54]</td><td class="num pos">+0.99</td><td class="num neg">-9.03</td></tr><tr class="hi"><td class="num">729</td><td>40-60</td><td class="num dim">660</td><td class="num big">+15.49</td><td class="num dim">[+6.89, +25.09]</td><td class="num pos">+1.61</td><td class="num pos">+14.98</td></tr><tr><td class="num">729</td><td>60-75</td><td class="num dim">533</td><td class="num big">+11.30</td><td class="num dim">[+1.78, +21.33]</td><td class="num pos">+2.21</td><td class="num pos">+8.14</td></tr><tr><td class="num">729</td><td>75-90</td><td class="num dim">532</td><td class="num big">+1.76</td><td class="num dim">[-6.72, +10.16]</td><td class="num pos">+1.39</td><td class="num neg">-8.37</td></tr><tr><td class="num">729</td><td>90-100</td><td class="num dim">380</td><td class="num big">+9.20</td><td class="num dim">[+0.25, +18.30]</td><td class="num neg">-1.12</td><td class="num pos">+7.69</td></tr><tr><td class="num">2187</td><td>0-10</td><td class="num dim">512</td><td class="num big">-4.38</td><td class="num dim">[-14.04, +4.08]</td><td class="num neg">-3.49</td><td class="num neg">-17.37</td></tr><tr><td class="num">2187</td><td>10-25</td><td class="num dim">601</td><td class="num big">+15.13</td><td class="num dim">[+6.64, +27.06]</td><td class="num pos">+0.35</td><td class="num pos">+20.28</td></tr><tr><td class="num">2187</td><td>25-40</td><td class="num dim">547</td><td class="num big">+0.16</td><td class="num dim">[-7.87, +7.73]</td><td class="num neg">-2.55</td><td class="num neg">-7.80</td></tr><tr><td class="num">2187</td><td>40-60</td><td class="num dim">640</td><td class="num big">+6.90</td><td class="num dim">[-3.06, +17.57]</td><td class="num pos">+0.69</td><td class="num pos">+0.40</td></tr><tr><td class="num">2187</td><td>60-75</td><td class="num dim">449</td><td class="num big">+5.75</td><td class="num dim">[-4.56, +17.07]</td><td class="num neg">-0.03</td><td class="num pos">+0.14</td></tr><tr><td class="num">2187</td><td>75-90</td><td class="num dim">452</td><td class="num big">+4.90</td><td class="num dim">[-4.78, +15.46]</td><td class="num pos">+5.45</td><td class="num neg">-5.06</td></tr><tr><td class="num">2187</td><td>90-100</td><td class="num dim">395</td><td class="num big">+9.76</td><td class="num dim">[-0.05, +20.42]</td><td class="num pos">+2.85</td><td class="num pos">+6.41</td></tr></tbody>
+  </table></div>
+  <p>Two of twenty-one cells clear the unconditional lower bound. R=729
+  equilibrium pays +15.49 a night against +5.56 for the trade taken blind. For
+  about ten minutes that looked like the answer.</p>
+  <h3>Then price the search</h3>
+  <p>Twenty-one cells were scanned. One false positive at 95% is the
+  <em>expected</em> count, so the honest test is a max statistic: run the same
+  twenty-one-cell search on 400 random lattice offsets, take the best cell each
+  one finds, and see where the real best cell falls in that distribution.</p>
+  <div class="strip"><svg viewBox="0 0 700 104" role="img" aria-label="the best real cell, plus 9.93, sits at the median of the random-lattice distribution, plus 9.84"><rect x="14.0" y="54" width="619.3" height="20" rx="2" class="band"/><text x="14.0" y="90" class="lab">random-lattice best cells</text><text x="686.0" y="90" text-anchor="end" class="lab">95th pct +12.90</text><line x1="486.1" y1="48" x2="486.1" y2="80" class="med"/><line x1="490.6" y1="48" x2="490.6" y2="80" class="true"/><line x1="488.4" y1="44" x2="488.4" y2="30" class="med"/><text x="488.4" y="24" text-anchor="middle" class="lab hot">best real cell +9.93</text><text x="488.4" y="12" text-anchor="middle" class="lab">median of the random lattices +9.84</text></svg></div>
+  <div class="note bad"><p>The best real cell sits <strong>at the median of what
+  a random grid produces</strong>. <code>p = 0.475</code>. Scanning
+  twenty-one bands across three grids manufactures a ten-point spread by
+  construction; Goldbach produced a perfectly average one.</p></div>
+  <p>The era columns say the same thing from the other side. The winning cell is
+  +1.61 relative to its own period before 2019 and +14.98 after &mdash; it is not
+  finding a block position, it is riding the post-2019 regime shift in the
+  overnight edge itself.</p>
+  <div class="note"><p>One suspicion turned out to be unfounded and is recorded
+  because it changed nothing. The lattice is anchored to absolute price, so a
+  R=729 band could plausibly be a multi-week regime rather than a nightly draw,
+  which would make every interval here fiction. It is not: membership runs are a
+  median of one night, and clustering by episode instead of by day moves the
+  bounds by less than a point.</p></div>
+</section>
+
+<section id="drift">
+  <div class="sec-head"><h2>What the win rates were actually measuring</h2>
+    <span class="eyebrow">Resolution</span></div>
+  <p>Two filters on this page measured large: the thirty-minute close at
+  +21.6 percentage points of spread, and quiet arrival at +11.9. Both were only
+  ever scored as <em>directional probabilities</em> &mdash; does price reach A
+  before B. Neither was ever converted into points with a real stop, and a 61%
+  hit rate is worthless if the winners are half the size of the losers.</p>
+  <p>So: stack them, and trade them. A thirty-minute bar straddling a Goldbach
+  level, split on where it closed, entered on the next minute with an ATR stop
+  and target. Four setups &times; four filters &times; three stop/target pairs
+  &times; two scales. <b>Ninety-six cells. None paid on both sides.</b></p>
+  <p>But the table had one shape, and it had it everywhere &mdash; under every
+  filter, every ratio, both scales:</p>
+  <div class="shape"><div class="hd"></div><div class="hd">Long setups</div><div class="hd">Short setups</div><div class="hd">Break through</div><div><span class="v pos">+0.32<small>break up</small></span></div><div><span class="v neg">-0.77<small>break down</small></span></div><div class="hd">Reject at line</div><div><span class="v pos">+0.48<small>reject down</small></span></div><div><span class="v neg">-1.42<small>reject up</small></span></div></div>
+  <p>Never mirror images. Always split by <em>direction</em>. The quiet filter
+  did not change the pattern, it doubled it &mdash; quiet bars resolve slowly, so
+  they hold longer. That is not what a level looks like. That is what drift
+  looks like.</p>
+  <h3>The control</h3>
+  <p>Same geometry, same horizon, same ATR scaling, fired at 30,000
+  <b>random times with no level involved.</b></p>
+  <div class="dumb"><div class="legend"><span><i style="background:var(--s1)"></i>At a Goldbach level</span><span><i style="background:var(--s2)"></i>Random time</span></div><svg viewBox="0 0 700 238" role="img" aria-label="At a Goldbach level against Random time, net points per trade"><line x1="132.0" y1="14" x2="132.0" y2="226.0" class="ax"/><text x="132.0" y="8" text-anchor="middle" class="tick">-1.5</text><line x1="236.4" y1="14" x2="236.4" y2="226.0" class="ax"/><text x="236.4" y="8" text-anchor="middle" class="tick">-1.0</text><line x1="340.8" y1="14" x2="340.8" y2="226.0" class="ax"/><text x="340.8" y="8" text-anchor="middle" class="tick">-0.5</text><line x1="445.2" y1="14" x2="445.2" y2="226.0" class="zero"/><text x="445.2" y="8" text-anchor="middle" class="tick">+0.0</text><line x1="549.6" y1="14" x2="549.6" y2="226.0" class="ax"/><text x="549.6" y="8" text-anchor="middle" class="tick">+0.5</text><line x1="654.0" y1="14" x2="654.0" y2="226.0" class="ax"/><text x="654.0" y="8" text-anchor="middle" class="tick">+1.0</text><text x="120.0" y="30.0" text-anchor="end" class="rowlab">0.75/1.50  long</text><line x1="453.9" y1="26.0" x2="515.9" y2="26.0" class="conn"/><g class="mark"><title>0.75/1.50  long, Random time: +0.042 points per trade</title><circle cx="453.9" cy="26.0" r="5.5" class="ring"/><circle cx="453.9" cy="26.0" r="5.5" class="d2"/></g><g class="mark"><title>0.75/1.50  long, At a Goldbach level: +0.339 points per trade</title><circle cx="515.9" cy="26.0" r="5.5" class="ring"/><circle cx="515.9" cy="26.0" r="5.5" class="d1"/></g><text x="443.9" y="29.5" text-anchor="end" class="val">+0.04</text><text x="525.9" y="29.5" class="val">+0.34</text><text x="120.0" y="64.0" text-anchor="end" class="rowlab">0.75/1.50  short</text><line x1="212.6" y1="60.0" x2="240.9" y2="60.0" class="conn"/><g class="mark"><title>0.75/1.50  short, Random time: -0.978 points per trade</title><circle cx="240.9" cy="60.0" r="5.5" class="ring"/><circle cx="240.9" cy="60.0" r="5.5" class="d2"/></g><g class="mark"><title>0.75/1.50  short, At a Goldbach level: -1.114 points per trade</title><circle cx="212.6" cy="60.0" r="5.5" class="ring"/><circle cx="212.6" cy="60.0" r="5.5" class="d1"/></g><text x="202.6" y="63.5" text-anchor="end" class="val">-1.11</text><text x="250.9" y="63.5" class="val">-0.98</text><text x="120.0" y="98.0" text-anchor="end" class="rowlab">1.00/1.00  long</text><line x1="430.6" y1="94.0" x2="509.2" y2="94.0" class="conn"/><g class="mark"><title>1.00/1.00  long, Random time: -0.070 points per trade</title><circle cx="430.6" cy="94.0" r="5.5" class="ring"/><circle cx="430.6" cy="94.0" r="5.5" class="d2"/></g><g class="mark"><title>1.00/1.00  long, At a Goldbach level: +0.307 points per trade</title><circle cx="509.2" cy="94.0" r="5.5" class="ring"/><circle cx="509.2" cy="94.0" r="5.5" class="d1"/></g><text x="420.6" y="97.5" text-anchor="end" class="val">-0.07</text><text x="519.2" y="97.5" class="val">+0.31</text><text x="120.0" y="132.0" text-anchor="end" class="rowlab">1.00/1.00  short</text><line x1="211.3" y1="128.0" x2="244.8" y2="128.0" class="conn"/><g class="mark"><title>1.00/1.00  short, Random time: -0.960 points per trade</title><circle cx="244.8" cy="128.0" r="5.5" class="ring"/><circle cx="244.8" cy="128.0" r="5.5" class="d2"/></g><g class="mark"><title>1.00/1.00  short, At a Goldbach level: -1.120 points per trade</title><circle cx="211.3" cy="128.0" r="5.5" class="ring"/><circle cx="211.3" cy="128.0" r="5.5" class="d1"/></g><text x="201.3" y="131.5" text-anchor="end" class="val">-1.12</text><text x="254.8" y="131.5" class="val">-0.96</text><text x="120.0" y="166.0" text-anchor="end" class="rowlab">0.75/2.25  long</text><line x1="519.7" y1="162.0" x2="559.3" y2="162.0" class="conn"/><g class="mark"><title>0.75/2.25  long, Random time: +0.357 points per trade</title><circle cx="519.7" cy="162.0" r="5.5" class="ring"/><circle cx="519.7" cy="162.0" r="5.5" class="d2"/></g><g class="mark"><title>0.75/2.25  long, At a Goldbach level: +0.546 points per trade</title><circle cx="559.3" cy="162.0" r="5.5" class="ring"/><circle cx="559.3" cy="162.0" r="5.5" class="d1"/></g><text x="509.7" y="165.5" text-anchor="end" class="val">+0.36</text><text x="569.3" y="165.5" class="val">+0.55</text><text x="120.0" y="200.0" text-anchor="end" class="rowlab">0.75/2.25  short</text><line x1="227.0" y1="196.0" x2="264.7" y2="196.0" class="conn"/><g class="mark"><title>0.75/2.25  short, Random time: -0.865 points per trade</title><circle cx="264.7" cy="196.0" r="5.5" class="ring"/><circle cx="264.7" cy="196.0" r="5.5" class="d2"/></g><g class="mark"><title>0.75/2.25  short, At a Goldbach level: -1.045 points per trade</title><circle cx="227.0" cy="196.0" r="5.5" class="ring"/><circle cx="227.0" cy="196.0" r="5.5" class="d1"/></g><text x="217.0" y="199.5" text-anchor="end" class="val">-1.04</text><text x="274.7" y="199.5" class="val">-0.86</text></svg></div>
+  <div class="note bad"><p>The level is worth <strong>+0.29 points to a
+  long and -0.16 to a short</strong> &mdash; call it +0.06 a
+  trade on average, inside the noise and a fraction of the commission. The
+  1.1-point gap between the two sides is the index risk premium seen through a
+  stop.</p>
+  <p><strong>Every high win rate in this study was measuring that gap</strong>,
+  through a statistic that cannot see position size.</p></div>
+</section>
+
+
 <section id="cost">
   <div class="sec-head"><h2>The cost hurdle</h2>
     <span class="eyebrow">Arithmetic</span></div>
@@ -1438,10 +1670,12 @@ details.tbl summary:hover{color:var(--ink-2)}
   <div class="sec-head"><h2>What this does not cover</h2>
     <span class="eyebrow">Honest limits</span></div>
   <p>Your actual entry is a confirmation signal &mdash; tCISD, an inverted
-  fair-value gap, a market-structure shift. The structure entry tested here is
-  the closest mechanical proxy for it, but <b>it is not your signal</b>. If the
-  edge lives in the confirmation rather than in the level, nothing on this page
-  can see it, and I cannot rule that out.</p>
+  fair-value gap, a market-structure shift. Eight of them are now tested above,
+  and none is positive on both sides of the block. But a detector is a
+  mechanical proxy for a read, and <b>a proxy that fails is not proof the read
+  fails</b>. If the edge lives in how you recognise the signal rather than in
+  the rule I wrote for it, nothing on this page can see it, and I cannot rule
+  that out.</p>
   <p>What this page does establish is narrower and still worth having: the lines
   alone carry no edge. Any edge you have is in the reading, not the grid &mdash;
   which means it is worth knowing whether the reading survives measurement.</p>
@@ -1471,11 +1705,15 @@ details.tbl summary:hover{color:var(--ink-2)}
     and HTF confluence.</span></li>
     <li><span class="n">05</span><span><b>Trade wider than 2R or not at
     all.</b> Every tighter ratio is below its break-even before costs.</span></li>
-    <li><span class="n">06</span><span><b>If you fade one, fade a quiet
-    arrival at the boundary or the EQ.</b> Small bar, low volume, at the 0 or
-    50 line: 53.9% rejection, the best combination in sixteen years of data
-    &mdash; and a candidate rather than a confirmed edge.</span></li>
-    <li><span class="n">07</span><span><b>Treat the levels as a map, not a
+    <li><span class="n">06</span><span><b>Do not size a directional stat
+    until you have seen it in points.</b> Quiet arrival and the 30-minute close
+    were the two biggest spreads here, and both survive as facts about the
+    candle. Neither survives conversion to points: the win rates were reading
+    long-side drift through a statistic that cannot see position size.</span></li>
+    <li><span class="n">07</span><span><b>The line is worth about +0.07 a
+    trade.</b> Same setup fired at a random time, with no level involved, pays
+    what the level pays. That is the number to plan against.</span></li>
+    <li><span class="n">08</span><span><b>Treat the levels as a map, not a
     signal.</b> They tell you where you are. They do not tell you what
     happens next.</span></li>
   </ul>
