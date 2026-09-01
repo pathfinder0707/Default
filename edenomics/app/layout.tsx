@@ -1,42 +1,35 @@
 import type { Metadata, Viewport } from "next";
-import { Bricolage_Grotesque, Plus_Jakarta_Sans, Geist_Mono } from "next/font/google";
+import { Bodoni_Moda, Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 
-const display = Bricolage_Grotesque({
-  variable: "--font-bricolage",
+const display = Bodoni_Moda({
+  variable: "--font-bodoni",
   subsets: ["latin"],
   display: "swap",
 });
 
-const sans = Plus_Jakarta_Sans({
-  variable: "--font-jakarta",
-  subsets: ["latin"],
-  display: "swap",
-});
-
-const mono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-  display: "swap",
-});
+const sans = Geist({ variable: "--font-geist", subsets: ["latin"], display: "swap" });
+const mono = Geist_Mono({ variable: "--font-geist-mono", subsets: ["latin"], display: "swap" });
 
 export const metadata: Metadata = {
-  title: "Edenomics — the daily money game",
+  title: "Edenomics — how sure are you?",
   description:
-    "Five rounds a day. Learn how money actually moves by playing the market, not guessing it. Streaks, XP, a skill constellation and a portfolio you unlock by understanding it.",
+    "A card game about money where you don't pick an answer, you flick a card — and how hard you flick it is your confidence. Scored on calibration, so the only way to win is to be honest about what you don't know.",
   applicationName: "Edenomics",
   openGraph: {
-    title: "Edenomics — the daily money game",
+    title: "Edenomics — how sure are you?",
     description:
-      "Five rounds a day. Learn how money actually moves by playing the market, not guessing it.",
+      "Flick the card. How hard you flick it is your confidence. Scored on calibration, not luck.",
     siteName: "Edenomics",
     type: "website",
   },
 };
 
 export const viewport: Viewport = {
-  themeColor: "#0D0B1A",
+  themeColor: "#0A1411",
   colorScheme: "dark",
+  // The table is a fixed surface; letting it bounce breaks the illusion.
+  maximumScale: 1,
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
@@ -45,7 +38,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       lang="en"
       className={`${display.variable} ${sans.variable} ${mono.variable} h-full antialiased`}
     >
-      <body className="bg-void text-fg min-h-full">{children}</body>
+      <body className="bg-felt text-cream min-h-full">{children}</body>
     </html>
   );
 }

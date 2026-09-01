@@ -1,41 +1,51 @@
 # Edenomics
 
-A finance product built as a game, on one idea:
+A card game about money, built on one mechanic:
 
-> The market is the level. You score by knowing **why** a price moved — never by
-> guessing which way it went.
+> **You don't pick an answer. You flick a card — and how hard you flick it is how sure you are.**
 
-Most attempts to gamify finance end up training the exact habit that costs people
-money: fast, confident, directional guessing. Edenomics is arranged so that is
-impossible to win at. Every round can be won by someone with no view on the
-market and lost by someone who guessed right.
+Push the card right for *true*, left for *false*. Nudge it and you've said 55%. Shove it to
+the edge and you've said 99%. Confidence stops being a number you type and becomes something
+your hand commits to.
 
-## The loop
+Then it is scored on **calibration, not correctness**.
 
-**A daily run** — five rounds, about three minutes, with a combo multiplier that
-carries between them. Five different shapes of thinking, so it never becomes one
-quiz format wearing different hats:
+## Why that matters
 
-| Round | What it asks | What it teaches |
+Scoring uses a Brier rule, which is a *proper* scoring rule — your expected score is highest
+when the number you state is the number you actually believe.
+
+| What you say | What happens | Score |
 | --- | --- | --- |
-| **Chart call** | Read a price move, then find out what caused it | Prices move on expectations, not results |
-| **Order of magnitude** | Estimate a number on a log slider | Scale intuition — the thing prices hide |
-| **Chain reaction** | Put a transmission chain in order | Mechanism, not vocabulary |
-| **Name the business** | Identify a company from clues, XP decaying per clue | Where profits actually come from |
-| **Who wins** | One shock, three sectors | Shocks move money, they don't destroy it |
+| 50/50 | anything | **50**, always |
+| 90% | right | **+98** |
+| 90% | wrong | **−62** |
+| 99% | wrong | **−96** |
 
-**A skill constellation** — fourteen ideas, each unlocking the next. Rounds you
-win feed mastery into the node they belong to.
+There is no way to farm it by always shouting 99%, and no way to hide by always hedging. The
+only winning strategy is telling the truth about what you don't know.
 
-**A portfolio lab** — ten lakh of play money, where an asset class stays locked
-until you have mastered its node. Master valuation, unlock single stocks. That is
-the opposite order to every brokerage app.
+That is the entire anti-casino guarantee, and it is enforced by arithmetic rather than by
+copy on a page. A game about money that rewarded fast confident guessing would be training
+the one habit that actually costs people money.
 
-**A weekly league** — nine players, promotion at the top three. Nothing at stake
-but next week's bracket, and nothing that can be bought.
+## What you get back
 
-Everything is wired to one store, so finishing a run visibly moves the level ring,
-the streak calendar, the badge shelf, the skill map and your league row at once.
+The scoreboard is a **calibration curve**: your stated confidence against how often you were
+really right. Perfect calibration is the diagonal. Almost everyone sags below it, and seeing
+your own dots sit under the line is a more convincing argument about overconfidence than
+being told ever is.
+
+A fresh record starts seeded with the shape most people actually have — roughly honest when
+hedging, increasingly overconfident the surer they claim to be — so the curve teaches
+something the moment you open it.
+
+## The rest of it
+
+- **The vault** — every idea in the game is a playing card. It turns face-up only when you
+  call its claim correctly. Nothing is purchasable.
+- **Ranks** — sorted by average score, not by how much you've played. Thirty calls can
+  outrank three hundred.
 
 ## Running it
 
@@ -52,65 +62,52 @@ npm run lint
 npm run build:standalone   # -> dist/edenomics.html
 ```
 
-Bundles the whole game — CSS, JS and fonts — into one ~780 KB HTML file you can
-double-click, email, or drop on any static host. It makes **zero** network
-requests. It uses the same `app/globals.css` and the same components, so the
-tokens cannot drift from the Next build; the only difference is that it renders
-on the client rather than the server.
+The whole game — CSS, JS and fonts — in one ~690 KB file that makes **zero** network
+requests. Double-click it.
 
 ## Stack
 
-Next.js 16 (App Router) · React 19 · TypeScript · Tailwind CSS v4 · Motion ·
-lucide-react. No charting library and no 3D engine — the charts, the donut, the
-level ring and the constellation are all hand-rolled SVG, and the run's
-celebration is a single canvas.
+Next.js 16 · React 19 · TypeScript · Tailwind v4 · Motion · lucide-react.
+
+No charting library, no 3D engine, no audio files. The calibration curve and the card
+faces are hand-rolled SVG and CSS; every sound is a few oscillators with an envelope, which
+is why the confident-miss tone drops lower the surer you were.
 
 ## Structure
 
 ```
-app/                     layout, tokens, page composition
+app/                     shell, tokens, fonts
 components/
-  game/                  the run, its five round types, combo, results
-  player/                level ring, streak calendar, badges
-  skills/                the constellation
-  portfolio/             the lab and its donut
-  league/                weekly table
-  layout/                HUD header, tab bar, principles, footer
+  table/                 the card, the flick, the verdict, the hand summary
+  curve/                 the calibration chart and the full record
+  vault/  ranks/         collected ideas, the table of players
+  shell/                 HUD and view switching
 lib/
-  game/                  types, round content, skills, portfolio, league, format
-  state/                 localStorage-backed player store
-  hooks/                 mounted, clock, scroll spy
-scripts/build-standalone.mjs
+  game/                  scoring (Brier), claims, concepts, ranks
+  state/                 localStorage-backed record
+  sound.ts  haptics.ts
 ```
-
-## Data
-
-All prices, companies, figures and rivals are **illustrative sample data**. It is
-a learning game: nothing here is investment advice, and nothing is for sale.
-
-Content lives entirely in `lib/game` behind the interfaces in `lib/game/types.ts`.
-Adding a sixth round type means adding a variant to that union and a renderer —
-nothing else changes.
 
 ## Notes on a few decisions
 
-**Colour is information.** Cyan is the brand, gold is XP, coral is the streak,
-lime is correct, rose is wrong. Nothing else on the page is saturated, which is
-why a single gold number reads as "you earned something" with no other signal.
+**Gesture is the input, but never the only input.** Under every card is a confidence slider
+and two side buttons — the same move, available precisely, with no pointer. Both paths are
+first-class; the whole game is playable from the keyboard.
 
-**The hero is the game.** No screenshot, no "get started" — the run is playable
-before anyone has decided whether they want it.
+**Colour means exactly one thing.** Jade is *true*, crimson is *false*, brass is score. They
+appear nowhere else, so a colour on this page is always an answer.
 
-**Playable entirely from the keyboard.** Number keys answer, Enter advances. All
-43 interactive elements are named and have a visible focus state, and every text
-colour clears WCAG AA on the surface it actually sits on.
+**The waiting deck is face-down.** Small thing, but a stack of blank white faces behind the
+card broke the illusion instantly.
 
-**Decoration never scrolls.** The soft glows use a `.clip-decor` utility
-(`overflow: clip`, with `hidden` as fallback) rather than `overflow: hidden`.
-`hidden` makes an element scrollable, so a glow poking past the right edge can be
-scrolled to — the browser does exactly that when something inside takes focus,
-and the whole section slides sideways under the fixed header.
+**Body copy uses a solid token, not an alpha.** `text-cream/85` renders as `oklab(… / 0.85)`,
+which is genuinely hard to verify for contrast. A real value is easier to check and easier to
+reason about.
 
-**Reduced motion collapses durations** rather than swapping element types.
-Swapping strands Motion's inline opacity — React never set that style, so it
-never cleans it up — and the block is left invisible.
+**Flex centring is done with `my-auto`, not `justify-center`.** Centring a column that grows
+taller than the viewport clips its top off, and the summary screen does exactly that.
+
+## Data
+
+All claims, figures and table-mates are **illustrative**. It is a learning game: nothing here
+is investment advice, and nothing is for sale.

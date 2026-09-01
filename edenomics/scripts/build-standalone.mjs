@@ -56,7 +56,7 @@ await esbuild.build({
 
 
 const FONT_CSS_URL =
-  "https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400..800&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Geist+Mono:wght@400;500;700&display=swap";
+  "https://fonts.googleapis.com/css2?family=Bodoni+Moda:opsz,wght@6..96,400..900&family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500;700&display=swap";
 
 // A desktop UA is what makes Google serve woff2 rather than older formats.
 const DESKTOP_UA =
@@ -117,7 +117,7 @@ const js = readFileSync(join(tmp, "app.js"), "utf8").replace(/<\/script/gi, "<\\
 
 // 3. Compose. No <html>/<head>/<body> — the host page supplies those.
 const html = `<title>Edenomics</title>
-<meta name="description" content="Five rounds a day. Learn how money actually moves by playing the market, not guessing it." />
+<meta name="description" content="Flick the card. How hard you flick it is your confidence. Scored on calibration, not luck." />
 
 ${fontLink}
 <style>
@@ -132,8 +132,8 @@ ${css}
   /* The Next build injects these three via next/font; here they come from the
      inlined @font-face rules above, with the same fallback stacks. */
   :root {
-    --font-bricolage: "Bricolage Grotesque";
-    --font-jakarta: "Plus Jakarta Sans";
+    --font-bodoni: "Bodoni Moda";
+    --font-geist: "Geist";
     --font-geist-mono: "Geist Mono";
   }
 
@@ -143,12 +143,12 @@ ${css}
     inset: 0;
     display: grid;
     place-items: center;
-    background: var(--color-void, #0d0b1a);
-    color: #f4f2ff;
-    font-family: var(--font-bricolage), "Trebuchet MS", sans-serif;
-    font-size: 1.35rem;
-    font-weight: 700;
-    letter-spacing: -0.03em;
+    background: var(--color-felt, #0a1411);
+    color: #eae4d6;
+    font-family: var(--font-bodoni), "Didot", serif;
+    font-size: 1.4rem;
+    font-weight: 600;
+    letter-spacing: -0.02em;
     transition: opacity 0.4s ease;
   }
   #edenomics-root[data-ready="true"] + #edenomics-boot {
@@ -158,7 +158,7 @@ ${css}
 </style>
 
 <div id="edenomics-root"></div>
-<div id="edenomics-boot" aria-hidden="true">Edenomics</div>
+<div id="edenomics-boot" aria-hidden="true">♠ Edenomics</div>
 <noscript>
   <p style="padding:2rem;color:#8d929b;font-family:system-ui,sans-serif">
     Edenomics is an interactive prototype and needs JavaScript to run.

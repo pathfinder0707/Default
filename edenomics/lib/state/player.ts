@@ -2,38 +2,61 @@
 
 import { useCallback, useMemo, useSyncExternalStore } from "react";
 import { createPersistedStore } from "@/lib/state/persisted-store";
-import { STARTING_MASTERY } from "@/lib/game/skills";
-import { STARTING_BALANCE } from "@/lib/game/portfolio";
-import type { SkillId } from "@/lib/game/types";
+import type { Answer } from "@/lib/game/scoring";
+import type { ConceptId } from "@/lib/game/concepts";
 
 /**
- * Everything the player has earned. One store, read by the HUD, the skill map,
- * the league table and the portfolio lab — so finishing a run visibly moves
- * all four at once.
+ * The record. Every call ever made is kept, because the calibration curve is
+ * the product and it only means anything with history behind it.
  */
 export interface PlayerState {
-  xp: number;
+  answers: Answer[];
   streak: number;
-  freezes: number;
-  runsCompleted: number;
-  bestCombo: number;
-  mastery: Partial<Record<SkillId, number>>;
-  /** Local date key of the last completed run, so a streak extends once a day. */
-  lastRunDay: string;
-  allocation: Record<string, number>;
+  lastPlayedDay: string;
+  /** Concepts won. Derived from history, but stored so it survives a reset of the hand. */
+  vault: ConceptId[];
 }
 
-/** A returning player, mid-climb — a blank slate would show nothing off. */
+/**
+ * A seeded record for a returning player, built to show the shape almost
+ * everybody actually has: roughly right when hedging, and increasingly
+ * over-confident the surer they claim to be. The curve should teach something
+ * the moment it is opened, not sit empty.
+ */
+function seedHistory(): Answer[] {
+  const bands: { confidence: number; calls: number; hitRate: number }[] = [
+    { confidence: 0.55, calls: 8, hitRate: 0.63 },
+    { confidence: 0.65, calls: 9, hitRate: 0.67 },
+    { confidence: 0.75, calls: 11, hitRate: 0.64 },
+    { confidence: 0.85, calls: 10, hitRate: 0.6 },
+    { confidence: 0.94, calls: 8, hitRate: 0.63 },
+  ];
+
+  const answers: Answer[] = [];
+  for (const band of bands) {
+    const hits = Math.round(band.calls * band.hitRate);
+    for (let i = 0; i < band.calls; i++) {
+      const correct = i < hits;
+      // The stated probability of the outcome that actually happened.
+      const pTrue = correct ? band.confidence : 1 - band.confidence;
+      const error = 1 - pTrue;
+      answers.push({
+        claimId: `seed-${band.confidence}-${i}`,
+        side: "true",
+        confidence: band.confidence,
+        correct,
+        points: Math.round(100 * (1 - 2 * error * error)),
+      });
+    }
+  }
+  return answers;
+}
+
 const FALLBACK: PlayerState = {
-  xp: 3120,
-  streak: 12,
-  freezes: 2,
-  runsCompleted: 23,
-  bestCombo: 4,
-  mastery: { ...STARTING_MASTERY },
-  lastRunDay: "",
-  // Only unlocked classes carry weight at the start; the rest are earned.
-  allocation: { cash: 25, index: 75, bonds: 0, stocks: 0, gold: 0, crypto: 0 },
+  answers: seedHistory(),
+  streak: 6,
+  lastPlayedDay: "",
+  vault: ["splits", "cashflow"],
 };
 
 export function dayKey(date = new Date()): string {
@@ -41,105 +64,56 @@ export function dayKey(date = new Date()): string {
 }
 
 const store = createPersistedStore<PlayerState>(
-  "edenomics.player.v1",
+  "edenomics.player.v3",
   FALLBACK,
   (raw) => {
     if (typeof raw !== "object" || raw === null) return null;
     const stored = raw as Partial<PlayerState>;
     return {
-      xp: typeof stored.xp === "number" ? stored.xp : FALLBACK.xp,
+      answers: Array.isArray(stored.answers) ? (stored.answers as Answer[]) : seedHistory(),
       streak: typeof stored.streak === "number" ? stored.streak : FALLBACK.streak,
-      freezes: typeof stored.freezes === "number" ? stored.freezes : FALLBACK.freezes,
-      runsCompleted:
-        typeof stored.runsCompleted === "number" ? stored.runsCompleted : FALLBACK.runsCompleted,
-      bestCombo: typeof stored.bestCombo === "number" ? stored.bestCombo : FALLBACK.bestCombo,
-      mastery:
-        typeof stored.mastery === "object" && stored.mastery !== null
-          ? (stored.mastery as PlayerState["mastery"])
-          : { ...STARTING_MASTERY },
-      lastRunDay: typeof stored.lastRunDay === "string" ? stored.lastRunDay : "",
-      allocation:
-        typeof stored.allocation === "object" && stored.allocation !== null
-          ? (stored.allocation as Record<string, number>)
-          : { ...FALLBACK.allocation },
+      lastPlayedDay: typeof stored.lastPlayedDay === "string" ? stored.lastPlayedDay : "",
+      vault: Array.isArray(stored.vault) ? (stored.vault as ConceptId[]) : [],
     };
   },
 );
 
-export interface RunResult {
-  xpEarned: number;
-  bestCombo: number;
-  /** Skills touched by rounds the player got right. */
-  skillsHit: SkillId[];
-}
-
-export interface PlayerApi extends PlayerState {
-  /** True once today's run has been banked. */
-  playedToday: boolean;
-  balance: number;
-  completeRun: (result: RunResult) => void;
-  setAllocation: (allocation: Record<string, number>) => void;
-  reset: () => void;
-}
-
-/*
-  Today's date key, read through useSyncExternalStore so the server and the
-  hydrating client agree on "" and only the settled client sees a real date.
-  Defined at module scope because reading the clock during render is not
-  something a component body may do.
-*/
 const noopSubscribe = () => () => {};
 const getToday = () => dayKey();
 const getTodayOnServer = () => "";
 
+export interface PlayerApi extends PlayerState {
+  playedToday: boolean;
+  recordHand: (answers: Answer[], won: ConceptId[]) => void;
+  reset: () => void;
+}
+
 export function usePlayer(): PlayerApi {
-  const state = useSyncExternalStore(
-    store.subscribe,
-    store.getSnapshot,
-    store.getServerSnapshot,
-  );
+  const state = useSyncExternalStore(store.subscribe, store.getSnapshot, store.getServerSnapshot);
   const today = useSyncExternalStore(noopSubscribe, getToday, getTodayOnServer);
 
-  const completeRun = useCallback((result: RunResult) => {
+  const recordHand = useCallback((answers: Answer[], won: ConceptId[]) => {
     store.set((current) => {
-      const today = dayKey();
-      const firstToday = current.lastRunDay !== today;
-
-      // Mastery climbs fastest early and tapers, so a node never jumps to
-      // "mastered" off one lucky answer.
-      const mastery = { ...current.mastery };
-      for (const skill of result.skillsHit) {
-        const now = mastery[skill] ?? 0;
-        mastery[skill] = Math.min(100, now + Math.max(12, Math.round((100 - now) * 0.3)));
-      }
-
+      const day = dayKey();
+      const first = current.lastPlayedDay !== day;
       return {
-        ...current,
-        xp: current.xp + result.xpEarned,
-        streak: firstToday ? current.streak + 1 : current.streak,
-        runsCompleted: firstToday ? current.runsCompleted + 1 : current.runsCompleted,
-        bestCombo: Math.max(current.bestCombo, result.bestCombo),
-        mastery,
-        lastRunDay: today,
+        answers: [...current.answers, ...answers],
+        streak: first ? current.streak + 1 : current.streak,
+        lastPlayedDay: day,
+        vault: [...new Set([...current.vault, ...won])],
       };
     });
   }, []);
 
-  const setAllocation = useCallback((allocation: Record<string, number>) => {
-    store.set((current) => ({ ...current, allocation }));
-  }, []);
-
-  const reset = useCallback(() => store.set(() => ({ ...FALLBACK })), []);
+  const reset = useCallback(() => store.set(() => ({ ...FALLBACK, answers: seedHistory() })), []);
 
   return useMemo(
     () => ({
       ...state,
-      playedToday: today !== "" && state.lastRunDay === today,
-      balance: STARTING_BALANCE,
-      completeRun,
-      setAllocation,
+      playedToday: today !== "" && state.lastPlayedDay === today,
+      recordHand,
       reset,
     }),
-    [state, today, completeRun, setAllocation, reset],
+    [state, today, recordHand, reset],
   );
 }

@@ -1,23 +1,20 @@
 "use client";
 
-/**
- * Tiny haptic taps on devices that support them. Purely additive — the game
- * reads identically without it, and it stays silent where the API is missing
- * or the user has asked for reduced motion.
- */
+/** Short taps where the device supports them. Silent everywhere else. */
 function buzz(pattern: number | number[]) {
   if (typeof window === "undefined") return;
   if (window.matchMedia?.("(prefers-reduced-motion: reduce)").matches) return;
   try {
     window.navigator.vibrate?.(pattern);
   } catch {
-    // Unsupported or blocked by the browser — nothing to do.
+    // Unsupported or blocked.
   }
 }
 
 export const haptics = {
-  tap: () => buzz(8),
-  correct: () => buzz([12, 40, 22]),
-  wrong: () => buzz(28),
-  levelUp: () => buzz([16, 50, 16, 50, 40]),
+  notch: () => buzz(4),
+  throwCard: () => buzz(14),
+  good: () => buzz([10, 40, 20]),
+  bad: () => buzz([30, 45, 30]),
+  done: () => buzz([12, 50, 12, 50, 36]),
 };
