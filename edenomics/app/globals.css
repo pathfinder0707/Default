@@ -1,0 +1,232 @@
+@import "tailwindcss";
+
+@source "../app";
+@source "../components";
+@source "../lib";
+
+/* ---------------------------------------------------------------------------
+   Edenomics — a card game about being honest with yourself.
+
+   The surface is a card table: near-black felt, warm ivory cards, brass.
+   Jade and crimson mean exactly one thing each — the two sides of a claim —
+   and appear nowhere else, so a colour on this page is always an answer.
+--------------------------------------------------------------------------- */
+@theme {
+  --color-felt: #0a1411;
+  --color-felt-2: #0e1e18;
+  --color-rail: #142621;
+  --color-rail-2: #1b332b;
+
+  --color-line: rgba(234, 228, 214, 0.12);
+  --color-line-strong: rgba(234, 228, 214, 0.24);
+
+  --color-cream: #eae4d6;
+  /* Long-form copy on a rail panel. Solid on purpose: 10:1 against it. */
+  --color-body: #cfd8d1;
+  --color-muted: #93a89c;
+  --color-faint: #7c9188;
+
+  --color-card: #f6f1e5;
+  --color-card-2: #ebe3d2;
+  --color-ink: #151f1b;
+  --color-ink-soft: #4a5b53;
+
+  --color-brass: #d9a441;
+  --color-brass-deep: #a67717;
+  --color-jade: #3fbe8c;
+  --color-crimson: #ce4a42;
+
+  --font-display: var(--font-bodoni), "Didot", "Times New Roman", serif;
+  --font-sans: var(--font-geist), ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, "SF Mono", Menlo, monospace;
+
+  --ease-pop: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --ease-out-quint: cubic-bezier(0.22, 1, 0.36, 1);
+
+  --animate-shake: shake 0.42s cubic-bezier(0.36, 0.07, 0.19, 0.97);
+  --animate-breathe: breathe 3.4s ease-in-out infinite;
+
+  @keyframes shake {
+    10%, 90% { transform: translate3d(-2px, 0, 0); }
+    20%, 80% { transform: translate3d(4px, 0, 0); }
+    30%, 50%, 70% { transform: translate3d(-7px, 0, 0); }
+    40%, 60% { transform: translate3d(7px, 0, 0); }
+  }
+
+  @keyframes breathe {
+    0%, 100% { opacity: 0.45; }
+    50% { opacity: 0.85; }
+  }
+}
+
+/* --------------------------------------------------------------------------- */
+
+html {
+  background-color: var(--color-felt);
+  -webkit-text-size-adjust: 100%;
+  height: 100%;
+}
+
+body {
+  min-height: 100%;
+  background-color: var(--color-felt);
+  color: var(--color-cream);
+  font-family: var(--font-sans);
+  font-synthesis-weight: none;
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+  /* The table itself: a pool of light in the middle, dark at the rails. */
+  background-image:
+    radial-gradient(ellipse 90% 65% at 50% 38%, var(--color-felt-2) 0%, var(--color-felt) 68%);
+  background-attachment: fixed;
+}
+
+::selection {
+  background-color: color-mix(in oklab, var(--color-brass) 40%, transparent);
+  color: var(--color-cream);
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-brass);
+  outline-offset: 3px;
+  border-radius: 6px;
+}
+
+.display {
+  font-family: var(--font-display);
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  line-height: 1.02;
+  text-wrap: balance;
+}
+
+.tabular {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
+}
+
+.label {
+  font-family: var(--font-mono);
+  font-size: 0.625rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--color-faint);
+}
+
+/* Woven felt. Two fine gradients beat a noise image for a fabric read. */
+.felt::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.5;
+  background-image:
+    repeating-linear-gradient(45deg, rgba(255, 255, 255, 0.014) 0 1px, transparent 1px 3px),
+    repeating-linear-gradient(-45deg, rgba(0, 0, 0, 0.05) 0 1px, transparent 1px 3px);
+}
+
+/* A playing card: warm stock, a soft edge, and weight underneath. */
+.card-face {
+  background:
+    linear-gradient(168deg, var(--color-card) 0%, var(--color-card-2) 100%);
+  color: var(--color-ink);
+  box-shadow:
+    inset 0 0 0 1px rgba(21, 31, 27, 0.09),
+    inset 0 1px 0 rgba(255, 255, 255, 0.7),
+    0 1px 2px rgba(0, 0, 0, 0.4),
+    0 18px 40px -12px rgba(0, 0, 0, 0.75),
+    0 40px 80px -30px rgba(0, 0, 0, 0.9);
+}
+
+/* A face-down card: the classic diamond lattice, in brass on ink. */
+.card-back {
+  background-color: #16261f;
+  background-image:
+    repeating-linear-gradient(45deg, rgba(217, 164, 65, 0.16) 0 2px, transparent 2px 9px),
+    repeating-linear-gradient(-45deg, rgba(217, 164, 65, 0.16) 0 2px, transparent 2px 9px);
+  box-shadow:
+    inset 0 0 0 1px rgba(217, 164, 65, 0.22),
+    inset 0 0 0 6px #16261f,
+    inset 0 0 0 7px rgba(217, 164, 65, 0.28);
+}
+
+/* Raised furniture on the felt — panels, chips, the HUD. */
+.rail {
+  background: linear-gradient(180deg, var(--color-rail-2), var(--color-rail));
+  border: 1px solid var(--color-line);
+  box-shadow:
+    inset 0 1px 0 rgba(234, 228, 214, 0.06),
+    0 2px 0 rgba(0, 0, 0, 0.45);
+}
+
+.rail-hover {
+  transition: transform 0.16s var(--ease-pop), border-color 0.16s ease;
+}
+.rail-hover:hover:not(:disabled) {
+  transform: translateY(-2px);
+  border-color: var(--color-line-strong);
+}
+.rail-hover:active:not(:disabled) {
+  transform: translateY(1px);
+}
+
+.no-scrollbar {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+/* The keyboard/assistive path for conviction. Always present, never hidden. */
+.conviction-slider {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 34px;
+  background: transparent;
+  cursor: pointer;
+}
+.conviction-slider::-webkit-slider-runnable-track {
+  height: 6px;
+  border-radius: 999px;
+  background: rgba(234, 228, 214, 0.14);
+}
+.conviction-slider::-moz-range-track {
+  height: 6px;
+  border-radius: 999px;
+  background: rgba(234, 228, 214, 0.14);
+}
+.conviction-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 22px;
+  height: 22px;
+  margin-top: -8px;
+  border-radius: 999px;
+  background: var(--color-brass);
+  border: 2px solid var(--color-felt);
+  box-shadow: 0 2px 0 var(--color-brass-deep);
+}
+.conviction-slider::-moz-range-thumb {
+  width: 22px;
+  height: 22px;
+  border-radius: 999px;
+  background: var(--color-brass);
+  border: 2px solid var(--color-felt);
+  box-shadow: 0 2px 0 var(--color-brass-deep);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+}

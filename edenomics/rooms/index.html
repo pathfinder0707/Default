@@ -1,0 +1,1263 @@
+<title>Edenomics</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Manrope:wght@400;500;600;700&family=Syne:wght@600;700;800&display=swap">
+
+<style>
+/* ============================================================
+   EDENOMICS — seven rooms, one record.
+   The corridor is a deep aubergine that stays out of the way;
+   each room brings the only saturated colour on screen.
+   ============================================================ */
+:root{
+  --bg:#141019; --bg-2:#1B1522; --panel:#221A2B; --rail:#2C2237; --line:#352A42;
+  --ink:#F0EAF4; --mid:#A79DB2; --dim:#8B8195;
+  --display:"Syne","Helvetica Neue",Arial,sans-serif;
+  --sans:"Manrope",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --mono:"JetBrains Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+  --gut:clamp(18px,4vw,48px);
+  --acc:#A79DB2;               /* replaced per room */
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+  margin:0; background:var(--bg); color:var(--ink);
+  font-family:var(--sans); font-size:15px; line-height:1.6;
+  -webkit-font-smoothing:antialiased;
+}
+h1,h2,h3{font-family:var(--display); margin:0; font-weight:700; letter-spacing:-.015em; line-height:1.04; text-wrap:balance}
+p{margin:0}
+:focus-visible{outline:2px solid var(--acc); outline-offset:3px; border-radius:3px}
+button{font:inherit; color:inherit; cursor:pointer; background:none; border:0; padding:0}
+.mono{font-family:var(--mono)}
+.tnum{font-variant-numeric:tabular-nums}
+.lbl{font-family:var(--mono); font-size:10.5px; letter-spacing:.16em; text-transform:uppercase; color:var(--dim)}
+.shell{max-width:1080px; margin:0 auto; padding:0 var(--gut)}
+
+/* ---------------- top bar ---------------- */
+.topbar{
+  position:sticky; top:0; z-index:40; background:color-mix(in srgb, var(--bg) 92%, transparent);
+  backdrop-filter:blur(10px); border-bottom:1px solid var(--line);
+}
+.topbar .in{display:flex; align-items:center; gap:16px; height:56px}
+.mark{
+  font-family:var(--display); font-weight:800; font-size:17px; letter-spacing:-.02em;
+  display:flex; align-items:center; gap:9px;
+}
+.mark .pip{width:9px; height:9px; border-radius:2px; background:var(--acc); transition:background .3s ease}
+.spacer{flex:1}
+.pips{display:flex; gap:5px; align-items:center}
+.pips i{width:16px; height:4px; border-radius:99px; background:var(--rail); transition:background .3s ease}
+.iconbtn{
+  width:34px; height:34px; border-radius:4px; display:grid; place-items:center;
+  border:1px solid var(--line); color:var(--mid); font-size:14px;
+}
+.iconbtn:hover{background:var(--rail); color:var(--ink)}
+
+/* ---------------- hub ---------------- */
+.hero{padding:clamp(38px,7vw,74px) 0 26px}
+.hero h1{font-size:clamp(40px,8.6vw,82px); font-weight:800; letter-spacing:-.035em}
+.hero .sub{margin-top:16px; color:var(--mid); max-width:56ch; font-size:clamp(15px,1.7vw,17.5px)}
+.hero .sub b{color:var(--ink); font-weight:600}
+.tally{
+  display:flex; flex-wrap:wrap; align-items:baseline; gap:8px 20px;
+  margin-top:26px; padding-top:20px; border-top:1px solid var(--line);
+}
+.tally .n{font-family:var(--display); font-size:clamp(26px,4vw,34px); font-weight:800; letter-spacing:-.03em}
+.tally .say{color:var(--dim); font-size:13.5px; max-width:58ch}
+
+/* the record — one list that is also the way in */
+.record{margin:26px 0 0; border-top:1px solid var(--line)}
+.door{
+  display:grid; width:100%; text-align:left; gap:4px 20px; align-items:center;
+  grid-template-columns:14px minmax(0,1fr); padding:17px 4px 17px 0;
+  border-bottom:1px solid var(--line); position:relative; transition:background .16s ease;
+}
+@media(min-width:760px){
+  .door{grid-template-columns:14px minmax(0,1.05fr) minmax(0,1fr) 186px; padding:19px 4px}
+}
+.door:hover,.door:focus-visible{background:var(--bg-2)}
+.door .stripe{width:5px; height:34px; border-radius:99px; background:var(--acc); grid-row:1/-1}
+.door .nm{display:block; font-family:var(--display); font-size:19px; font-weight:700; letter-spacing:-.02em}
+.door .tr{display:block; font-family:var(--mono); font-size:10.5px; letter-spacing:.16em; text-transform:uppercase; color:var(--acc); margin-top:3px}
+.door .ln{color:var(--mid); font-size:13.5px}
+@media(max-width:759px){ .door .ln{grid-column:2} .door .gauge{grid-column:2; margin-top:8px} }
+.gauge{display:grid; gap:5px}
+.gauge .top{display:flex; justify-content:space-between; align-items:baseline; gap:10px}
+.gauge .v{font-family:var(--mono); font-size:13px; font-weight:700; font-variant-numeric:tabular-nums; color:var(--acc)}
+.gauge .v.none{color:var(--dim); font-weight:400}
+.gauge .k{font-family:var(--mono); font-size:9.5px; letter-spacing:.14em; text-transform:uppercase; color:var(--dim)}
+.track{height:5px; border-radius:99px; background:var(--rail); position:relative; overflow:hidden}
+.track i{position:absolute; inset:0 auto 0 0; border-radius:99px; background:var(--acc); transition:width .5s cubic-bezier(.2,.75,.3,1)}
+.track.declared{overflow:visible}
+.track.declared i{
+  width:11px !important; height:11px; border-radius:50%; top:-3px; left:var(--at,0);
+  transform:translateX(-50%); transition:left .5s cubic-bezier(.2,.75,.3,1);
+  box-shadow:0 0 0 3px var(--bg);
+}
+.legend{display:flex; flex-wrap:wrap; gap:8px 22px; margin-top:20px; padding-bottom:clamp(40px,7vw,80px)}
+.legend span{color:var(--dim); font-size:12.5px; display:flex; align-items:center; gap:8px}
+.legend .sw{width:22px; height:5px; border-radius:99px; background:var(--mid)}
+.legend .sw.dot{width:11px; height:11px; border-radius:50%}
+
+/* ---------------- room chrome ---------------- */
+.roomhead{padding:22px 0 18px; display:grid; gap:12px}
+.back{
+  font-family:var(--mono); font-size:11px; letter-spacing:.13em; text-transform:uppercase;
+  color:var(--mid); display:inline-flex; align-items:center; gap:8px; justify-self:start;
+}
+.back:hover{color:var(--ink)}
+.roomhead h2{font-size:clamp(28px,5vw,42px); font-weight:800; letter-spacing:-.03em}
+.roomhead .cap{color:var(--mid); max-width:62ch; font-size:15px}
+.chip{
+  display:inline-flex; align-items:center; gap:7px; justify-self:start;
+  font-family:var(--mono); font-size:10.5px; letter-spacing:.16em; text-transform:uppercase;
+  color:var(--acc); border:1px solid color-mix(in srgb, var(--acc) 38%, transparent);
+  padding:5px 10px; border-radius:99px;
+}
+.chip .d{width:7px; height:7px; border-radius:50%; background:var(--acc)}
+
+/* the lit surface every room plays on */
+.stage{
+  background:var(--bg-2); border:1px solid color-mix(in srgb, var(--acc) 24%, transparent);
+  border-radius:5px; overflow:hidden; position:relative;
+  box-shadow:0 30px 70px -40px #000;
+}
+.stagebar{
+  display:flex; align-items:center; justify-content:space-between; gap:14px; padding:10px 16px;
+  border-bottom:1px solid color-mix(in srgb, var(--acc) 16%, transparent);
+  background:color-mix(in srgb, var(--acc) 6%, transparent);
+  font-family:var(--mono); font-size:11px;
+}
+.stagebar .l{color:var(--acc); letter-spacing:.13em; text-transform:uppercase}
+.stagebar .r{color:var(--dim); text-align:right}
+.pad{padding:clamp(18px,3vw,28px)}
+.say{color:var(--mid); font-size:14.5px}
+.say b{color:var(--ink); font-weight:600}
+.big{
+  font-family:var(--display); font-weight:800; letter-spacing:-.035em;
+  font-variant-numeric:tabular-nums; line-height:1;
+}
+.row{display:flex; flex-wrap:wrap; gap:9px}
+
+.btn{
+  font-family:var(--mono); font-size:11.5px; letter-spacing:.12em; text-transform:uppercase;
+  padding:11px 16px; border-radius:3px; color:var(--ink);
+  border:1px solid color-mix(in srgb, var(--acc) 44%, transparent);
+  transition:background .15s ease, border-color .15s ease, color .15s ease;
+}
+.btn:hover:not(:disabled):not(.on):not(.primary):not([aria-pressed="true"]){background:color-mix(in srgb, var(--acc) 15%, transparent)}
+.btn.on,.btn[aria-pressed="true"]{background:var(--acc); border-color:var(--acc); color:#140F19}
+.btn.primary{background:var(--acc); border-color:var(--acc); color:#140F19; font-weight:700}
+.btn.primary:hover:not(:disabled){filter:brightness(1.12)}
+.btn:disabled{opacity:.42; cursor:not-allowed}
+
+/* result band shown when a room yields a reading */
+.verdict{
+  margin-top:18px; border:1px solid color-mix(in srgb, var(--acc) 32%, transparent);
+  border-radius:4px; background:color-mix(in srgb, var(--acc) 8%, transparent);
+  padding:18px 20px; display:grid; gap:14px;
+}
+@media(min-width:680px){ .verdict{grid-template-columns:118px minmax(0,1fr); align-items:center} }
+.verdict .score{text-align:center}
+.verdict .score .big{font-size:44px; color:var(--acc)}
+.verdict .score .k{font-family:var(--mono); font-size:9.5px; letter-spacing:.15em; text-transform:uppercase; color:var(--dim); display:block; margin-top:5px}
+.verdict .txt{color:var(--mid); font-size:14.5px}
+.verdict .txt b{color:var(--ink); font-weight:600}
+.foot{padding:26px 0 clamp(46px,8vw,86px)}
+@keyframes rise{from{opacity:0; transform:translateY(14px)} to{opacity:1; transform:none}}
+.view{animation:rise .3s cubic-bezier(.2,.75,.3,1) both}
+
+/* ============================================================
+   ROOM · THE TABLE
+   ============================================================ */
+.deck{position:relative; height:min(52vh,392px); display:grid; place-items:center; touch-action:pan-y}
+.pcard{
+  position:absolute; width:min(84vw,330px); height:min(46vh,340px); border-radius:12px;
+  background:linear-gradient(168deg,#F7F2E6,#E9E0CD); color:#1A1520;
+  box-shadow:0 22px 46px -22px #000, 0 2px 0 rgba(255,255,255,.5) inset;
+  padding:24px 22px; display:flex; flex-direction:column; cursor:grab; user-select:none;
+}
+.pcard.drag{cursor:grabbing}
+.pcard .q{font-size:clamp(16px,2.4vw,19px); font-weight:600; line-height:1.42; margin:auto 0; text-wrap:balance}
+.pcard .tag{font-family:var(--mono); font-size:10px; letter-spacing:.15em; text-transform:uppercase; color:#6C6478}
+.pcard .rim{position:absolute; inset:0; border-radius:12px; pointer-events:none; opacity:0}
+.pcard .rim.t{box-shadow:inset 0 0 0 4px #4FD8A0, inset 0 0 44px -8px #4FD8A0}
+.pcard .rim.f{box-shadow:inset 0 0 0 4px #FF6B4A, inset 0 0 44px -8px #FF6B4A}
+.pcard .side{
+  position:absolute; top:50%; transform:translateY(-50%); font-family:var(--mono); font-size:11px;
+  font-weight:700; letter-spacing:.16em; opacity:.28; writing-mode:vertical-rl;
+}
+.pcard .side.t{right:14px; color:#1B7A56} .pcard .side.f{left:14px; color:#A8341F; rotate:180deg}
+.pcard .pct{
+  position:absolute; left:0; right:0; bottom:18px; text-align:center;
+  font-family:var(--mono); font-size:26px; font-weight:700; font-variant-numeric:tabular-nums; opacity:0;
+}
+.back-card{
+  position:absolute; width:min(84vw,330px); height:min(46vh,340px); border-radius:12px;
+  background:
+    repeating-linear-gradient(45deg, rgba(224,179,65,.18) 0 6px, transparent 6px 12px),
+    linear-gradient(168deg,#2B2136,#1E1728);
+  border:1px solid rgba(224,179,65,.28);
+}
+.slidewrap{margin-top:6px}
+input[type=range]{-webkit-appearance:none; appearance:none; width:100%; background:transparent; margin:0; height:30px}
+input[type=range]::-webkit-slider-runnable-track{height:3px; background:var(--rail); border-radius:99px}
+input[type=range]::-moz-range-track{height:3px; background:var(--rail); border-radius:99px}
+input[type=range]::-webkit-slider-thumb{
+  -webkit-appearance:none; width:20px; height:20px; border-radius:50%; background:var(--acc);
+  border:3px solid var(--bg-2); margin-top:-9px; box-shadow:0 0 0 1px var(--acc);
+}
+input[type=range]::-moz-range-thumb{
+  width:15px; height:15px; border-radius:50%; background:var(--acc);
+  border:3px solid var(--bg-2); box-shadow:0 0 0 1px var(--acc);
+}
+.strip{display:flex; gap:4px; flex-wrap:wrap}
+.strip i{width:15px; height:15px; border-radius:3px; background:var(--rail); display:block}
+.strip i.w{background:#4FD8A0} .strip i.l{background:#FF6B4A}
+.strip i.sure{box-shadow:0 0 0 2px var(--ink) inset}
+
+/* ============================================================
+   ROOM · TERRARIUM
+   ============================================================ */
+.tank{
+  position:relative; height:230px; border-radius:4px; overflow:hidden;
+  background:linear-gradient(180deg,#0C3B33 0%,#07231F 100%);
+  box-shadow:inset 0 1px 0 rgba(160,255,225,.15), inset 0 -30px 50px -30px rgba(0,0,0,.75);
+}
+.tank .empty{
+  position:absolute; inset:0; display:grid; place-items:center; text-align:center; padding:0 20px;
+  font-family:var(--mono); font-size:11.5px; letter-spacing:.13em; text-transform:uppercase; color:#4E8577;
+}
+.crit{
+  position:absolute; width:var(--sz); height:var(--sz); border-radius:50% 50% 46% 54%;
+  background:radial-gradient(circle at 34% 32%, color-mix(in srgb, var(--c) 88%, white), var(--c) 62%, color-mix(in srgb, var(--c) 68%, black));
+  box-shadow:0 0 22px -4px var(--c); display:grid; place-items:center;
+  animation:bob 6s ease-in-out infinite; animation-delay:calc(var(--ph) * -6s);
+}
+.crit span{font-family:var(--mono); font-size:9.5px; font-weight:700; color:#04201C}
+.crit::after{
+  content:""; position:absolute; inset:-7px; border-radius:50%;
+  border:1px dashed color-mix(in srgb, var(--c) 55%, transparent); opacity:var(--herd,0);
+}
+@keyframes bob{
+  0%,100%{transform:translate(0,0) rotate(-4deg)}
+  25%{transform:translate(7px,-16px) rotate(3deg)}
+  50%{transform:translate(0,-24px) rotate(5deg)}
+  75%{transform:translate(-7px,-11px) rotate(-2deg)}
+}
+.tank.storm{background:linear-gradient(180deg,#3C1B14 0%,#170806 100%); transition:background .5s ease}
+.tank.storm .crit{animation-duration:1.1s}
+.meter{height:6px; border-radius:99px; background:var(--rail); overflow:hidden; margin-top:8px}
+.meter i{display:block; height:100%; border-radius:99px; background:var(--acc); transition:width .45s cubic-bezier(.2,.75,.3,1)}
+.meter i.bad{background:#FF6B4A}
+.grid3{display:grid; gap:16px; grid-template-columns:repeat(auto-fit,minmax(150px,1fr))}
+
+/* ============================================================
+   ROOM · BOSS RUSH
+   ============================================================ */
+.crt{position:relative; background:radial-gradient(120% 90% at 50% 0%, #2A0B33 0%, #140F19 74%)}
+.crt::after{
+  content:""; position:absolute; inset:0; pointer-events:none; opacity:.45;
+  background:repeating-linear-gradient(180deg, rgba(255,255,255,.05) 0 1px, transparent 1px 3px);
+}
+.boss-face{
+  font-family:var(--display); font-weight:800; font-size:clamp(30px,5.6vw,52px);
+  letter-spacing:.01em; color:var(--acc); text-shadow:0 0 28px color-mix(in srgb, var(--acc) 55%, transparent);
+  line-height:1; text-align:center;
+}
+.hp{height:14px; border:1px solid rgba(255,255,255,.22); background:#1B0F26; padding:2px}
+.hp i{display:block; height:100%; transition:width .16s linear}
+.hp.boss i{background:var(--acc); width:100%}
+.hp.you i{background:#5FCBE0}
+.dmg{position:absolute; font-family:var(--mono); font-size:13px; font-weight:700; color:var(--acc); pointer-events:none; animation:floatup 1s ease-out forwards}
+@keyframes floatup{from{opacity:1; transform:translateY(0)} to{opacity:0; transform:translateY(-36px)}}
+
+/* ============================================================
+   ROOM · GHOST LIVES  /  BUBBLE ROOM  (charts)
+   ============================================================ */
+.chart{width:100%; height:auto; display:block}
+.chart .grid{stroke:rgba(255,255,255,.075)}
+.chart .ax{fill:#A79DB2; font-family:var(--mono); font-size:10.5px}
+.chart .ln{fill:none; stroke-linecap:round; stroke-linejoin:round}
+.chart .ghost{stroke:#A79DB2; opacity:.4; stroke-width:1.6; stroke-dasharray:3 4}
+.chart .you{stroke:var(--acc); stroke-width:2.6}
+.chart .mark{stroke:var(--acc); stroke-width:1; stroke-dasharray:2 4; opacity:.65}
+.chart .endlbl{font-family:var(--mono); font-size:11px; font-weight:700}
+.tape{position:relative; height:216px; border-radius:4px; overflow:hidden; background:linear-gradient(180deg,#241626 0%,#160E19 100%)}
+.tape svg{position:absolute; inset:0; width:100%; height:100%}
+.tape .price{fill:none; stroke:var(--acc); stroke-width:2.2; stroke-linejoin:round; stroke-linecap:round}
+.tape .after{fill:none; stroke:#8B8195; stroke-width:2.2; stroke-linejoin:round; stroke-linecap:round}
+.tape .peakline{stroke:#8B8195; stroke-width:1; stroke-dasharray:2 4; opacity:.6}
+.ticker{position:absolute; top:12px; right:16px; font-family:var(--mono); font-size:22px; font-weight:700; font-variant-numeric:tabular-nums; color:var(--acc)}
+.quote{position:absolute; left:16px; right:16px; bottom:14px; font-size:14px; font-style:italic; opacity:0; transition:opacity .5s ease; text-shadow:0 2px 12px #000}
+.quote.show{opacity:1}
+
+/* ============================================================
+   ROOM · SLEEP TEST
+   ============================================================ */
+.dialrow{display:grid; gap:26px; grid-template-columns:minmax(0,1fr)}
+@media(min-width:700px){ .dialrow{grid-template-columns:minmax(0,1fr) 200px; align-items:end} }
+.drop{position:relative; height:172px; border-radius:4px; background:rgba(255,255,255,.04); overflow:hidden}
+.drop .col{position:absolute; left:0; right:0; top:0; background:linear-gradient(180deg,#2E5F6B,#16323A); transition:height .35s cubic-bezier(.3,.8,.3,1)}
+.drop .loss{
+  position:absolute; left:0; right:0; bottom:0; border-top:2px solid #FF6B4A;
+  background:repeating-linear-gradient(45deg, rgba(255,107,74,.32) 0 6px, rgba(255,107,74,.13) 6px 12px);
+  transition:height .35s cubic-bezier(.3,.8,.3,1);
+}
+.drop .cap{position:absolute; left:14px; bottom:10px; font-family:var(--mono); font-size:11px; color:#FFDCD3}
+
+/* ============================================================
+   ROOM · THE AUDIT   (the one lit page in a dark building)
+   ============================================================ */
+#room-audit .stage{background:radial-gradient(120% 80% at 50% -12%, #FBF8F1 0%, #E6E0D2 78%); color:#1A1710}
+#room-audit .stagebar{background:rgba(26,23,16,.06); border-bottom-color:rgba(26,23,16,.16)}
+#room-audit .stagebar .l{color:#8A6D12} #room-audit .stagebar .r{color:#6B6353}
+#room-audit .say{color:#5F5849} #room-audit .say b{color:#1A1710}
+#room-audit .btn{color:#1A1710; border-color:rgba(26,23,16,.3)}
+#room-audit .btn:hover:not(:disabled):not(.primary){background:rgba(26,23,16,.07)}
+#room-audit .btn.primary{background:#1A1710; border-color:#1A1710; color:#F7F3EA}
+#room-audit .verdict{background:rgba(26,23,16,.05); border-color:rgba(26,23,16,.2)}
+#room-audit .verdict .txt{color:#5F5849} #room-audit .verdict .txt b{color:#1A1710}
+#room-audit .verdict .score .big{color:#8A6D12}
+#room-audit .verdict .score .k{color:#6B6353}
+.ledger{width:100%; border-collapse:collapse; font-size:14px}
+.ledger caption{text-align:left; font-family:var(--mono); font-size:10.5px; letter-spacing:.14em; text-transform:uppercase; color:#6B6353; padding-bottom:10px}
+.ledger th{font-family:var(--mono); font-size:10.5px; letter-spacing:.13em; text-transform:uppercase; color:#6B6353; font-weight:500; padding:0 0 8px; border-bottom:1px solid rgba(26,23,16,.22)}
+.ledger td{padding:0; border-bottom:1px solid rgba(26,23,16,.1)}
+.lrow{display:grid; grid-template-columns:minmax(0,1fr) 112px 106px; gap:12px; align-items:baseline; padding-left:14px}
+.lrow .n{text-align:right; font-family:var(--mono); font-variant-numeric:tabular-nums}
+.ledger tr td button{width:100%; padding:12px 10px 12px 0; text-align:left; color:#1A1710; border-left:3px solid transparent; transition:background .14s ease}
+.ledger tr td button:hover{background:rgba(201,162,39,.18)}
+.ledger tr.picked td button{background:rgba(201,162,39,.34); border-left-color:#C9A227; font-weight:600}
+.ledger tr.hit td button{background:rgba(168,52,31,.12); border-left-color:#A8341F}
+.ledger tr.miss td button{opacity:.42}
+.ledger .why{display:block; padding-left:14px; margin-top:5px; font-size:12.5px; color:#A8341F; max-width:66ch}
+
+@media (prefers-reduced-motion: reduce){
+  html{scroll-behavior:auto}
+  *,*::before,*::after{animation-duration:.001ms !important; animation-iteration-count:1 !important; transition-duration:.001ms !important}
+}
+</style>
+
+<header class="topbar">
+  <div class="shell in">
+    <button class="mark" id="home" aria-label="Edenomics — back to the record"><span class="pip"></span>Edenomics</button>
+    <span class="spacer"></span>
+    <span class="pips" id="pips" aria-hidden="true"></span>
+    <span class="lbl" id="tally-mini">0/7</span>
+    <button class="iconbtn" id="mute" aria-label="Sound on" aria-pressed="false">♪</button>
+  </div>
+</header>
+
+<main class="shell" id="main"></main>
+
+<script>
+(function(){
+"use strict";
+
+var reduce = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+var main = document.getElementById("main");
+
+/* ---------- money ---------- */
+function inr(n){
+  var a = Math.abs(n);
+  if (a >= 1e7) return "₹" + (n/1e7).toFixed(2) + " Cr";
+  if (a >= 1e5) return "₹" + (n/1e5).toFixed(1) + " L";
+  return "₹" + Math.round(n).toLocaleString("en-IN");
+}
+function clamp(v,a,b){ return Math.max(a, Math.min(b, v)); }
+function h(tag, cls, html){
+  var n = document.createElement(tag);
+  if (cls) n.className = cls;
+  if (html != null) n.innerHTML = html;
+  return n;
+}
+
+/* ---------- the record (per viewer, this browser only) ---------- */
+var KEY = "edenomics.record.v1";
+var record = { readings:{}, muted:false };
+try {
+  var raw = localStorage.getItem(KEY);
+  if (raw) record = Object.assign(record, JSON.parse(raw));
+} catch(e){ /* private mode, blocked storage — play on without a record */ }
+function save(){
+  try { localStorage.setItem(KEY, JSON.stringify(record)); } catch(e){}
+}
+
+/* ---------- sound: synthesised, never on load ---------- */
+var actx = null;
+function tone(freq, dur, type, vol){
+  if (record.muted) return;
+  try {
+    if (!actx) actx = new (window.AudioContext || window.webkitAudioContext)();
+    var o = actx.createOscillator(), g = actx.createGain();
+    o.type = type || "sine"; o.frequency.value = freq;
+    g.gain.setValueAtTime(0, actx.currentTime);
+    g.gain.linearRampToValueAtTime(vol || .07, actx.currentTime + .012);
+    g.gain.exponentialRampToValueAtTime(.0001, actx.currentTime + dur);
+    o.connect(g); g.connect(actx.destination);
+    o.start(); o.stop(actx.currentTime + dur + .02);
+  } catch(e){}
+}
+var sfx = {
+  tap:   function(){ tone(420, .06, "triangle", .04); },
+  notch: function(c){ tone(300 + c * 520, .035, "square", .022); },
+  good:  function(){ tone(523, .10, "sine", .07); setTimeout(function(){ tone(784, .20, "sine", .06); }, 80); },
+  bad:   function(c){ tone(190 - c * 60, .34, "sawtooth", .05); },
+  done:  function(){ [523,659,784,1047].forEach(function(f,i){ setTimeout(function(){ tone(f,.22,"sine",.055); }, i*90); }); }
+};
+var muteBtn = document.getElementById("mute");
+function paintMute(){
+  muteBtn.textContent = record.muted ? "✕" : "♪";
+  muteBtn.setAttribute("aria-pressed", record.muted ? "true" : "false");
+  muteBtn.setAttribute("aria-label", record.muted ? "Sound off" : "Sound on");
+}
+muteBtn.addEventListener("click", function(){ record.muted = !record.muted; save(); paintMute(); if (!record.muted) sfx.tap(); });
+paintMute();
+
+/* ============================================================
+   THE SEVEN ROOMS
+   Each declares its trait, how that trait is measured, and mounts
+   itself into a host element. `done(reading)` writes the record.
+   ============================================================ */
+var ROOMS = [];
+function room(def){ ROOMS.push(def); return def; }
+
+/* ---------------------------------------------------------- 1 · THE TABLE */
+room({
+  id:"table", name:"The Table", trait:"Calibration", kind:"earned", acc:"#E0B341",
+  line:"Seven claims. Throw each one as far as you are sure.",
+  cap:"You are not scored on being right. You are scored on knowing how right you are — a Brier rule, so a confident mistake costs more than it ever earns.",
+  bar:"Hand of seven",
+  mount:mountTable
+});
+var CLAIMS = [
+  {q:"A company beats its earnings forecast, so its share price goes up that day.", t:false,
+   why:"The forecast was already in the price. What moves the price is the gap between the result and what people expected — and expectations are usually ahead of the published forecast."},
+  {q:"When interest rates are cut, a bond you already own becomes more valuable.", t:true,
+   why:"Your bond pays the old, higher coupon. New bonds pay less, so yours is worth more to someone else. Price and rates move opposite ways."},
+  {q:"A company can grow its revenue every single year and still go bankrupt.", t:true,
+   why:"Growth consumes cash — stock, wages, receivables. You go bankrupt when you run out of cash, not when you run out of sales."},
+  {q:"If the index falls, an index fund has to sell shares.", t:false,
+   why:"It holds the market in proportion. When prices fall, the proportions barely change. It sells only when investors withdraw or the index itself is reconstituted."},
+  {q:"Two shares that both went up last year make a safer pair than one share alone.", t:false,
+   why:"Only if they move apart. Two of the same kind of company are one bet with two names on it — and they will fall together too."},
+  {q:"A stock split makes you wealthier.", t:false,
+   why:"Two halves of the same pizza. Twice the shares at half the price is exactly the same holding — the only thing that changed is the arithmetic."},
+  {q:"If oil doubles in price, an airline's costs rise before your ticket price does.", t:true,
+   why:"Fuel is bought and burned now; fares are set by competition and often sold months ahead. The squeeze lands on the airline first."}
+];
+function brier(pTrue, isTrue){
+  var e = (isTrue ? 1 : 0) - pTrue;
+  return Math.round(100 * (1 - 2 * e * e));
+}
+function mountTable(host, done){
+  var COMMIT = 96, MAXD = 232, i = 0, scores = [], marks = [];
+  var wrap = h("div");
+  wrap.innerHTML =
+    '<div class="stagebar"><span class="l">Hand of seven</span><span class="r" id="t-n">Card 1 of 7</span></div>' +
+    '<div class="pad">' +
+      '<div class="deck" id="t-deck"><div class="back-card" style="transform:translate(9px,9px) rotate(3deg)"></div><div class="back-card" style="transform:translate(4px,4px) rotate(-2deg)"></div></div>' +
+      '<div class="slidewrap"><div style="display:flex; justify-content:space-between; align-items:baseline; gap:12px">' +
+        '<label class="lbl" for="t-sure">How sure are you?</label>' +
+        '<span class="mono tnum" id="t-sureV" style="font-weight:700; color:var(--acc)">50%</span></div>' +
+        '<input type="range" id="t-sure" min="50" max="99" value="50" aria-label="Confidence, 50 to 99 percent">' +
+        '<div class="row" style="margin-top:6px"><button class="btn" id="t-false" style="flex:1">◀ False</button><button class="btn" id="t-true" style="flex:1">True ▶</button></div>' +
+      '</div>' +
+      '<div style="display:flex; justify-content:space-between; align-items:center; gap:14px; margin-top:18px">' +
+        '<div class="strip" id="t-strip"></div><span class="lbl" id="t-avg"></span></div>' +
+      '<p class="say" id="t-say" style="margin-top:14px">Drag the card, or use the slider. How far you throw it is how sure you are.</p>' +
+    '</div>';
+  host.appendChild(wrap);
+
+  var deck = wrap.querySelector("#t-deck"), sure = wrap.querySelector("#t-sure");
+  var card, dragging = false, x = 0, startX = 0, lastNotch = 0;
+
+  function conf(dx){ return 0.5 + Math.min(1, Math.abs(dx) / MAXD) * 0.49; }
+  function deal(){
+    if (card) card.remove();
+    var c = CLAIMS[i];
+    card = h("div","pcard");
+    card.innerHTML =
+      '<div class="rim t"></div><div class="rim f"></div>' +
+      '<span class="side f">FALSE</span><span class="side t">TRUE</span>' +
+      '<span class="tag">Claim ' + (i+1) + '</span>' +
+      '<p class="q">' + c.q + '</p>' +
+      '<span class="pct mono"></span>';
+    deck.appendChild(card);
+    wrap.querySelector("#t-n").textContent = "Card " + (i+1) + " of 7";
+    sure.value = 50; wrap.querySelector("#t-sureV").textContent = "50%";
+    paint(0);
+    card.addEventListener("pointerdown", down);
+  }
+  function paint(dx){
+    if (!card) return;
+    var c = conf(dx), pc = Math.round(c * 100);
+    card.style.transform = "translateX(" + dx + "px) rotate(" + (dx * 0.045) + "deg)";
+    card.querySelector(".rim.t").style.opacity = dx > 0 ? Math.min(1, dx / MAXD * 1.4) : 0;
+    card.querySelector(".rim.f").style.opacity = dx < 0 ? Math.min(1, -dx / MAXD * 1.4) : 0;
+    card.querySelector(".side.t").style.opacity = dx > 8 ? 1 : .28;
+    card.querySelector(".side.f").style.opacity = dx < -8 ? 1 : .28;
+    var p = card.querySelector(".pct");
+    p.style.opacity = Math.abs(dx) > 14 ? 1 : 0;
+    p.style.color = dx > 0 ? "#1B7A56" : "#A8341F";
+    p.textContent = pc + "%";
+    if (Math.abs(dx) > 14){
+      sure.value = pc; wrap.querySelector("#t-sureV").textContent = pc + "%";
+      if (Math.abs(pc - lastNotch) >= 5){ lastNotch = pc; sfx.notch(c); }
+    }
+  }
+  function down(e){
+    if (!card) return;
+    dragging = true; startX = e.clientX; lastNotch = 50;
+    card.classList.add("drag"); card.style.transition = "none";
+    try { card.setPointerCapture(e.pointerId); } catch(err){}
+  }
+  function move(e){ if (!dragging) return; x = e.clientX - startX; paint(x); }
+  function up(){
+    if (!dragging) return;
+    dragging = false; if (card) card.classList.remove("drag");
+    if (Math.abs(x) > COMMIT) commit(x > 0 ? "true" : "false", conf(x));
+    else { if (card){ card.style.transition = "transform .28s cubic-bezier(.2,.8,.3,1)"; } x = 0; paint(0); }
+  }
+  window.addEventListener("pointermove", move);
+  window.addEventListener("pointerup", up);
+  window.addEventListener("pointercancel", up);
+
+  function commit(side, c){
+    var claim = CLAIMS[i];
+    var pTrue = side === "true" ? c : 1 - c;
+    var s = brier(pTrue, claim.t);
+    var right = (side === "true") === claim.t;
+    scores.push(s); marks.push({ right:right, sure:c > 0.75 });
+    if (right) sfx.good(); else sfx.bad(c);
+
+    if (card){
+      card.style.transition = "transform .34s ease, opacity .34s ease";
+      card.style.transform = "translateX(" + (side === "true" ? 620 : -620) + "px) rotate(" + (side === "true" ? 26 : -26) + "deg)";
+      card.style.opacity = "0";
+    }
+    var pc = Math.round(c * 100);
+    wrap.querySelector("#t-say").innerHTML =
+      "<b>" + (right ? "Right" : "Wrong") + " — you said " + pc + "% " + side + ". " + (s > 0 ? "+" : "") + s + ".</b> " +
+      claim.why + (!right && c > 0.85 ? " And you were sure. That is what it costs." : "");
+    renderStrip();
+    x = 0; i++;
+    setTimeout(function(){
+      if (i >= CLAIMS.length) finish(); else deal();
+    }, reduce ? 20 : 380);
+  }
+  function renderStrip(){
+    var st = wrap.querySelector("#t-strip"); st.innerHTML = "";
+    for (var k = 0; k < CLAIMS.length; k++){
+      var b = h("i");
+      if (marks[k]) b.className = (marks[k].right ? "w" : "l") + (marks[k].sure ? " sure" : "");
+      st.appendChild(b);
+    }
+    if (scores.length){
+      var avg = scores.reduce(function(a,b){ return a+b; },0) / scores.length;
+      wrap.querySelector("#t-avg").textContent = "Average " + Math.round(avg) + " · coin flip is 50";
+    }
+  }
+  function finish(){
+    if (card) card.remove();
+    var avg = scores.reduce(function(a,b){ return a+b; },0) / scores.length;
+    var reading = clamp(Math.round(avg), 0, 100);
+    deck.innerHTML = '<p class="say" style="text-align:center; max-width:44ch">' +
+      (reading >= 70 ? "You knew when you knew, and admitted it when you didn't. That is the whole skill."
+       : reading >= 50 ? "You beat a coin flip — but only just. The cheapest points on this table come from saying 60% and meaning it."
+       : "A coin flip would have scored 50. Every point below that was bought with confidence you did not have.") + "</p>";
+    sfx.done();
+    done(reading, "Average Brier score across seven claims. Fifty is a coin flip; you cannot beat it by guessing harder.");
+  }
+  sure.addEventListener("input", function(){ wrap.querySelector("#t-sureV").textContent = sure.value + "%"; });
+  wrap.querySelector("#t-true").addEventListener("click", function(){ commit("true", +sure.value / 100); });
+  wrap.querySelector("#t-false").addEventListener("click", function(){ commit("false", +sure.value / 100); });
+  renderStrip(); deal();
+  return function(){ window.removeEventListener("pointermove", move); window.removeEventListener("pointerup", up); window.removeEventListener("pointercancel", up); };
+}
+
+/* ---------------------------------------------------------- 2 · TERRARIUM */
+room({
+  id:"terrarium", name:"The Terrarium", trait:"Structure", kind:"earned", acc:"#4FD8A0",
+  line:"Build a tank. Watch what swims in step. Then send a storm.",
+  cap:"Correlated holdings drift in sync here — you can see the herd before anything goes wrong. Three great companies can still be one bet.",
+  bar:"Tank 01 · equal weight",
+  mount:mountTerrarium
+});
+function mountTerrarium(host, done){
+  var SP = [
+    {k:"NVDA", n:"Nvidia",         herd:0, ph:0.00, storm:-54, c:"#4FD8A0", sz:52},
+    {k:"AAPL", n:"Apple",          herd:0, ph:0.00, storm:-34, c:"#4FD8A0", sz:58},
+    {k:"TSLA", n:"Tesla",          herd:0, ph:0.00, storm:-61, c:"#4FD8A0", sz:48},
+    {k:"REIT", n:"Property trust", herd:1, ph:0.18, storm:-29, c:"#8AD4FF", sz:50},
+    {k:"GOLD", n:"Gold",           herd:2, ph:0.52, storm:  9, c:"#FFD166", sz:54},
+    {k:"GSEC", n:"Govt bonds",     herd:3, ph:0.78, storm:  4, c:"#C9A0FF", sz:46}
+  ];
+  function rho(a,b){
+    if (a.herd === b.herd) return 0.82;
+    return ({"01":0.38,"02":-0.08,"03":-0.22,"12":0.05,"13":0.20,"23":0.15})[[a.herd,b.herd].sort().join("")];
+  }
+  var picked = ["NVDA","AAPL","TSLA","GOLD"], best = 0, stormed = false;
+  var wrap = h("div");
+  wrap.innerHTML =
+    '<div class="stagebar"><span class="l">Tank 01 · equal weight</span><span class="r" id="k-n">—</span></div>' +
+    '<div class="pad">' +
+      '<div class="tank" id="k-tank"><div class="empty" id="k-empty">Add a species below</div></div>' +
+      '<div class="row" id="k-chips" style="margin-top:16px"></div>' +
+      '<div class="grid3" style="margin-top:18px">' +
+        '<div><span class="lbl">Things that move apart</span><div class="big" style="font-size:26px; margin-top:6px" id="k-div">—</div><div class="meter"><i id="k-bar" style="width:0"></i></div></div>' +
+        '<div><span class="lbl">If a storm hits</span><div class="big" style="font-size:26px; margin-top:6px" id="k-dd">—</div><div class="say" style="font-size:12.5px; margin-top:6px" id="k-sub">Pick at least two.</div></div>' +
+        '<div style="align-self:end"><button class="btn primary" id="k-storm" disabled>Send a storm</button></div>' +
+      '</div>' +
+      '<p class="say" id="k-say" style="margin-top:16px"></p>' +
+    '</div>';
+  host.appendChild(wrap);
+  var tank = wrap.querySelector("#k-tank"), chips = wrap.querySelector("#k-chips");
+
+  SP.forEach(function(s){
+    var b = h("button","btn", s.k);
+    b.type = "button"; b.setAttribute("aria-label", s.n);
+    b.setAttribute("aria-pressed", picked.indexOf(s.k) > -1 ? "true" : "false");
+    b.addEventListener("click", function(){
+      var ix = picked.indexOf(s.k);
+      if (ix > -1) picked.splice(ix,1); else picked.push(s.k);
+      b.setAttribute("aria-pressed", ix > -1 ? "false" : "true");
+      sfx.tap(); paint();
+    });
+    chips.appendChild(b);
+  });
+
+  function live(){ return SP.filter(function(s){ return picked.indexOf(s.k) > -1; }); }
+  function spreadOf(L){
+    if (L.length < 2) return 0;
+    var sum = 0, n = 0;
+    for (var i=0;i<L.length;i++) for (var j=i+1;j<L.length;j++){ sum += rho(L[i],L[j]); n++; }
+    return clamp((1 - sum/n) / 1.4, 0, 1);
+  }
+  function paint(){
+    var L = live();
+    tank.classList.remove("storm");
+    Array.prototype.slice.call(tank.querySelectorAll(".crit")).forEach(function(n){ n.remove(); });
+    wrap.querySelector("#k-empty").style.display = L.length ? "none" : "grid";
+    var counts = {}; L.forEach(function(s){ counts[s.herd] = (counts[s.herd]||0)+1; });
+    var slot = 88 / Math.max(1, L.length);
+    L.forEach(function(s,i){
+      var d = h("div","crit",'<span>' + s.k + '</span>');
+      d.style.setProperty("--c", s.c); d.style.setProperty("--ph", s.ph);
+      d.style.setProperty("--sz", s.sz + "px");
+      d.style.setProperty("--herd", counts[s.herd] > 1 ? ".9" : "0");
+      d.style.left = (6 + (i + .5) * slot - 4.5) + "%";
+      d.style.top = (20 + (i % 3) * 20) + "%";
+      d.title = s.n + (counts[s.herd] > 1 ? " — moving with the herd" : "");
+      tank.appendChild(d);
+    });
+    wrap.querySelector("#k-n").textContent = L.length ? L.length + " species" : "empty";
+
+    if (L.length < 2){
+      wrap.querySelector("#k-div").textContent = "—";
+      wrap.querySelector("#k-bar").style.width = "0";
+      wrap.querySelector("#k-dd").textContent = "—";
+      wrap.querySelector("#k-sub").textContent = "Pick at least two.";
+      wrap.querySelector("#k-storm").disabled = true;
+      wrap.querySelector("#k-say").textContent = L.length
+        ? "One creature is not an ecosystem. It is a bet with better lighting."
+        : "An empty tank loses nothing. It gains nothing either.";
+      return;
+    }
+    var sp = spreadOf(L), herded = 0;
+    for (var i=0;i<L.length;i++) for (var j=i+1;j<L.length;j++) if (L[i].herd === L[j].herd) herded++;
+    wrap.querySelector("#k-div").textContent = Math.round(sp*100) + "%";
+    var bar = wrap.querySelector("#k-bar");
+    bar.style.width = Math.round(sp*100) + "%";
+    bar.classList.toggle("bad", sp < .42);
+    var dd = L.reduce(function(a,s){ return a + s.storm; },0) / L.length;
+    wrap.querySelector("#k-dd").textContent = (dd>0?"+":"") + dd.toFixed(1) + "%";
+    wrap.querySelector("#k-sub").textContent = inr(1000000 * (1 + dd/100)) + " left of ₹10 L";
+    wrap.querySelector("#k-storm").disabled = false;
+    var apart = L.length - herded;
+    wrap.querySelector("#k-say").textContent = herded
+      ? "The ringed ones are drifting in lockstep. You own " + L.length + " things and roughly " + apart + (apart === 1 ? " opinion." : " opinions.")
+      : "Nothing in this tank is synchronised. That is the only free lunch in finance, and you are holding it.";
+  }
+
+  wrap.querySelector("#k-storm").addEventListener("click", function(){
+    var L = live(), sp = spreadOf(L);
+    var dd = L.reduce(function(a,s){ return a + s.storm; },0) / L.length;
+    tank.classList.add("storm"); sfx.bad(.6);
+    best = Math.max(best, Math.round(sp*100)); stormed = true;
+    wrap.querySelector("#k-say").textContent =
+      "Storm. " + inr(1000000 * (1 + dd/100)) + " left of ₹10 L — and everything that was moving in sync went down together, which is what 'in sync' was always going to mean.";
+    setTimeout(function(){ tank.classList.remove("storm"); }, reduce ? 300 : 2400);
+    done(best, "The best-spread tank you built: 100% would be holdings with nothing in common. Storms are survived by structure, not by picking well.");
+  });
+  paint();
+}
+
+/* ---------------------------------------------------------- 3 · BOSS RUSH */
+room({
+  id:"bossrush", name:"Boss Rush", trait:"Cost sense", kind:"earned", acc:"#FF3D7F",
+  line:"Guess what the fee takes. Then fight it for thirty years.",
+  cap:"FEES has a health bar that never moves, because you cannot kill it — only choose how hard it hits. Call the damage before the fight; the room scores your guess, not your weapon.",
+  bar:"Stage 1 · FEES",
+  mount:mountBoss
+});
+function mountBoss(host, done){
+  var W = [
+    {k:"index",  n:"Index fund",  fee:0.20},
+    {k:"active", n:"Active fund", fee:1.80},
+    {k:"pms",    n:"Managed",     fee:2.50}
+  ];
+  var GROSS = 11, START = 1000000, YEARS = 30, chosen = "active", running = false, timer = null;
+  var wrap = h("div","crt");
+  wrap.innerHTML =
+    '<div class="stagebar"><span class="l">Stage 1 · FEES</span><span class="r" id="b-yr">Year 0 / 30</span></div>' +
+    '<div class="pad" style="display:grid; gap:18px; position:relative">' +
+      '<div><div class="boss-face">FEES</div>' +
+        '<div style="display:flex; justify-content:space-between; align-items:baseline; margin-top:10px"><span class="lbl">Boss HP</span><span class="lbl" style="color:var(--acc)">Immortal</span></div>' +
+        '<div class="hp boss"><i></i></div></div>' +
+      '<div><div style="display:flex; justify-content:space-between; align-items:baseline"><span class="lbl">Your portfolio</span><span class="big" style="font-size:22px" id="b-you">₹10.0 L</span></div>' +
+        '<div class="hp you"><i id="b-bar" style="width:100%"></i></div></div>' +
+      '<div><span class="lbl">Choose your weapon</span><div class="row" id="b-w" style="margin-top:9px"></div></div>' +
+      '<div><div style="display:flex; justify-content:space-between; align-items:baseline; gap:12px">' +
+        '<label class="lbl" for="b-guess">Your call — how much of your final wealth will fees take?</label>' +
+        '<span class="mono tnum" id="b-gv" style="font-weight:700; color:var(--acc)">20%</span></div>' +
+        '<input type="range" id="b-guess" min="0" max="70" value="20" aria-label="Predicted share of final wealth lost to fees, percent"></div>' +
+      '<div class="row"><button class="btn primary" id="b-go">Call it and fight</button><button class="btn" id="b-rs">Reset</button></div>' +
+      '<p class="say" id="b-say">An index fund and an active fund look identical on day one.</p>' +
+    '</div>';
+  host.appendChild(wrap);
+  var pad = wrap.querySelector(".pad"), wbox = wrap.querySelector("#b-w"), guess = wrap.querySelector("#b-guess");
+
+  W.forEach(function(w){
+    var b = h("button","btn" + (w.k === chosen ? " on" : ""), w.n + " · " + w.fee.toFixed(2) + "%");
+    b.type = "button"; b.setAttribute("aria-pressed", w.k === chosen ? "true":"false");
+    b.addEventListener("click", function(){
+      if (running) return;
+      chosen = w.k; sfx.tap();
+      Array.prototype.slice.call(wbox.children).forEach(function(c,ix){
+        var on = W[ix].k === chosen; c.classList.toggle("on", on); c.setAttribute("aria-pressed", on?"true":"false");
+      });
+      reset();
+    });
+    wbox.appendChild(b);
+  });
+  guess.addEventListener("input", function(){ wrap.querySelector("#b-gv").textContent = guess.value + "%"; });
+
+  function fee(){ return W.filter(function(w){ return w.k === chosen; })[0].fee; }
+  function best(){ return START * Math.pow(1 + (GROSS - 0.20)/100, YEARS); }
+  function reset(){
+    clearInterval(timer); running = false;
+    wrap.querySelector("#b-you").textContent = inr(START);
+    wrap.querySelector("#b-bar").style.width = "100%";
+    wrap.querySelector("#b-yr").textContent = "Year 0 / " + YEARS;
+    wrap.querySelector("#b-go").disabled = false;
+    wrap.querySelector("#b-say").textContent = "An index fund and an active fund look identical on day one.";
+  }
+  function pop(t){
+    if (reduce) return;
+    var d = h("div","dmg", t);
+    d.style.left = (26 + Math.random()*46) + "%"; d.style.top = "26%";
+    pad.appendChild(d); setTimeout(function(){ d.remove(); }, 1000);
+  }
+  wrap.querySelector("#b-go").addEventListener("click", function(){
+    if (running) return;
+    running = true;
+    wrap.querySelector("#b-go").disabled = true;
+    var called = +guess.value, y = 0, v = START, f = fee();
+    timer = setInterval(function(){
+      y++;
+      var before = v * (1 + GROSS/100), after = v * (1 + (GROSS - f)/100);
+      v = after;
+      wrap.querySelector("#b-yr").textContent = "Year " + y + " / " + YEARS;
+      wrap.querySelector("#b-you").textContent = inr(v);
+      wrap.querySelector("#b-bar").style.width =
+        clamp(v / (START * Math.pow(1 + (GROSS-0.20)/100, y)) * 100, 4, 100) + "%";
+      if (y % 5 === 0){ pop("−" + inr(before - after)); sfx.notch(.3); }
+      if (y >= YEARS){
+        clearInterval(timer); running = false;
+        wrap.querySelector("#b-go").disabled = false;
+        var gap = best() - v, actual = Math.round(gap / best() * 100);
+        var reading = clamp(Math.round(100 - Math.abs(called - actual) * 3), 0, 100);
+        sfx.done();
+        wrap.querySelector("#b-say").innerHTML =
+          "<b>" + inr(v) + ".</b> The 0.20% version of you finished with " + inr(best()) + ". FEES took <b>" + inr(gap) + "</b> — <b>" + actual + "%</b> of everything you would have had, and you never saw a hit land. You called " + called + "%.";
+        done(reading, "How close your call was to the real damage. Fees are the one cost you can size in advance — and almost everybody guesses low.");
+      }
+    }, reduce ? 1 : 105);
+  });
+  wrap.querySelector("#b-rs").addEventListener("click", reset);
+  reset();
+  return function(){ clearInterval(timer); };
+}
+
+/* ---------------------------------------------------------- 4 · GHOST LIVES */
+room({
+  id:"ghosts", name:"Ghost Lives", trait:"Patience", kind:"declared", acc:"#7FA6FF",
+  line:"A crash in year five. One decision, then twenty-five years.",
+  cap:"The two versions of you who chose differently keep going as ghosts you cannot catch. Nothing here is a test — it records what you did, not what you knew.",
+  bar:"₹10,00,000 · 30 years · no new money",
+  mount:mountGhosts
+});
+function mountGhosts(host, done){
+  var START = 1e6, G = .11, CASH = .05, CR = -.38, CY = 5, N = 30, MAX = 15e6;
+  var P = {x0:64, x1:640, y0:26, y1:262};
+  function series(kind){
+    var v = START, out = [v];
+    for (var y = 1; y <= N; y++){
+      if (y === CY) v = v * (1+G) * (1+CR);
+      else if (kind === "out" && y > CY) v *= (1+CASH);
+      else if (kind === "back" && y > CY && y <= CY+3) v *= (1+CASH);
+      else v *= (1+G);
+      out.push(v);
+    }
+    return out;
+  }
+  var L = { hold:{n:"Held on", s:series("hold"), r:100},
+            back:{n:"Sold, back in three years", s:series("back"), r:55},
+            out:{n:"Sold, stayed in cash", s:series("out"), r:15} };
+  var X = function(y){ return P.x0 + y/N * (P.x1-P.x0); };
+  var Y = function(v){ return P.y1 - Math.min(1, v/MAX) * (P.y1-P.y0); };
+  function d(s){ return s.map(function(v,y){ return (y?"L":"M") + X(y).toFixed(1) + " " + Y(v).toFixed(1); }).join(" "); }
+
+  var wrap = h("div");
+  wrap.innerHTML =
+    '<div class="stagebar"><span class="l">₹10,00,000 · 30 years</span><span class="r" id="g-st">Choose below</span></div>' +
+    '<div class="pad">' +
+      '<svg class="chart" viewBox="0 0 720 330" role="img" aria-label="Value of ten lakh rupees over thirty years under three responses to a crash in year five. Holding ends near 1.42 crore; selling and buying back after three years ends near 1.20 crore; selling to cash and staying out ends near 35 lakh.">' +
+        '<g id="g-grid"></g><g id="g-lines"></g><g id="g-lab"></g></svg>' +
+      '<div class="row" id="g-ch" style="margin-top:14px"></div>' +
+      '<p class="say" id="g-say" style="margin-top:14px">In year five the market falls 38% in nine weeks. Everyone you know is selling.</p>' +
+    '</div>';
+  host.appendChild(wrap);
+
+  var g = "";
+  [0, 5e6, 1e7, 1.5e7].forEach(function(v){
+    var y = Y(v);
+    g += '<line class="grid" x1="'+P.x0+'" y1="'+y.toFixed(1)+'" x2="'+P.x1+'" y2="'+y.toFixed(1)+'"/>';
+    g += '<text class="ax" x="'+(P.x0-9)+'" y="'+(y+3.5).toFixed(1)+'" text-anchor="end">'+(v?"₹"+(v/1e7).toFixed(2)+" Cr":"0")+'</text>';
+  });
+  [0,5,10,15,20,25,30].forEach(function(y){
+    g += '<text class="ax" x="'+X(y).toFixed(1)+'" y="'+(P.y1+20)+'" text-anchor="middle">'+y+'</text>';
+  });
+  g += '<text class="ax" x="'+X(15).toFixed(1)+'" y="'+(P.y1+42)+'" text-anchor="middle" style="letter-spacing:.14em">YEARS</text>';
+  g += '<line class="mark" x1="'+X(CY).toFixed(1)+'" y1="'+P.y0+'" x2="'+X(CY).toFixed(1)+'" y2="'+P.y1+'"/>';
+  g += '<text class="ax" x="'+(X(CY)+7).toFixed(1)+'" y="'+(P.y0+12)+'" style="fill:#7FA6FF">crash</text>';
+  wrap.querySelector("#g-grid").innerHTML = g;
+
+  var picked = null;
+  function draw(){
+    var ln = "", lb = "";
+    Object.keys(L).forEach(function(k){
+      var mine = k === picked;
+      ln += '<path class="ln '+(mine?"you":"ghost")+'" d="'+d(L[k].s)+'"/>';
+      if (picked){
+        var e = L[k].s[N];
+        lb += '<text class="endlbl" x="'+(P.x1+6)+'" y="'+(Y(e)+4).toFixed(1)+'" fill="'+(mine?"#7FA6FF":"#A79DB2")+'" opacity="'+(mine?1:.6)+'">'+inr(e)+'</text>';
+      }
+    });
+    wrap.querySelector("#g-lines").innerHTML = ln;
+    wrap.querySelector("#g-lab").innerHTML = lb;
+  }
+  var box = wrap.querySelector("#g-ch");
+  [["hold","Hold on"],["back","Sell, buy back in 3 years"],["out","Sell, stay in cash"]].forEach(function(c){
+    var b = h("button","btn", c[1]);
+    b.type = "button"; b.setAttribute("aria-pressed","false");
+    b.addEventListener("click", function(){
+      picked = c[0]; sfx.tap();
+      Array.prototype.slice.call(box.children).forEach(function(n){
+        var on = n === b; n.classList.toggle("on", on); n.setAttribute("aria-pressed", on?"true":"false");
+      });
+      draw();
+      var hold = L.hold.s[N], mine = L[picked].s[N];
+      wrap.querySelector("#g-st").textContent = L[picked].n + " · " + inr(mine);
+      wrap.querySelector("#g-say").innerHTML = picked === "hold"
+        ? "You did nothing, which was the hardest thing available, and finished with <b>"+inr(hold)+"</b>. The ghost that stayed in cash has "+inr(L.out.s[N])+" — it never lost another rupee, and that was the problem."
+        : picked === "back"
+        ? "Three years out cost you <b>"+inr(hold-mine)+"</b>. You were not wrong about the crash. You were wrong about how long to stay frightened."
+        : "You never lost another rupee after year five. You also finished <b>"+inr(hold-mine)+"</b> behind the version of you who did nothing at all.";
+      done(L[picked].r, "Declared, not scored — this is what you did, and there is no cleverness that makes sitting still easy.");
+    });
+    box.appendChild(b);
+  });
+  draw();
+}
+
+/* ---------------------------------------------------------- 5 · BUBBLE ROOM */
+room({
+  id:"bubble", name:"The Bubble Room", trait:"Timing", kind:"earned", acc:"#FF6B4A",
+  line:"The chart draws live. You get exactly one press of SELL.",
+  cap:"Nobody rings a bell at the top and you cannot scrub back. Being early feels exactly like being wrong, right up until it doesn't.",
+  bar:"Sample instrument",
+  mount:mountBubble
+});
+function mountBubble(host, done){
+  var N = 100, PK = 68, W = 720, H = 216, seed = 20260904;
+  function rnd(){ seed = (seed*1103515245 + 12345) & 0x7fffffff; return seed/0x7fffffff; }
+  var P = [];
+  for (var t = 0; t < N; t++){
+    var b;
+    if (t <= PK) b = 100 * Math.pow(1.0285, t);
+    else { var pk = 100 * Math.pow(1.0285, PK); b = pk * (0.26 + 0.74 * Math.exp(-(t-PK)/7)); }
+    P.push(b * (1 + (rnd()-.5) * .07));
+  }
+  var HI = Math.max.apply(null,P), LO = Math.min.apply(null,P);
+  var X = function(i){ return 10 + i/(N-1) * (W-20); };
+  var Y = function(v){ return H - 14 - ((v - LO*.9)/(HI - LO*.9)) * (H-34); };
+  function d(a,b){ var s=""; for (var i=a;i<=b;i++) s += (i===a?"M":"L") + X(i).toFixed(1) + " " + Y(P[i]).toFixed(1); return s; }
+  var Q = [[6,"“Up 40% since March. Still early, apparently.”"],
+           [22,"“Three brokerages raised their target this week.”"],
+           [38,"“A friend remortgaged. He says the maths is different now.”"],
+           [52,"“The only people calling it a bubble missed the whole run.”"],
+           [62,"“My driver asked me which one to buy.”"],
+           [74,"“Healthy correction. Buying the dip.”"],
+           [86,"“Nobody could have seen this coming.”"]];
+
+  var wrap = h("div");
+  wrap.innerHTML =
+    '<div class="stagebar"><span class="l" id="u-wk">Week 0 · sample instrument</span><span class="r" id="u-hold">Holding</span></div>' +
+    '<div class="pad">' +
+      '<div class="tape"><svg viewBox="0 0 720 216" preserveAspectRatio="none" aria-hidden="true">' +
+        '<path class="price" id="u-p" d=""/><path class="after" id="u-a" d=""/>' +
+        '<line class="peakline" id="u-pk" x1="0" y1="0" x2="720" y2="0" style="display:none"/>' +
+        '<circle id="u-m" r="5" fill="#F0EAF4" style="display:none"/></svg>' +
+        '<span class="ticker" id="u-t">₹100</span><p class="quote" id="u-q"></p></div>' +
+      '<div class="row" style="margin-top:16px"><button class="btn primary" id="u-go">Start the run</button>' +
+      '<button class="btn" id="u-sell" disabled style="min-width:140px">Sell everything</button></div>' +
+      '<p class="say" id="u-say" style="margin-top:14px">You hold ₹1,00,000 of it. Nothing else. It starts when you say so.</p>' +
+    '</div>';
+  host.appendChild(wrap);
+  var i = 0, timer = null, sold = null, live = false;
+  var pe = wrap.querySelector("#u-p"), ae = wrap.querySelector("#u-a"), te = wrap.querySelector("#u-t"),
+      qe = wrap.querySelector("#u-q"), me = wrap.querySelector("#u-m"), pk = wrap.querySelector("#u-pk");
+
+  function reset(){
+    clearInterval(timer); i = 0; sold = null; live = false;
+    pe.setAttribute("d", d(0,12)); ae.setAttribute("d","");
+    me.style.display = "none"; pk.style.display = "none";
+    qe.className = "quote"; qe.textContent = "";
+    te.textContent = "₹" + Math.round(P[12]);
+    wrap.querySelector("#u-wk").textContent = "Week 12 · sample instrument";
+    wrap.querySelector("#u-hold").textContent = "Holding";
+    wrap.querySelector("#u-go").textContent = "Start the run";
+    wrap.querySelector("#u-go").disabled = false;
+    wrap.querySelector("#u-sell").disabled = true;
+  }
+  function showPeak(){
+    pk.setAttribute("y1", Y(P[PK]).toFixed(1)); pk.setAttribute("y2", Y(P[PK]).toFixed(1)); pk.style.display = "";
+  }
+  function finish(){
+    var s = P[sold], peak = P[PK], kept = Math.round(s/100 * 100000);
+    var reading = clamp(Math.round(s / peak * 100), 0, 100);
+    showPeak();
+    me.setAttribute("cx", X(sold).toFixed(1)); me.setAttribute("cy", Y(s).toFixed(1)); me.style.display = "";
+    ae.setAttribute("d", d(sold, N-1));
+    wrap.querySelector("#u-hold").textContent = "Sold at ₹" + Math.round(s);
+    wrap.querySelector("#u-say").innerHTML = sold < PK
+      ? "You sold at <b>₹"+Math.round(s)+"</b>, "+(PK-sold)+" weeks before the top of ₹"+Math.round(peak)+". You left "+Math.round((1-s/peak)*100)+"% of the run behind and dodged the "+Math.round((1-P[N-1]/s)*100)+"% that came after. <b>"+inr(kept)+"</b> from ₹1,00,000."
+      : "You sold at <b>₹"+Math.round(s)+"</b>, "+(sold-PK)+" weeks <i>after</i> the top of ₹"+Math.round(peak)+" — already "+Math.round((1-s/peak)*100)+"% down from it. <b>"+inr(kept)+"</b> from ₹1,00,000. There is never a bell.";
+    sfx.done();
+    done(reading, "The share of the peak price you actually walked away with. Selling at the exact top is 100 — and nobody does that twice.");
+  }
+  function tick(){
+    i++;
+    if (i >= N){
+      clearInterval(timer); live = false;
+      wrap.querySelector("#u-sell").disabled = true;
+      wrap.querySelector("#u-go").textContent = "Run it again";
+      wrap.querySelector("#u-go").disabled = false;
+      if (sold === null){
+        sold = N-1; showPeak(); ae.setAttribute("d", d(PK, N-1));
+        wrap.querySelector("#u-hold").textContent = "Never sold";
+        wrap.querySelector("#u-say").innerHTML = "You never sold. From a peak of <b>₹"+Math.round(P[PK])+"</b> to <b>₹"+Math.round(P[N-1])+"</b> — <b>"+inr(Math.round(P[N-1]/100*100000))+"</b> left of ₹1,00,000. Every week on the way down had a reason to wait one more week.";
+        sfx.bad(.9);
+        done(clamp(Math.round(P[N-1]/P[PK]*100),0,100), "The share of the peak price you actually walked away with. Holding all the way down is the most common answer, and the most expensive.");
+      } else finish();
+      return;
+    }
+    pe.setAttribute("d", d(0,i));
+    te.textContent = "₹" + Math.round(P[i]);
+    te.style.color = (sold !== null || i > PK + 4) ? "#8B8195" : "#FF6B4A";
+    wrap.querySelector("#u-wk").textContent = "Week " + i + " · sample instrument";
+    for (var q = 0; q < Q.length; q++){
+      if (Q[q][0] === i){ qe.textContent = Q[q][1]; qe.classList.add("show"); }
+      if (Q[q][0] + 11 === i) qe.classList.remove("show");
+    }
+  }
+  wrap.querySelector("#u-go").addEventListener("click", function(){
+    reset(); live = true; i = 12; sfx.tap();
+    wrap.querySelector("#u-go").disabled = true;
+    wrap.querySelector("#u-sell").disabled = false;
+    wrap.querySelector("#u-say").textContent = "Running. One press. That is all you get.";
+    timer = setInterval(tick, reduce ? 5 : 92);
+  });
+  wrap.querySelector("#u-sell").addEventListener("click", function(){
+    if (!live || sold !== null) return;
+    sold = i; sfx.good();
+    wrap.querySelector("#u-sell").disabled = true;
+    wrap.querySelector("#u-hold").textContent = "Sold — watching the rest";
+  });
+  reset();
+  return function(){ clearInterval(timer); };
+}
+
+/* ---------------------------------------------------------- 6 · SLEEP TEST */
+room({
+  id:"sleep", name:"The Sleep Test", trait:"Risk appetite", kind:"declared", acc:"#5FCBE0",
+  line:"One dial. No score. How much of a bad year could you sit through?",
+  cap:"Risk tolerance is not a personality quiz. It is what you can watch happen without selling — so this room asks in rupees, and never tells you that you are wrong.",
+  bar:"On a ₹50,00,000 portfolio",
+  mount:mountSleep
+});
+function mountSleep(host, done){
+  var POT = 5e6;
+  var wrap = h("div");
+  wrap.innerHTML =
+    '<div class="stagebar"><span class="l">On a ₹50,00,000 portfolio</span><span class="r">Illustrative — a 2008-shaped year</span></div>' +
+    '<div class="pad">' +
+      '<div class="dialrow"><div>' +
+        '<div class="drop"><div class="col" id="s-col" style="height:100%"></div><div class="loss" id="s-loss" style="height:0"></div><div class="cap" id="s-cap"></div></div>' +
+        '<div style="display:flex; justify-content:space-between; align-items:baseline; margin-top:16px">' +
+          '<label class="lbl" for="s-r">Held in shares</label><span class="mono tnum" id="s-pct" style="font-weight:700; color:var(--acc)">70%</span></div>' +
+        '<input type="range" id="s-r" min="0" max="100" step="5" value="70" aria-label="Share of the portfolio held in shares, percent">' +
+        '<button class="btn primary" id="s-set" style="margin-top:10px">Set this as my line</button>' +
+      '</div><div>' +
+        '<span class="lbl">Worst year</span><div class="big" id="s-dd" style="font-size:clamp(32px,5vw,44px); margin-top:6px">—</div>' +
+        '<div class="say tnum" id="s-rup" style="margin-top:4px"></div>' +
+        '<span class="lbl" style="display:block; margin-top:20px">Back to even in</span>' +
+        '<div class="big tnum" id="s-rec" style="font-size:24px; margin-top:6px">—</div>' +
+      '</div></div>' +
+      '<p class="say" id="s-say" style="margin-top:20px"></p>' +
+    '</div>';
+  host.appendChild(wrap);
+  var r = wrap.querySelector("#s-r");
+  function paint(commit){
+    var eq = +r.value;
+    var dd = (eq * -52 + (100-eq) * 6) / 100;
+    var months = Math.round(Math.max(0, -dd) * .95);
+    wrap.querySelector("#s-pct").textContent = eq + "%";
+    var el = wrap.querySelector("#s-dd");
+    el.textContent = (dd>0?"+":"") + dd.toFixed(1) + "%";
+    el.style.color = dd < 0 ? "#FF6B4A" : "var(--acc)";
+    wrap.querySelector("#s-rup").textContent = dd < 0
+      ? inr(Math.abs(POT*dd/100)) + " gone, in one year"
+      : inr(POT*dd/100) + " gained — inflation still took a bite";
+    wrap.querySelector("#s-rec").textContent = months ? months + " months" : "no fall to recover";
+    var lh = clamp(-dd, 0, 84);
+    wrap.querySelector("#s-loss").style.height = lh + "%";
+    wrap.querySelector("#s-col").style.height = (100 - lh) + "%";
+    wrap.querySelector("#s-cap").textContent = inr(POT * (1 + dd/100)) + " left";
+    wrap.querySelector("#s-say").innerHTML = eq >= 90
+      ? "This is the allocation people choose on a calm Tuesday and abandon in a bad October. <b>Could you have watched "+inr(Math.abs(POT*dd/100))+" disappear and then bought more?</b> If not, this number is wrong for you — and nothing here scores you for saying so."
+      : eq >= 55
+      ? "The honest middle. You would still have lost "+inr(Math.abs(POT*dd/100))+" and waited about "+months+" months to see it again. Most people can sit through this. Most people also think they can sit through more."
+      : eq >= 20
+      ? "Safe enough to sleep, slow enough to matter. Over thirty years this costs a great deal of upside — a real price, just one you never feel in any single year."
+      : "Almost nothing can fall here. Almost nothing can grow either: at 6% a year, inflation quietly takes most of what is left, for decades.";
+    if (commit) done(eq, "Declared, not scored. This is the line you drew for yourself — the only number on the record that cannot be wrong.");
+  }
+  r.addEventListener("input", function(){ paint(false); });
+  wrap.querySelector("#s-set").addEventListener("click", function(){ sfx.done(); paint(true); });
+  paint(false);
+}
+
+/* ---------------------------------------------------------- 7 · THE AUDIT */
+room({
+  id:"audit", name:"The Audit", trait:"Scepticism", kind:"earned", acc:"#EDE6D2",
+  line:"Six lines from a filing. Three tell the same story.",
+  cap:"Every number on the page is good news and the company is in serious trouble. You cannot find this by looking for a bad number.",
+  bar:"Case 01 · Aurex Industries",
+  mount:mountAudit
+});
+function mountAudit(host, done){
+  var R = [
+    {k:"rev", n:"Revenue",              v:"₹1,842 Cr", c:"+34%", flag:false},
+    {k:"pat", n:"Reported net profit",  v:"₹214 Cr",   c:"+41%", flag:false},
+    {k:"gm",  n:"Gross margin",         v:"38.2%",     c:"+1.4pt", flag:false},
+    {k:"rec", n:"Trade receivables",    v:"₹688 Cr",   c:"+96%", flag:true,
+     why:"Money owed to the company grew nearly three times faster than sales. They booked the revenue; the customer never paid."},
+    {k:"cfo", n:"Cash from operations", v:"−₹47 Cr",   c:"was +₹96 Cr", flag:true,
+     why:"Record profit, and the business consumed cash. Profit is an opinion. This line is the fact."},
+    {k:"aud", n:"Statutory auditor",    v:"Replaced",  c:"Q3", flag:true,
+     why:"The one person positioned to object left mid-year. Alone it means nothing. Beside the two lines above, it is the story."}
+  ];
+  var picked = {}, closed = false;
+  var wrap = h("div");
+  wrap.innerHTML =
+    '<div class="stagebar"><span class="l">Case 01 · Aurex Industries</span><span class="r" id="a-n">0 of 3 marked</span></div>' +
+    '<div class="pad">' +
+      '<table class="ledger"><caption>Annual results, FY25 against FY24 — illustrative figures</caption>' +
+      '<thead><tr><th colspan="3"><span class="lrow"><span>Line item</span><span class="n">FY25</span><span class="n">Change</span></span></th></tr></thead>' +
+      '<tbody id="a-b"></tbody></table>' +
+      '<div class="row" style="margin-top:18px"><button class="btn primary" id="a-go" disabled>Submit findings</button><button class="btn" id="a-rs">Clear</button></div>' +
+      '<p class="say" id="a-say" style="margin-top:16px">Everything on this page was signed off. Three lines still disagree with the other three.</p>' +
+    '</div>';
+  host.appendChild(wrap);
+  var tb = wrap.querySelector("#a-b");
+  R.forEach(function(row){
+    var tr = h("tr"); tr.dataset.k = row.k;
+    var td = h("td"); td.colSpan = 3;
+    var b = h("button", null, '<span class="lrow"><span>'+row.n+'</span><span class="n">'+row.v+'</span><span class="n">'+row.c+'</span></span>');
+    b.type = "button"; b.setAttribute("aria-pressed","false");
+    b.addEventListener("click", function(){
+      if (closed) return;
+      if (picked[row.k]) delete picked[row.k];
+      else if (Object.keys(picked).length < 3) picked[row.k] = true;
+      else return;
+      sfx.tap();
+      tr.classList.toggle("picked", !!picked[row.k]);
+      b.setAttribute("aria-pressed", picked[row.k] ? "true":"false");
+      var n = Object.keys(picked).length;
+      wrap.querySelector("#a-n").textContent = n + " of 3 marked";
+      wrap.querySelector("#a-go").disabled = n !== 3;
+    });
+    td.appendChild(b); tr.appendChild(td); tb.appendChild(tr);
+  });
+  wrap.querySelector("#a-go").addEventListener("click", function(){
+    closed = true; wrap.querySelector("#a-go").disabled = true;
+    var right = 0;
+    R.forEach(function(row){
+      var tr = tb.querySelector('tr[data-k="'+row.k+'"]');
+      tr.classList.remove("picked");
+      if (row.flag){
+        tr.classList.add("hit");
+        if (picked[row.k]) right++;
+        tr.querySelector("button").appendChild(h("span","why", row.why));
+      } else if (picked[row.k]) tr.classList.add("miss");
+    });
+    wrap.querySelector("#a-n").textContent = right + " of 3 found";
+    wrap.querySelector("#a-say").innerHTML = right === 3
+      ? "<b>All three.</b> Sales nobody paid for, a business burning cash while reporting record profit, and the auditor gone before anyone asked. Not three problems — one problem, showing up in three places."
+      : right === 2
+      ? "<b>Two of three.</b> The line you left is the one that matters: any single one of these is deniable, and together they are not."
+      : "<b>"+right+" of three.</b> Every number here is good news, which is the point — you find this by asking whether the cash agrees with the profit, not by hunting for a bad figure.";
+    if (right === 3) sfx.done(); else sfx.bad(.5);
+    done(Math.round(right/3*100), "How many of the three related red flags you marked. Most accounting failures have exactly this shape.");
+  });
+  wrap.querySelector("#a-rs").addEventListener("click", function(){
+    picked = {}; closed = false;
+    Array.prototype.slice.call(tb.querySelectorAll("tr")).forEach(function(tr){
+      tr.className = "";
+      var w = tr.querySelector(".why"); if (w) w.remove();
+      tr.querySelector("button").setAttribute("aria-pressed","false");
+    });
+    wrap.querySelector("#a-n").textContent = "0 of 3 marked";
+    wrap.querySelector("#a-go").disabled = true;
+    wrap.querySelector("#a-say").textContent = "Everything on this page was signed off. Three lines still disagree with the other three.";
+  });
+}
+
+/* ============================================================
+   SHELL — the record, and the way into each room
+   ============================================================ */
+var cleanup = null, navigating = false;
+
+function measured(){ return ROOMS.filter(function(r){ return record.readings[r.id] != null; }).length; }
+function paintTop(){
+  var pips = document.getElementById("pips"); pips.innerHTML = "";
+  ROOMS.forEach(function(r){
+    var i = h("i");
+    if (record.readings[r.id] != null) i.style.background = r.acc;
+    pips.appendChild(i);
+  });
+  document.getElementById("tally-mini").textContent = measured() + "/7";
+}
+
+function hub(){
+  document.documentElement.style.setProperty("--acc", "#A79DB2");
+  var n = measured(), next = ROOMS.filter(function(r){ return record.readings[r.id] == null; })[0];
+  var v = h("div","view");
+  v.innerHTML =
+    '<section class="hero"><h1>Edenomics</h1>' +
+    '<p class="sub">Seven rooms. Each one measures something different about how you handle money — and none of them can be won by guessing harder. <b>Your record is below.</b></p>' +
+    '<div class="tally"><span class="n">' + n + ' of 7</span><span class="lbl">measured</span>' +
+    '<span class="say">' + (n === 0
+      ? "Nothing measured yet. Start anywhere — The Table is the shortest."
+      : n === 7
+      ? "All seven. The two declared readings are yours to change whenever you change your mind."
+      : "Next unopened: " + next.name + " — " + next.line) + '</span></div></section>' +
+    '<div class="record" id="doors"></div>' +
+    '<div class="legend">' +
+      '<span><i class="sw"></i>Earned — you can be wrong</span>' +
+      '<span><i class="sw dot"></i>Declared — there is no wrong answer</span>' +
+      '<span>Kept in this browser only. Nothing is sent anywhere.</span>' +
+    '</div>';
+  main.innerHTML = ""; main.appendChild(v);
+
+  var doors = v.querySelector("#doors");
+  ROOMS.forEach(function(r){
+    var val = record.readings[r.id];
+    var b = h("button","door");
+    b.style.setProperty("--acc", r.acc);
+    b.innerHTML =
+      '<span class="stripe"></span>' +
+      '<span><span class="nm">' + r.name + '</span><span class="tr">' + r.trait + '</span></span>' +
+      '<span class="ln">' + r.line + '</span>' +
+      '<span class="gauge"><span class="top"><span class="k">' + (r.kind === "earned" ? "Earned" : "Declared") + '</span>' +
+      '<span class="v' + (val == null ? " none" : "") + '">' + (val == null ? "not yet" : val) + '</span></span>' +
+      '<span class="track' + (r.kind === "declared" ? " declared" : "") + '"><i style="' +
+        (r.kind === "declared" ? "left:" + (val == null ? 0 : val) + "%;" + (val == null ? "opacity:.25;" : "")
+                               : "width:" + (val == null ? 0 : val) + "%") + '"></i></span></span>';
+    b.addEventListener("click", function(){ enter(r.id); });
+    doors.appendChild(b);
+  });
+  paintTop();
+  if (location.hash){
+    navigating = true;
+    try { history.replaceState(null, "", location.pathname + location.search); }
+    catch(e){ location.hash = ""; }
+    navigating = false;
+  }
+}
+
+function enter(id){
+  var r = ROOMS.filter(function(x){ return x.id === id; })[0];
+  if (!r) return hub();
+  if (cleanup){ try { cleanup(); } catch(e){} cleanup = null; }
+  document.documentElement.style.setProperty("--acc", r.acc);
+  sfx.tap();
+
+  var v = h("div","view");
+  v.id = "room-" + r.id;
+  v.innerHTML =
+    '<div class="roomhead"><button class="back" id="bk">← The record</button>' +
+    '<span class="chip"><span class="d"></span>' + r.trait + (r.kind === "declared" ? " · declared" : "") + '</span>' +
+    '<h2>' + r.name + '</h2><p class="cap">' + r.cap + '</p></div>' +
+    '<div class="stage" id="stage"></div><div id="out"></div>' +
+    '<div class="foot"><button class="btn" id="bk2">← Back to the record</button></div>';
+  main.innerHTML = ""; main.appendChild(v);
+  v.querySelector("#bk").addEventListener("click", hub);
+  v.querySelector("#bk2").addEventListener("click", hub);
+
+  var out = v.querySelector("#out"), reported = false;
+  function done(reading, note){
+    var prev = record.readings[r.id];
+    record.readings[r.id] = reading; save(); paintTop();
+    if (reported && prev === reading) return;
+    reported = true;
+    out.innerHTML =
+      '<div class="verdict"><div class="score"><div class="big">' + reading + '</div>' +
+      '<span class="k">' + r.trait + '</span></div>' +
+      '<div class="txt"><b>Written to your record.</b> ' + note +
+      (prev != null && prev !== reading ? ' Previously ' + prev + '.' : '') + '</div></div>';
+  }
+  cleanup = r.mount(v.querySelector("#stage"), done) || null;
+  navigating = true;
+  try { history.replaceState(null, "", "#" + r.id); } catch(e){ location.hash = r.id; }
+  navigating = false;
+  window.scrollTo(0, 0);
+}
+
+document.getElementById("home").addEventListener("click", hub);
+window.addEventListener("hashchange", function(){
+  if (navigating) return;
+  var id = location.hash.replace("#","");
+  if (!id) hub(); else if (ROOMS.some(function(r){ return r.id === id; })) enter(id);
+});
+
+var start = location.hash.replace("#","");
+if (start && ROOMS.some(function(r){ return r.id === start; })) enter(start); else hub();
+
+})();
+</script>
