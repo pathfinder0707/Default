@@ -1,0 +1,518 @@
+<title>TDT — the full search</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700&family=Source+Sans+3:ital,wght@0,300;0,400;0,500;0,600;1,400&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+:root{color-scheme:light;
+  --ground:#FBFBFA;--raise:#FFF;--sunk:#F1F1EE;--rule:#DEDED8;--rule2:#C6C7C0;
+  --ink:#15171A;--ink2:#4A4E52;--ink3:#7A7F84;
+  --s1:#2a78d6;--s2:#eb6834;--s3:#1baf7a;--pos:#0ca30c;--neg:#d03b3b;--warn:#fab219;
+  --shadow:0 1px 2px rgba(21,23,26,.06),0 4px 14px rgba(21,23,26,.05)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){color-scheme:dark;
+  --ground:#131619;--raise:#1A1E22;--sunk:#20252A;--rule:#2B3238;--rule2:#3B434A;
+  --ink:#E8EAE7;--ink2:#B4B9BC;--ink3:#848A8F;
+  --s1:#3987e5;--s2:#d95926;--s3:#199e70;
+  --shadow:0 1px 2px rgba(0,0,0,.45),0 6px 22px rgba(0,0,0,.32)}}
+:root[data-theme="dark"]{color-scheme:dark;
+  --ground:#131619;--raise:#1A1E22;--sunk:#20252A;--rule:#2B3238;--rule2:#3B434A;
+  --ink:#E8EAE7;--ink2:#B4B9BC;--ink3:#848A8F;--s1:#3987e5;--s2:#d95926;--s3:#199e70;
+  --shadow:0 1px 2px rgba(0,0,0,.45),0 6px 22px rgba(0,0,0,.32)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--ground);color:var(--ink);
+  font:400 16px/1.62 "Source Sans 3",system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+.wrap{max-width:1020px;margin:0 auto;padding:44px 22px 100px}
+h1{font:700 34px/1.16 Archivo,system-ui,sans-serif;letter-spacing:-.02em;margin:0 0 8px}
+h2{font:600 23px/1.25 Archivo,system-ui,sans-serif;margin:52px 0 14px;padding-top:18px;
+  border-top:1px solid var(--rule)}
+h3{font:600 16px/1.3 Archivo,system-ui,sans-serif;margin:26px 0 9px}
+p{margin:0 0 13px;max-width:72ch;color:var(--ink2)}
+p.lede{font-size:18px;color:var(--ink)}
+strong{color:var(--ink);font-weight:600}
+code,.mono{font-family:"IBM Plex Mono",ui-monospace,monospace;font-size:.9em}
+.sub{color:var(--ink3);font-size:14px;margin:0 0 26px}
+.card{background:var(--raise);border:1px solid var(--rule);border-radius:11px;
+  padding:17px 19px;margin:16px 0;box-shadow:var(--shadow)}
+.hero{border-radius:11px;padding:18px 21px;margin:22px 0;border:1px solid var(--rule2);
+  background:var(--raise);box-shadow:var(--shadow)}
+.hero b{color:var(--ink)}
+table{border-collapse:collapse;width:100%;font-size:14.5px;margin:12px 0}
+th,td{text-align:right;padding:7px 9px;border-bottom:1px solid var(--rule)}
+th:first-child,td:first-child{text-align:left}
+th{font:600 12px/1.2 "IBM Plex Mono",monospace;letter-spacing:.04em;text-transform:uppercase;
+  color:var(--ink3);border-bottom:1px solid var(--rule2)}
+td.num{font-family:"IBM Plex Mono",monospace}
+tr.win td{background:color-mix(in srgb,var(--pos) 10%,transparent)}
+tr.dead td{color:var(--ink3)}
+.pos{color:var(--pos)}.neg{color:var(--neg)}.dim{color:var(--ink3)}
+.tag{display:inline-block;font:600 11px/1 "IBM Plex Mono",monospace;letter-spacing:.06em;
+  text-transform:uppercase;padding:4px 7px;border-radius:5px;background:var(--sunk);
+  color:var(--ink2);border:1px solid var(--rule)}
+.tag.ok{color:var(--pos);border-color:color-mix(in srgb,var(--pos) 40%,var(--rule))}
+.tag.bad{color:var(--neg);border-color:color-mix(in srgb,var(--neg) 40%,var(--rule))}
+.tag.warn{color:var(--warn);border-color:color-mix(in srgb,var(--warn) 55%,var(--rule))}
+.scroll{overflow-x:auto}
+svg{display:block;max-width:100%;height:auto}
+.legend{display:flex;gap:16px;flex-wrap:wrap;font-size:13px;color:var(--ink2);margin:8px 0 0}
+.legend i{display:inline-block;width:11px;height:11px;border-radius:3px;margin-right:5px}
+.kv{display:grid;grid-template-columns:auto 1fr;gap:4px 14px;font-size:14px;margin:0}
+.kv dt{color:var(--ink3);font-family:"IBM Plex Mono",monospace;font-size:12.5px}
+.kv dd{margin:0;color:var(--ink)}
+ul{color:var(--ink2);max-width:72ch}li{margin:5px 0}
+.tabs{display:flex;gap:5px;margin:16px 0 4px;flex-wrap:wrap}
+.tabs button{font:600 13px/1 "IBM Plex Mono",monospace;padding:7px 12px;border-radius:7px;
+  border:1px solid var(--rule);background:var(--raise);color:var(--ink2);cursor:pointer}
+.tabs button[aria-selected="true"]{background:var(--s1);color:#fff;border-color:var(--s1)}
+.foot{margin-top:60px;padding-top:18px;border-top:1px solid var(--rule);color:var(--ink3);font-size:13px}
+</style>
+
+<div class="wrap">
+<h1>TDT — the full search</h1>
+<p class="sub" id="sub"></p>
+
+<p class="lede">The first study tested one parameterisation. This searches the whole space —
+both trade polarities, both signal timings, every counting mode, five swing degrees, four
+timeframes — selects on <b id="trainspan"></b>, and reports what those choices earned on
+<b id="testspan"></b>, which selection never saw.</p>
+
+<div class="hero" id="verdict"></div>
+
+<h2>Protocol</h2>
+<p>Fixed before looking at any result, because a search this wide will always produce a
+winner and the only defence is deciding in advance what would count as one.</p>
+<div class="card"><dl class="kv" id="protocol"></dl></div>
+<p>Two readings the first pass never tried, both defensible from the slides:
+<strong>polarity</strong> — the slides call <code>[1-7]</code> a continuation and
+<code>[1-13]</code> a reversal, which plausibly means a 7 is traded <em>with</em> the leg
+and a 13 against it, so both directions are searched for both counts. And
+<strong>signal timing</strong> — the first pass required a leg to have <em>ended</em> on a
+key count, which a trader only knows k candles later, whereas a trader watching a count
+acts when it <em>reaches</em> 7. Reach signals need only the origin pivot.</p>
+
+<h2>What the search itself produces</h2>
+<p>Every configuration scored on train. This distribution is the reason a single good
+backtest proves nothing: with this many attempts, some t-statistics are large by
+construction.</p>
+<div id="tdist"></div>
+
+<h2>Finalists — train against test</h2>
+<p>One finalist per reading (signal × count × polarity), so a dozen near-identical
+neighbours of one lucky configuration cannot fill the shortlist. Each was chosen purely on
+its train t-statistic, then run once on the held-out period.</p>
+<div id="finals"></div>
+<p class="sub">Bootstrap CI is 95%, percentile method, 2,000 resamples of the test trades.
+A finalist clears the bar only if its test CI excludes zero <em>and</em> it beats the
+control below — beating zero alone just re-discovers the trade structure.</p>
+
+<h2>The control — does the count add anything?</h2>
+<p>Fade every leg regardless of its count, same entry, stop, target and timeout. This
+already has an edge, established in the first study. A TDT configuration has to beat
+<em>this</em>, not zero.</p>
+<div id="controls"></div>
+
+<h2>Test equity</h2>
+<p>Cumulative R on the held-out period for each finalist that produced trades there.</p>
+<div id="equity"></div>
+
+<h2>Top of the train ranking</h2>
+<p>The forty best configurations on train, for texture — which corners of the space the
+search was drawn to.</p>
+<div id="toptrain"></div>
+
+<h2 id="identity">The count is a time offset</h2>
+<p>The search's strongest survivor was <code>reach 7, follow</code> on
+<span class="mono">classic</span> counting. Classic counting numbers every candle, so "the
+count reaches 7" is arithmetically "six candles after the pivot". Tested against a plain
+origin+6 entry the contrast came out at <b>+0.0000R, t=+0.00</b> — not near zero, the same
+trades. Whatever that configuration earns, no counting produced it.</p>
+<p>Which makes one question decisive: is offset 6 better than the offsets beside it? If
+the curve runs smooth through 6, TDT's 7 is decoration on a time delay. Each bar is a
+fixed-time hold with no stop and no target, so nothing but the signal's directional
+content survives.</p>
+<div id="offsettabs" class="tabs"></div>
+<div id="offsetchart"></div>
+<div id="offsetnote"></div>
+
+<h3>Where the edge actually peaks</h3>
+<p>For each swing strength <span class="mono">k</span>, the entry offset that pays best.
+Offsets below <span class="mono">k</span> are greyed: the pivot is not knowable yet, so
+they collapse onto <span class="mono">k</span>. If the number 7 meant something, the peak
+would sit on it whatever <span class="mono">k</span> is.</p>
+<div id="kscan"></div>
+
+<h2 id="rule">What you can actually trade</h2>
+<p>The rule at the peak, stated plainly: <b>when a swing pivot of strength k confirms,
+enter at the next candle in the direction of the leg that just completed.</b> Stop beyond
+the leg's extreme padded by a quarter of its mean candle range, target three times risk,
+timeout twenty candles. M15, NQ, costs charged, and non-overlapping — one position at a
+time, which is what a single account can take.</p>
+<div id="ruletable"></div>
+<p class="sub">This is a real effect and it is not TDT's. It is momentum after a confirmed
+pivot, and it decays with every candle of delay — which is why the best count is always
+k+1, the first moment you are allowed to act.</p>
+
+<h2 id="hold">Fixed-time hold — profit and drawdown</h2>
+<p>Enter on the signal, hold a set number of candles, exit at the close. No stop, no
+target, costs charged, and non-overlapping — a new signal is skipped while a position is
+open, which is what one account can actually trade. Dollars are one NQ contract at $20 a
+point.</p>
+<div id="holdtabs" class="tabs"></div>
+<div id="holdtable"></div>
+<h3>The same rule on both periods</h3>
+<p>This is the number that settles it.</p>
+<div id="splittable"></div>
+
+<h2>Reading this honestly</h2>
+<ul>
+<li><strong>Costs are charged.</strong> <span id="costnote"></span> Deducted per round
+turn on every trade, which hurts short timeframes hardest, because the same points are a
+larger fraction of a smaller stop.</li>
+<li><strong>Selection is on train only.</strong> No test result influenced any choice.
+Test numbers are therefore usable at face value, subject to the Bonferroni threshold for
+the number of finalists carried forward.</li>
+<li><strong>Train-to-test decay is the tell.</strong> A configuration whose edge halves
+out of sample was fitted, not found — even when both numbers are positive.</li>
+<li><strong>The 100-trade floor</strong> excludes configurations too thin to evaluate;
+it is applied on train, so it cannot leak test information.</li>
+<li>No walk-forward re-fitting: parameters are chosen once on train and frozen. That is
+the conservative choice and understates an adaptive system.</li>
+</ul>
+
+<div class="foot" id="foot"></div>
+</div>
+
+<script>
+const D = {{DATA}};
+const M = D.meta;
+const f2 = (v,d=3)=>(v==null||!isFinite(v))?"—":v.toFixed(d);
+const sg = (v,d=3)=>(v==null||!isFinite(v))?"—":(v>=0?"+":"")+v.toFixed(d);
+const cls = v=>!isFinite(v)?"dim":v>0?"pos":v<0?"neg":"";
+const esc = s=>String(s).replace(/[&<>]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;"}[c]));
+const cfgStr = c=>`${c.tf}/${c.mode} k=${c.k} ${c.signal} ${c.key} ${c.polarity}`
+  + ` rr=${c.rr} to=${c.timeout} pad=${c.pad}` + (c.signal==="terminal"?` tol=±${c.tol}`:"");
+
+document.getElementById("sub").textContent =
+  `${M.configs_searched.toLocaleString()} configurations searched · `
+  + `${M.configs_scored.toLocaleString()} met the 100-trade floor · `
+  + `${M.finalists_n} finalists · costs ${M.cost_pts} pts/round turn · built ${M.built}`;
+document.getElementById("trainspan").textContent = M.train_years.join("–");
+document.getElementById("testspan").textContent = M.test_years.join("–");
+document.getElementById("costnote").textContent =
+  `${M.cost_pts} index points per round turn on NQ — $4 commission plus one tick of `
+  + `slippage each way at $20 a point.`;
+
+/* -------------------------------------------------------------- protocol */
+const tcrit = M.t_threshold;
+document.getElementById("protocol").innerHTML = [
+  ["search space", Object.entries(M.grid).map(([k,v])=>`${k}: ${v.join(", ")}`).join(" · ")],
+  ["train", M.train_years.join("–") + " (selection only)"],
+  ["test", M.test_years.join("–") + " (never seen during selection)"],
+  ["costs", M.cost_pts + " pts per round turn"],
+  ["minimum sample", "100 trades on train"],
+  ["selection rule", "highest train t within each signal × count × polarity family"],
+  ["significance bar", `Bonferroni over ${M.finalists_n} finalists: α = `
+     + M.bonferroni_alpha.toFixed(4) + `, |t| > ${tcrit.toFixed(2)} on test`],
+  ["must also beat", "the fade-every-leg control on the same test period"],
+].map(([k,v])=>`<dt>${esc(k)}</dt><dd>${esc(v)}</dd>`).join("");
+
+/* --------------------------------------------------------------- verdict */
+(function(){
+  const surv = D.finalists.filter(f=>f.verdict==="passes");
+  const el = document.getElementById("verdict");
+  if (surv.length){
+    el.innerHTML = `<b>${surv.length} of ${D.finalists.length} readings survived.</b> `
+      + surv.map(f=>`<code>${esc(cfgStr(f.config))}</code>`).join(", ")
+      + ` cleared the significance bar on held-out data and beat the control.`;
+    el.style.borderColor = "var(--pos)";
+  } else {
+    el.innerHTML = `<b>No reading survived.</b> Of ${D.finalists.length} families searched `
+      + `across ${M.configs_searched.toLocaleString()} configurations, none produced a `
+      + `held-out result that both cleared |t| &gt; ${tcrit.toFixed(2)} and beat the `
+      + `fade-every-leg control. The best train configurations are shown below with what `
+      + `they actually earned out of sample.`;
+    el.style.borderColor = "var(--warn)";
+  }
+})();
+
+/* ---------------------------------------------------- train t distribution */
+(function(){
+  const ts = D.train_t_distribution || [];
+  if (!ts.length) return;
+  const W=940,H=210,P={l:46,r:14,t:14,b:32};
+  const lo=Math.min(-4,...ts), hi=Math.max(4,...ts), nb=60, bw=(hi-lo)/nb;
+  const bins=new Array(nb).fill(0);
+  ts.forEach(t=>{const i=Math.min(nb-1,Math.max(0,Math.floor((t-lo)/bw)));bins[i]++;});
+  const mx=Math.max(...bins), x=v=>P.l+(v-lo)/(hi-lo)*(W-P.l-P.r);
+  let s=`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="train t-statistics">`;
+  bins.forEach((n,i)=>{
+    const h=(n/mx)*(H-P.t-P.b), x0=x(lo+i*bw), x1=x(lo+(i+1)*bw);
+    const mid=lo+(i+0.5)*bw;
+    s+=`<rect x="${x0.toFixed(1)}" y="${(H-P.b-h).toFixed(1)}" width="${(x1-x0-0.6).toFixed(1)}"
+         height="${h.toFixed(1)}" fill="${Math.abs(mid)>=tcrit?"var(--s2)":"var(--s1)"}"
+         opacity="${Math.abs(mid)>=tcrit?.95:.7}"/>`;
+  });
+  [-tcrit,0,tcrit].forEach(v=>{
+    s+=`<line x1="${x(v).toFixed(1)}" y1="${P.t}" x2="${x(v).toFixed(1)}" y2="${H-P.b}"
+         stroke="var(--ink3)" stroke-dasharray="3 3"/>`;
+  });
+  for(let v=Math.ceil(lo);v<=hi;v++) if(v%2===0)
+    s+=`<text x="${x(v).toFixed(1)}" y="${H-11}" text-anchor="middle" font-size="11"
+         font-family="IBM Plex Mono,monospace" fill="var(--ink3)">${v}</text>`;
+  s+=`<text x="6" y="${P.t+9}" font-size="11" fill="var(--ink3)"
+       font-family="IBM Plex Mono,monospace">configs</text></svg>`;
+  const over=ts.filter(t=>Math.abs(t)>=tcrit).length;
+  document.getElementById("tdist").innerHTML = s
+    + `<div class="legend"><span><i style="background:var(--s2)"></i>|t| ≥ ${tcrit.toFixed(2)}
+       — ${over.toLocaleString()} of ${ts.length.toLocaleString()}
+       (${(100*over/ts.length).toFixed(1)}%)</span>
+       <span><i style="background:var(--s1);opacity:.7"></i>below the bar</span>
+       <span class="dim">on TRAIN, where selection happened</span></div>`;
+})();
+
+/* -------------------------------------------------------------- finalists */
+(function(){
+  let h='<div class="scroll"><table><thead><tr><th>reading</th><th>configuration</th>'
+    +'<th>n</th><th>train exp R</th><th>train t</th><th>n</th><th>test exp R</th>'
+    +'<th>test t</th><th>95% CI</th><th></th></tr></thead><tbody>';
+  for(const f of D.finalists){
+    const c=f.config, te=f.test, tr=f.train;
+    const pass=f.verdict==="passes";
+    h+=`<tr class="${pass?"win":(te?"":"dead")}">`
+      +`<td class="mono">${esc(c.signal)} ${c.key} ${esc(c.polarity)}</td>`
+      +`<td class="mono dim" style="font-size:12px">${esc(cfgStr(c))}</td>`
+      +`<td class="num">${tr.n.toLocaleString()}</td>`
+      +`<td class="num ${cls(tr.exp_r)}">${sg(tr.exp_r)}</td>`
+      +`<td class="num ${cls(tr.t)}">${sg(tr.t,2)}</td>`;
+    if(!te){ h+=`<td colspan="4" class="dim">no test trades</td>`; }
+    else {
+      h+=`<td class="num">${te.n.toLocaleString()}</td>`
+        +`<td class="num ${cls(te.exp_r)}">${sg(te.exp_r)}</td>`
+        +`<td class="num ${cls(te.t)}">${sg(te.t,2)}</td>`
+        +`<td class="num" style="font-size:12.5px">${sg(te.ci_lo,3)} … ${sg(te.ci_hi,3)}</td>`;
+    }
+    h+=`<td>${pass?'<span class="tag ok">passes</span>'
+        :`<span class="tag ${te?"bad":""}">${esc(f.verdict)}</span>`}</td></tr>`;
+  }
+  document.getElementById("finals").innerHTML=h+"</tbody></table></div>";
+})();
+
+/* --------------------------------------------------------------- controls */
+(function(){
+  const rows=Object.entries(D.controls||{});
+  if(!rows.length){document.getElementById("controls").innerHTML="";return;}
+  let h='<div class="scroll"><table><thead><tr><th>series</th><th>period</th>'
+    +'<th>trades</th><th>win</th><th>exp R</th><th>t</th></tr></thead><tbody>';
+  for(const [k,v] of rows){
+    const p=k.split("|");
+    h+=`<tr><td class="mono">${esc(p[0])} k=${esc(p[1])} ${esc(p[2])}</td>`
+      +`<td class="mono">${esc(p[3])}</td><td class="num">${(v.n||0).toLocaleString()}</td>`
+      +`<td class="num">${isFinite(v.win_rate)?(v.win_rate*100).toFixed(1)+"%":"—"}</td>`
+      +`<td class="num ${cls(v.exp_r)}">${sg(v.exp_r)}</td>`
+      +`<td class="num ${cls(v.t)}">${sg(v.t,2)}</td></tr>`;
+  }
+  document.getElementById("controls").innerHTML=h+"</tbody></table></div>";
+})();
+
+/* ---------------------------------------------------------------- equity */
+(function(){
+  const series=D.finalists.filter(f=>f.test_equity&&f.test_equity.length)
+    .map(f=>[cfgStr(f.config), f.test_equity]);
+  if(!series.length){document.getElementById("equity").innerHTML=
+    '<p class="dim">No finalist produced test trades.</p>';return;}
+  const W=940,H=260,P={l:46,r:14,t:14,b:26};
+  const all=series.flatMap(s=>s[1]);
+  const lo=Math.min(0,...all), hi=Math.max(0,...all), span=(hi-lo)||1;
+  const n=Math.max(...series.map(s=>s[1].length),2);
+  const col=["var(--s1)","var(--s2)","var(--s3)","#9a6ad6","#d6a83a","#3ab8c9",
+             "#c94f7c","#6a9a3a","#8a8f95","#d67a3a","#4a6ad6","#3ac98f"];
+  const y0=H-P.b-((0-lo)/span)*(H-P.t-P.b);
+  let s=`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="test equity">`;
+  s+=`<line x1="${P.l}" y1="${y0.toFixed(1)}" x2="${W-P.r}" y2="${y0.toFixed(1)}"
+       stroke="var(--rule2)" stroke-dasharray="3 3"/>`;
+  series.forEach(([nm,eq],si)=>{
+    let d="";
+    eq.forEach((v,i)=>{
+      const x=P.l+(i/(n-1))*(W-P.l-P.r), y=H-P.b-((v-lo)/span)*(H-P.t-P.b);
+      d+=(i?"L":"M")+x.toFixed(1)+" "+y.toFixed(1);
+    });
+    s+=`<path d="${d}" fill="none" stroke="${col[si%col.length]}" stroke-width="1.7"/>`;
+  });
+  s+=`<text x="6" y="${P.t+9}" font-size="11" fill="var(--ink3)"
+       font-family="IBM Plex Mono,monospace">R</text></svg>`;
+  document.getElementById("equity").innerHTML=s+`<div class="legend">${
+    series.map((s2,i)=>`<span><i style="background:${col[i%col.length]}"></i>
+      <span class="mono" style="font-size:12px">${esc(s2[0])}</span></span>`).join("")}</div>`;
+})();
+
+/* -------------------------------------------------------------- top train */
+(function(){
+  let h='<div class="scroll"><table><thead><tr><th>#</th><th>configuration</th>'
+    +'<th>trades</th><th>win</th><th>exp R</th><th>train t</th></tr></thead><tbody>';
+  (D.top_train||[]).forEach((r,i)=>{
+    h+=`<tr><td class="num dim">${i+1}</td>`
+      +`<td class="mono" style="font-size:12.5px">${esc(cfgStr(r))}</td>`
+      +`<td class="num">${(r.n||0).toLocaleString()}</td>`
+      +`<td class="num">${(r.win_rate*100).toFixed(1)}%</td>`
+      +`<td class="num ${cls(r.exp_r)}">${sg(r.exp_r)}</td>`
+      +`<td class="num ${cls(r.t)}">${sg(r.t,2)}</td></tr>`;
+  });
+  document.getElementById("toptrain").innerHTML=h+"</tbody></table></div>";
+})();
+
+/* ------------------------------------------------- offset / hold segments */
+const H = D.hold_study || null;
+let oK = "6", hK = "6";
+const KEYOFF = {6:"7", 12:"13", 20:"21"};
+
+function tabs(el, ks, cur, onpick){
+  document.getElementById(el).innerHTML = ks.map(k=>
+    `<button data-k="${k}" aria-selected="${k===cur}">swing k=${k}</button>`).join("");
+  document.querySelectorAll(`#${el} button`).forEach(b=>b.onclick=()=>onpick(b.dataset.k));
+}
+
+function drawOffset(){
+  if(!H) return;
+  tabs("offsettabs", ["2","6"], oK, k=>{oK=k;drawOffset();});
+  const rows=(H.offset[oK]||[]).filter(r=>r.period==="test");
+  const tr=(H.offset[oK]||[]).filter(r=>r.period==="train");
+  if(!rows.length){document.getElementById("offsetchart").innerHTML="";return;}
+  const W=940,H2=250,P={l:48,r:16,t:16,b:34};
+  const ts=rows.map(r=>r.t), trs=tr.map(r=>r.t);
+  const lo=Math.min(-1,...ts,...trs), hi=Math.max(1,...ts,...trs);
+  const bw=(W-P.l-P.r)/rows.length;
+  const y=v=>P.t+(hi-v)/(hi-lo)*(H2-P.t-P.b);
+  let s=`<svg viewBox="0 0 ${W} ${H2}" role="img" aria-label="t by entry offset">`;
+  s+=`<line x1="${P.l}" y1="${y(0).toFixed(1)}" x2="${W-P.r}" y2="${y(0).toFixed(1)}"
+       stroke="var(--rule2)"/>`;
+  rows.forEach((r,i)=>{
+    const x=P.l+i*bw, key=KEYOFF[r.offset];
+    const h=Math.abs(y(r.t)-y(0));
+    s+=`<rect x="${(x+2).toFixed(1)}" y="${Math.min(y(r.t),y(0)).toFixed(1)}"
+         width="${(bw-4).toFixed(1)}" height="${Math.max(1,h).toFixed(1)}"
+         fill="${key?"var(--s2)":"var(--s1)"}" opacity="${key?1:.65}">
+         <title>offset ${r.offset} (count ${r.count}): t=${r.t.toFixed(2)}, ${r.n} trades</title></rect>`;
+    if(key||r.offset%3===0)
+      s+=`<text x="${(x+bw/2).toFixed(1)}" y="${H2-12}" text-anchor="middle" font-size="10.5"
+           font-family="IBM Plex Mono,monospace" fill="${key?"var(--s2)":"var(--ink3)"}"
+           font-weight="${key?700:400}">${r.count}</text>`;
+  });
+  s+=`<text x="6" y="${P.t+9}" font-size="11" fill="var(--ink3)"
+       font-family="IBM Plex Mono,monospace">t</text></svg>`;
+  document.getElementById("offsetchart").innerHTML=s
+    +`<div class="legend"><span><i style="background:var(--s2)"></i>TDT's 7 / 13 / 21</span>
+      <span><i style="background:var(--s1);opacity:.65"></i>every other count</span>
+      <span class="dim">x-axis is the count; held-out period</span></div>`;
+  const arr=ts.slice(), m=arr.reduce((a,b)=>a+b,0)/arr.length;
+  const sd=Math.sqrt(arr.reduce((a,b)=>a+(b-m)*(b-m),0)/(arr.length-1));
+  const best=rows[ts.indexOf(Math.max(...ts))];
+  let note='<div class="card"><dl class="kv">';
+  note+=`<dt>average offset</dt><dd>t = ${sg(m,2)} (sd ${f2(sd,2)}) across ${rows.length} offsets</dd>`;
+  note+=`<dt>best offset</dt><dd>count ${best.count} at t = ${sg(best.t,2)}`
+    +`${KEYOFF[best.offset]?"":" — not a number TDT names"}</dd>`;
+  for(const off of [6,12,20]){
+    const r=rows.find(x=>x.offset===off); if(!r) continue;
+    note+=`<dt>TDT's ${KEYOFF[off]}</dt><dd>t = ${sg(r.t,2)} → `
+      +`<b>${sg((r.t-m)/sd,2)} sd</b> from the average offset</dd>`;
+  }
+  document.getElementById("offsetnote").innerHTML=note+"</dl></div>";
+}
+
+function drawHold(){
+  if(!H) return;
+  tabs("holdtabs", ["2","6"], hK, k=>{hK=k;drawHold();});
+  const rows=(H.hold[hK]||[]);
+  const holds=[...new Set(rows.map(r=>r.hold))];
+  let h='<div class="scroll"><table><thead><tr><th>hold (candles)</th><th>period</th>'
+    +'<th>trades</th><th>mean pts</th><th>total $</th><th>max DD $</th>'
+    +'<th>return / DD</th><th>t</th></tr></thead><tbody>';
+  for(const hd of holds) for(const per of ["train","test"]){
+    const r=rows.find(x=>x.hold===hd&&x.period===per); if(!r) continue;
+    h+=`<tr class="${r.total_usd>0&&per==="test"?"":"dead"}"><td class="mono">${hd}</td>`
+      +`<td class="mono">${per}</td><td class="num">${r.n.toLocaleString()}</td>`
+      +`<td class="num ${cls(r.mean_pts)}">${sg(r.mean_pts,2)}</td>`
+      +`<td class="num ${cls(r.total_usd)}">${r.total_usd>=0?"+":"\u2212"}$${Math.abs(Math.round(r.total_usd)).toLocaleString()}</td>`
+      +`<td class="num">$${Math.round(r.max_dd_usd).toLocaleString()}</td>`
+      +`<td class="num ${cls(r.ret_dd)}">${f2(r.ret_dd,2)}</td>`
+      +`<td class="num ${cls(r.t)}">${sg(r.t,2)}</td></tr>`;
+  }
+  document.getElementById("holdtable").innerHTML=h+"</tbody></table></div>";
+}
+
+function drawSplit(){
+  if(!H) return;
+  let h='<div class="scroll"><table><thead><tr><th>swing k</th><th>polarity</th>'
+    +'<th>period</th><th>trades</th><th>mean pts</th><th>total $</th><th>max DD $</th>'
+    +'<th>t</th></tr></thead><tbody>';
+  for(const k of ["2","6"]) for(const pol of ["follow","fade"]) for(const per of ["train","test"]){
+    const r=(H.split[k]||{})[pol+"|"+per]; if(!r) continue;
+    h+=`<tr><td class="mono">${k}</td><td class="mono">${pol}</td><td class="mono">${per}</td>`
+      +`<td class="num">${r.n.toLocaleString()}</td>`
+      +`<td class="num ${cls(r.mean_pts)}">${sg(r.mean_pts,2)}</td>`
+      +`<td class="num ${cls(r.total_usd)}">${r.total_usd>=0?"+":"\u2212"}$${Math.abs(Math.round(r.total_usd)).toLocaleString()}</td>`
+      +`<td class="num">$${Math.round(r.max_dd_usd).toLocaleString()}</td>`
+      +`<td class="num ${cls(r.t)}">${sg(r.t,2)}</td></tr>`;
+  }
+  document.getElementById("splittable").innerHTML=h+"</tbody></table></div>";
+}
+function drawKscan(){
+  if(!H||!H.kscan) return;
+  const ks=[...new Set(H.kscan.map(r=>r.k))].sort((a,b)=>a-b);
+  const offs=[...new Set(H.kscan.map(r=>r.offset))].sort((a,b)=>a-b);
+  let h='<div class="scroll"><table><thead><tr><th>swing k</th>'
+    + offs.map(o=>`<th>${o+1}</th>`).join("")
+    + '<th>peak</th></tr></thead><tbody>';
+  for(const k of ks){
+    const row=H.kscan.filter(r=>r.k===k);
+    const live=row.filter(r=>!r.masked);
+    const best=live.reduce((a,b)=>b.t>a.t?b:a,live[0]);
+    h+=`<tr><td class="mono">${k}</td>`;
+    for(const o of offs){
+      const r=row.find(x=>x.offset===o);
+      if(!r){h+="<td></td>";continue;}
+      const isPeak=r.offset===best.offset;
+      h+=`<td class="num ${r.masked?"dim":cls(r.t)}" style="${
+        isPeak?"font-weight:700;background:color-mix(in srgb,var(--s2) 16%,transparent)":""}">`
+        +`${r.masked?"·":sg(r.t,2)}</td>`;
+    }
+    h+=`<td class="mono"><b>count ${best.count}</b>`
+      +`${best.offset===k?' <span class="tag warn">= k+1</span>':""}</td></tr>`;
+  }
+  h+="</tbody></table></div>";
+  const allPeakAtK=ks.every(k=>{
+    const live=H.kscan.filter(r=>r.k===k&&!r.masked);
+    const best=live.reduce((a,b)=>b.t>a.t?b:a,live[0]);
+    return best.offset===k;});
+  h+=`<p class="sub">Column headings are the count. `
+    + (allPeakAtK
+       ? `The peak lands on <b>count = k+1</b> for every swing strength tested — it tracks
+          the confirmation lag, not the number. TDT's 7 coincides with it only when k=6.`
+       : `The peak does not track k uniformly.`) + `</p>`;
+  document.getElementById("kscan").innerHTML=h;
+}
+
+function drawRule(){
+  if(!H||!H.rule) return;
+  const ks=[...new Set(Object.keys(H.rule).map(k=>+k.split("|")[0]))].sort((a,b)=>a-b);
+  let h='<div class="scroll"><table><thead><tr><th>swing k</th><th>period</th>'
+    +'<th>trades</th><th>win</th><th>mean pts</th><th>mean R</th><th>total $</th>'
+    +'<th>max DD $</th><th>return / DD</th><th>t</th></tr></thead><tbody>';
+  for(const k of ks) for(const per of ["train","test"]){
+    const r=H.rule[k+"|"+per]; if(!r) continue;
+    h+=`<tr class="${per==="test"&&r.total_usd>0?"win":""}"><td class="mono">${k}</td>`
+      +`<td class="mono">${per}</td><td class="num">${r.n.toLocaleString()}</td>`
+      +`<td class="num">${(r.win_rate*100).toFixed(1)}%</td>`
+      +`<td class="num ${cls(r.mean_pts)}">${sg(r.mean_pts,2)}</td>`
+      +`<td class="num ${cls(r.r_mean)}">${sg(r.r_mean,4)}</td>`
+      +`<td class="num ${cls(r.total_usd)}">${r.total_usd>=0?"+":"\u2212"}$${Math.abs(Math.round(r.total_usd)).toLocaleString()}</td>`
+      +`<td class="num">$${Math.round(r.max_dd_usd).toLocaleString()}</td>`
+      +`<td class="num ${cls(r.ret_dd)}">${f2(r.ret_dd,2)}</td>`
+      +`<td class="num ${cls(r.t)}">${sg(r.t,2)}</td></tr>`;
+  }
+  document.getElementById("ruletable").innerHTML=h+"</tbody></table></div>";
+}
+
+drawOffset(); drawHold(); drawSplit(); drawKscan(); drawRule();
+
+document.getElementById("foot").innerHTML =
+  `NQ continuous, ${M.train_years[0]}–${M.test_years[1]}, counts and execution both derived `
+  + `from the same 1-minute feed. Rebuild with <code>python sweep.py &amp;&amp; `
+  + `python build_sweep_report.py</code>. Built ${esc(M.built)}.`;
+</script>

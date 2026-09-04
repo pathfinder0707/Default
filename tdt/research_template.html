@@ -1,0 +1,935 @@
+<title>Time Dilation Theory — Research Review</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700&family=Source+Sans+3:ital,wght@0,300;0,400;0,500;0,600;1,400&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+:root{color-scheme:light;
+ --ground:#FBFBFA;--raise:#FFF;--sunk:#F4F4F1;--rule:#E2E2DC;--rule2:#C8C9C2;
+ --ink:#15171A;--ink2:#4A4E52;--ink3:#7C8186;
+ --s1:#2a78d6;--s2:#eb6834;--s3:#1baf7a;--pos:#0a8f2f;--neg:#c9342f;--warn:#c78a06;
+ --shadow:0 1px 2px rgba(21,23,26,.05),0 4px 16px rgba(21,23,26,.05)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){color-scheme:dark;
+ --ground:#121518;--raise:#191D21;--sunk:#1F242A;--rule:#2A3138;--rule2:#3A424A;
+ --ink:#E9EBE8;--ink2:#B5BABD;--ink3:#858B90;
+ --s1:#3987e5;--s2:#e0623a;--s3:#22b481;--pos:#2fbf55;--neg:#e8564f;--warn:#e0a92a;
+ --shadow:0 1px 2px rgba(0,0,0,.45),0 6px 22px rgba(0,0,0,.3)}}
+:root[data-theme="dark"]{color-scheme:dark;
+ --ground:#121518;--raise:#191D21;--sunk:#1F242A;--rule:#2A3138;--rule2:#3A424A;
+ --ink:#E9EBE8;--ink2:#B5BABD;--ink3:#858B90;
+ --s1:#3987e5;--s2:#e0623a;--s3:#22b481;--pos:#2fbf55;--neg:#e8564f;--warn:#e0a92a;
+ --shadow:0 1px 2px rgba(0,0,0,.45),0 6px 22px rgba(0,0,0,.3)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--ground);color:var(--ink);
+ font:400 16px/1.6 "Source Sans 3",system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+.wrap{max-width:1060px;margin:0 auto;padding:40px 22px 120px}
+.hdr{border-bottom:2px solid var(--ink);padding-bottom:14px;margin-bottom:8px}
+.eyebrow{font:600 11.5px/1 "IBM Plex Mono",monospace;letter-spacing:.16em;
+ text-transform:uppercase;color:var(--s2);margin:0 0 10px}
+h1{font:700 33px/1.14 Archivo,system-ui,sans-serif;letter-spacing:-.022em;margin:0 0 6px}
+.dek{font-size:17px;color:var(--ink2);margin:0;max-width:74ch}
+.meta{font:400 13px/1.5 "IBM Plex Mono",monospace;color:var(--ink3);margin:10px 0 0}
+h2{font:600 13px/1.2 "IBM Plex Mono",monospace;letter-spacing:.13em;text-transform:uppercase;
+ color:var(--ink3);margin:56px 0 6px;padding-bottom:8px;border-bottom:1px solid var(--rule)}
+h2 .n{color:var(--s2);margin-right:9px}
+h3{font:600 21px/1.3 Archivo,system-ui,sans-serif;letter-spacing:-.012em;margin:20px 0 10px}
+h4{font:600 15px/1.3 Archivo,system-ui,sans-serif;margin:24px 0 8px}
+p{margin:0 0 13px;max-width:74ch;color:var(--ink2)}
+strong{color:var(--ink);font-weight:600}
+code,.mono{font-family:"IBM Plex Mono",ui-monospace,monospace;font-size:.88em}
+ul,ol{color:var(--ink2);max-width:74ch}li{margin:6px 0}
+.toc{background:var(--sunk);border:1px solid var(--rule);border-radius:10px;padding:14px 18px;
+ margin:26px 0 10px;columns:2;column-gap:34px}
+@media(max-width:700px){.toc{columns:1}}
+.toc a{display:block;color:var(--ink2);text-decoration:none;font-size:14px;padding:3px 0;
+ break-inside:avoid}
+.toc a:hover{color:var(--s1)}
+.toc a b{color:var(--s2);font-family:"IBM Plex Mono",monospace;font-size:12px;margin-right:7px}
+.verdict{border:1px solid var(--rule2);border-left:4px solid var(--warn);border-radius:8px;
+ background:var(--raise);padding:20px 22px;margin:22px 0;box-shadow:var(--shadow)}
+.verdict h3{margin-top:0}
+.kpi{display:grid;grid-template-columns:repeat(auto-fit,minmax(148px,1fr));gap:12px;margin:18px 0}
+.kpi div{background:var(--raise);border:1px solid var(--rule);border-radius:9px;padding:12px 14px;
+ box-shadow:var(--shadow)}
+.kpi .lab{font:600 10.5px/1.3 "IBM Plex Mono",monospace;letter-spacing:.07em;
+ text-transform:uppercase;color:var(--ink3)}
+.kpi .val{font:600 24px/1.2 Archivo,system-ui,sans-serif;letter-spacing:-.02em;margin-top:3px}
+.kpi .sub{font-size:12px;color:var(--ink3);margin-top:1px}
+.card{background:var(--raise);border:1px solid var(--rule);border-radius:10px;
+ padding:16px 18px;margin:16px 0;box-shadow:var(--shadow)}
+table{border-collapse:collapse;width:100%;font-size:14px;margin:12px 0}
+th,td{text-align:right;padding:6.5px 9px;border-bottom:1px solid var(--rule)}
+th:first-child,td:first-child{text-align:left}
+th{font:600 11px/1.2 "IBM Plex Mono",monospace;letter-spacing:.05em;text-transform:uppercase;
+ color:var(--ink3);border-bottom:1px solid var(--rule2)}
+td.num{font-family:"IBM Plex Mono",monospace}
+tbody tr:hover td{background:var(--sunk)}
+tr.hi td{background:color-mix(in srgb,var(--s2) 10%,transparent)}
+tr.sep td{border-top:1px solid var(--rule2)}
+.pos{color:var(--pos)}.neg{color:var(--neg)}.dim{color:var(--ink3)}
+.tag{display:inline-block;font:600 10.5px/1 "IBM Plex Mono",monospace;letter-spacing:.06em;
+ text-transform:uppercase;padding:4px 7px;border-radius:4px;background:var(--sunk);
+ color:var(--ink2);border:1px solid var(--rule)}
+.tag.ok{color:var(--pos);border-color:color-mix(in srgb,var(--pos) 45%,var(--rule))}
+.tag.bad{color:var(--neg);border-color:color-mix(in srgb,var(--neg) 45%,var(--rule))}
+.tag.warn{color:var(--warn);border-color:color-mix(in srgb,var(--warn) 55%,var(--rule))}
+.scroll{overflow-x:auto}
+svg{display:block;max-width:100%;height:auto}
+.legend{display:flex;gap:15px;flex-wrap:wrap;font-size:12.5px;color:var(--ink2);margin:8px 0 0}
+.legend i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:5px}
+.kv{display:grid;grid-template-columns:auto 1fr;gap:5px 16px;font-size:14px;margin:0}
+.kv dt{color:var(--ink3);font-family:"IBM Plex Mono",monospace;font-size:12.5px}
+.kv dd{margin:0;color:var(--ink)}
+.rule-box{background:var(--sunk);border:1px solid var(--rule2);border-radius:9px;
+ padding:15px 18px;margin:16px 0;font-family:"IBM Plex Mono",monospace;font-size:13.5px;
+ line-height:1.75;color:var(--ink)}
+.rule-box b{color:var(--s2)}
+.note{font-size:13px;color:var(--ink3);max-width:74ch}
+.foot{margin-top:70px;padding-top:18px;border-top:1px solid var(--rule);color:var(--ink3);
+ font-size:12.5px}
+.tabs{display:flex;gap:5px;margin:14px 0 4px;flex-wrap:wrap}
+.tabs button{font:600 12.5px/1 "IBM Plex Mono",monospace;padding:7px 12px;border-radius:6px;
+ border:1px solid var(--rule);background:var(--raise);color:var(--ink2);cursor:pointer}
+.tabs button[aria-selected="true"]{background:var(--s1);color:#fff;border-color:var(--s1)}
+</style>
+
+<div class="wrap">
+<div class="hdr">
+<p class="eyebrow">Systematic Research · Strategy Review</p>
+<h1>Time Dilation Theory</h1>
+<p class="dek">Can the TDT candle count be traded? A full evaluation of the method's
+mechanics, an exhaustive parameter search, and an assessment of the one effect that
+survived — including whether it survives having been searched for.</p>
+<p class="meta" id="meta"></p>
+</div>
+
+<div class="toc" id="toc"></div>
+
+<h2><span class="n">01</span>Executive summary</h2>
+<div id="exec"></div>
+
+<h2><span class="n">02</span>Mandate and hypotheses</h2>
+<p>TDT counts candles forward from a swing pivot and treats the numbers <strong>7</strong>,
+<strong>13</strong> and <strong>21</strong> as decision points. Two trade models are built
+on it: Model&nbsp;#2 reads a completed leg by the count it terminated on
+(<code>[1-7]</code> continuation, <code>[1-13]</code> reversal inside), and Model&nbsp;#3
+grades three nested counts, refusing any signature containing a 21.</p>
+<p>That is falsifiable, and this review tests it as four separate claims, each of which
+could hold while the others fail:</p>
+<div class="card"><dl class="kv" id="hyps"></dl></div>
+
+<h2><span class="n">03</span>Data and infrastructure</h2>
+<div id="data"></div>
+
+<h2><span class="n">04</span>Methodology and controls</h2>
+<div id="method"></div>
+
+<h2><span class="n">05</span>Finding 1 — the counts do not mark turns</h2>
+<div id="f1"></div>
+
+<h2><span class="n">06</span>Finding 2 — the counts do not improve selection</h2>
+<div id="f2"></div>
+
+<h2><span class="n">07</span>Finding 3 — the count is the confirmation lag</h2>
+<div id="f3"></div>
+
+<h2><span class="n">08</span>Is the conclusion an artefact of where I start counting?</h2>
+<div id="origins"></div>
+
+<h2><span class="n">09</span>The residual strategy</h2>
+<div id="strategy"></div>
+
+<h2><span class="n">10</span>Performance</h2>
+<div id="perf"></div>
+
+<h2><span class="n">11</span>Trade anatomy</h2>
+<div id="anatomy"></div>
+
+<h2><span class="n">12</span>Overfitting assessment</h2>
+<div id="overfit"></div>
+
+<h2><span class="n">13</span>Robustness</h2>
+<div id="robust"></div>
+
+<h2><span class="n">14</span>Risk, sizing and capacity</h2>
+<div id="risk"></div>
+
+<h2><span class="n">15</span>Verdict and recommendation</h2>
+<div id="final"></div>
+
+<h2><span class="n">16</span>Appendix — search results</h2>
+<div id="appendix"></div>
+
+<div class="foot" id="foot"></div>
+</div>
+<script>
+const D = {{DATA}};
+const R = D.research, S = D.sweep, H = D.hold, B = D.base;
+const M = R.meta;
+const $ = id => document.getElementById(id);
+const f = (v,d=2)=>(v==null||!isFinite(v))?"—":Number(v).toFixed(d);
+const sg = (v,d=2)=>(v==null||!isFinite(v))?"—":(v>=0?"+":"")+Number(v).toFixed(d);
+const pc = (v,d=1)=>(v==null||!isFinite(v))?"—":(v*100).toFixed(d)+"%";
+const usd = v=>(v==null||!isFinite(v))?"—":(v<0?"−":"")+"$"+Math.abs(Math.round(v)).toLocaleString();
+const cls = v=>!isFinite(v)?"dim":v>0?"pos":v<0?"neg":"";
+const esc = s=>String(s).replace(/[&<>]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;"}[c]));
+const P = (k,p)=>R.performance[k+"|"+p];
+const K = M.headline_k;
+const tr_ = P(K,"train"), te_ = P(K,"test");
+
+$("meta").textContent =
+  `NQ continuous · M15 · ${M.first.slice(0,10)} to ${M.last.slice(0,10)} · `
+  + `${M.candles.toLocaleString()} counting candles · train ${M.train.join("–")} / `
+  + `test ${M.test.join("–")} · costs ${M.cost_pts} pts round turn · built ${M.built}`;
+
+/* --------------------------------------------------------------------- TOC */
+$("toc").innerHTML = [...document.querySelectorAll("h2")].map(h=>{
+  const n=h.querySelector(".n").textContent;
+  const t=h.textContent.replace(n,"").trim();
+  const id="s"+n; h.id=id;
+  return `<a href="#${id}"><b>${n}</b>${esc(t)}</a>`;
+}).join("");
+
+/* --------------------------------------------------------------- 01 EXEC */
+(function(){
+  const dsrFull = R.dsr.by_trials[R.dsr.by_trials.length-1];
+  const dsr1 = R.dsr.by_trials[0];
+  const wf = R.walk_forward||[];
+  const wfPos = wf.filter(x=>x.total_r>0).length;
+  const wfTot = wf.reduce((a,b)=>a+b.total_r,0);
+  $("exec").innerHTML = `
+  <div class="verdict">
+    <h3 style="margin-bottom:6px">Do not allocate to the TDT count. One effect
+    underneath it is worth a paper-traded pilot.</h3>
+    <p style="margin-bottom:0">The counting numbers 7, 13 and 21 carry no information:
+    legs do not turn on them more than on neighbouring counts, filtering trades by them
+    does not improve selection, and the one configuration that survived a
+    ${S.meta.configs_searched.toLocaleString()}-configuration search turned out to be
+    arithmetically identical to a fixed time delay with no counting in it. What that
+    search did surface is a genuine momentum effect after a confirmed swing pivot —
+    Sharpe ${f(te_.sharpe)} out of sample, ${wfPos} of ${wf.length} walk-forward years
+    positive — whose statistical significance does <em>not</em> survive an honest
+    correction for the width of the search that found it
+    (deflated Sharpe ${f(dsrFull.dsr,3)} against a ${f(0.95,2)} bar).</p>
+  </div>
+  <div class="kpi">
+    <div><div class="lab">TDT counts</div><div class="val neg">No edge</div>
+      <div class="sub">0 of 12 readings passed</div></div>
+    <div><div class="lab">Residual rule — OOS Sharpe</div><div class="val">${f(te_.sharpe)}</div>
+      <div class="sub">${te_.n_trades.toLocaleString()} trades, ${M.test.join("–")}</div></div>
+    <div><div class="lab">OOS Calmar</div><div class="val">${f(te_.calmar)}</div>
+      <div class="sub">max DD ${usd(te_.max_dd_usd)}</div></div>
+    <div><div class="lab">Walk-forward</div><div class="val">${wfPos}/${wf.length}</div>
+      <div class="sub">years positive, ${sg(wfTot,0)}R total</div></div>
+    <div><div class="lab">Deflated Sharpe</div><div class="val neg">${f(dsrFull.dsr,3)}</div>
+      <div class="sub">needs &gt; 0.95 · ${dsrFull.trials.toLocaleString()} trials</div></div>
+    <div><div class="lab">PBO</div><div class="val pos">${f(R.pbo.pbo,3)}</div>
+      <div class="sub">needs &lt; 0.50 · selection is stable</div></div>
+  </div>
+  <p>The two overfitting statistics disagree, and the disagreement is the finding.
+  <strong>PBO of ${f(R.pbo.pbo,3)}</strong> says the ranking among configurations is
+  stable — pick the best in one period and it stays good in the next, which is not what
+  noise does. <strong>Deflated Sharpe of ${f(dsrFull.dsr,3)}</strong> says the magnitude
+  is not large enough to stand out from what a search this wide would produce from nothing.
+  Read together: the effect is probably real and probably too small to have been
+  established by this study. Had the rule been specified in advance its deflated Sharpe
+  would be ${f(dsr1.dsr,3)}; it survives roughly a dozen trials of searching, not
+  ${dsrFull.trials.toLocaleString()}.</p>`;
+})();
+
+/* ------------------------------------------------------------ 02 HYPOTHESES */
+$("hyps").innerHTML = [
+ ["H1","Legs turn on counts 7/13/21 more often than on neighbouring counts.",
+  "rejected"],
+ ["H2","Filtering trades by terminal count improves selection over trading every leg.",
+  "rejected"],
+ ["H3","Model #3's grading (13-7-7 and 7-13-7 good, any 21 bad) carries information.",
+  "not established"],
+ ["H4","Some parameterisation of the method is tradeable after costs.",
+  "rejected as stated"],
+].map(([k,v,r])=>`<dt>${k}</dt><dd>${esc(v)} <span class="tag ${
+  r==="rejected"||r==="rejected as stated"?"bad":"warn"}">${r}</span></dd>`).join("");
+
+/* ------------------------------------------------------------------ 03 DATA */
+$("data").innerHTML = `
+<p>NQ continuous 1-minute futures, merged from five vendor files and validated before
+use. The 1-minute feed is the single source: every timeframe in this review, counting and
+execution alike, is aggregated from it, so no two series can disagree about a price.</p>
+<div class="card"><dl class="kv">
+<dt>rows</dt><dd>4,778,135 one-minute bars, 2010-07-07 → 2026-08-06</dd>
+<dt>integrity</dt><dd>zero duplicate timestamps · monotonic · zero OHLC violations
+ (no high &lt; low, no open or close outside the range) · zero nulls · zero
+ zero-volume bars</dd>
+<dt>timezone</dt><dd>verified empirically, not assumed. The raw index places the daily
+ gap at hour 21 in winter and 20 in summer; converting UTC→America/New_York pins it at
+ 16:00 in both, which only a correct DST-aware conversion does.</dd>
+<dt>session</dt><dd>the dead hour is 17:00 NY (37 bars in four years) and the session
+ opens 18:00, so a daily candle runs 18:00→17:00. Bucketing on the calendar date instead
+ would cut every session in half at midnight.</dd>
+<dt>contract roll</dt><dd>no artefact detectable: roll months average 0.0208% absolute
+ bar-to-bar move against 0.0196% in other months</dd>
+<dt>coverage ramp</dt><dd><b>the binding constraint.</b> Median bars per day runs 113
+ (2010) → 283 (2012) → 960 (2013) → 1,282 (2016) → 1,380 (2022+). A daily candle built on
+ under two hours of trade is not the same object as one built on twenty-three, so the
+ study starts at <b>2016</b>.</dd>
+<dt>study window</dt><dd>${M.candles.toLocaleString()} M15 candles and
+ ${M.exec_candles.toLocaleString()} execution candles, ${M.first.slice(0,10)} →
+ ${M.last.slice(0,10)}</dd>
+</dl></div>`;
+
+/* ---------------------------------------------------------------- 04 METHOD */
+$("method").innerHTML = `
+<p>Fixed before any result was inspected. A search this wide always produces a winner;
+the only defence is deciding in advance what would count as one.</p>
+<div class="card"><dl class="kv">
+<dt>split</dt><dd>train ${M.train.join("–")} for every selection decision;
+ test ${M.test.join("–")} touched once, after selection was frozen</dd>
+<dt>search</dt><dd>${S.meta.configs_searched.toLocaleString()} configurations —
+ 4 timeframes × 3 counting modes × 5 swing degrees × 2 polarities × 2 signal timings ×
+ reward, timeout and stop-pad grids</dd>
+<dt>no lookahead</dt><dd>a swing of strength k is unknowable for k candles. Terminal
+ signals are dated end+k, reach signals max(count bar, origin+k), and entry is the
+ <em>next</em> candle's open.</dd>
+<dt>costs</dt><dd>${M.cost_pts} index points per round turn — $4 commission plus one tick
+ of slippage each way at $${M.point_value}/point — charged on every trade</dd>
+<dt>sizing</dt><dd>constant fractional: ${pc(M.risk_frac,0)} of a
+ $${(M.account/1000).toFixed(0)}k nominal account risked per trade, position sized to the
+ stop, non-compounding. Daily P&amp;L is aggregated on a calendar grid with flat days
+ counted, since dropping them inflates Sharpe.</dd>
+<dt>overlap</dt><dd>one position at a time. Signals arriving while a position is open are
+ skipped, which is what a single account can actually take.</dd>
+<dt>controls</dt><dd>every claim is measured against a matched alternative — the same
+ entry, stop, target and timeout with only the selection rule changed — never against
+ zero</dd>
+</dl></div>`;
+
+/* ------------------------------------------------------------- 05 FINDING 1 */
+(function(){
+  const hz = B ? B.null.neighbour : null;
+  let tbl="";
+  if(hz){
+    tbl='<div class="scroll"><table><thead><tr><th>mode</th><th>count</th>'
+      +'<th>turn rate</th><th>neighbour baseline</th><th>z</th><th>legs at risk</th>'
+      +'</tr></thead><tbody>';
+    for(const mode of ["classic","wick","body"])
+      for(const r of (hz[mode]||[])){
+        const thin=(r.at_risk||0)<30;
+        tbl+=`<tr class="${thin?"dim":""}"><td class="mono">${mode}</td>`
+          +`<td class="mono">${r.key}</td><td class="num">${pc(r.hazard)}</td>`
+          +`<td class="num">${pc(r.baseline)}</td>`
+          +`<td class="num ${cls(r.z)}">${sg(r.z)}</td>`
+          +`<td class="num">${(r.at_risk||0).toLocaleString()}`
+          +`${thin?' <span class="tag bad">thin</span>':""}</td></tr>`;
+      }
+    tbl+="</tbody></table></div>";
+  }
+  $("f1").innerHTML = `
+  <p>The load-bearing claim. If a count of 7 marks a turn, then among legs that have
+  <em>already reached</em> 7, an unusual share should end there. The comparison is against
+  the counts either side, skipping the immediate neighbours so a genuine spike cannot
+  flatter itself through 6 and 8.</p>${tbl}
+  <p>Nine tests. The largest absolute z is 1.56 and it is <em>negative</em>. On daily
+  candles the only reading past 2 is count 13 at <b>−3.11</b> — legs turn there
+  <em>less</em> often than beside it. Nothing supports H1.</p>
+  <p class="note">Count 21 is untestable on daily candles as a matter of arithmetic, not
+  of sample: roughly 3% of legs survive that long, so NQ's entire daily history yields
+  about nine legs at risk. It is only testable at H1 and below, which is why the search
+  ran there too.</p>`;
+})();
+
+/* ------------------------------------------------------------- 06 FINDING 2 */
+(function(){
+  const F = B ? B.null.filter : null;
+  let tbl="";
+  if(F){
+    tbl='<div class="scroll"><table><thead><tr><th>selection rule</th><th>mode</th>'
+      +'<th>trades</th><th>exp R</th><th>t</th></tr></thead><tbody>';
+    const NM={tdt:"TDT selects (terminal 7 or 13)",all:"every leg, no count filter",
+              rejected:"legs TDT rejects"};
+    for(const mode of ["classic","wick","body"]){
+      const fm=F[mode]; if(!fm) continue;
+      const by={}; (fm.rows||[]).forEach(r=>by[r.set]=r);
+      for(const kk of ["tdt","all","rejected"]){
+        const r=by[kk]; if(!r) continue;
+        tbl+=`<tr class="${kk==="tdt"?"hi":""}"><td class="mono">${NM[kk]}</td>`
+          +`<td class="mono">${mode}</td><td class="num">${r.n.toLocaleString()}</td>`
+          +`<td class="num ${cls(r.exp_r)}">${sg(r.exp_r,4)}</td>`
+          +`<td class="num ${cls(r.t)}">${sg(r.t)}</td></tr>`;
+      }
+    }
+    tbl+="</tbody></table></div>";
+  }
+  $("f2").innerHTML = `
+  <p>A count could fail to predict turns and still be a useful filter. So: hold the entry,
+  stop, target and timeout fixed, and change only <em>which legs get traded</em>.</p>${tbl}
+  <p>The legs TDT rejects pay as much as the legs it selects — slightly more, in the
+  largest sample. Across both timeframes tested and all three counting modes the
+  difference never reaches |t| = 2. The count is not selecting better legs; it is
+  selecting fewer, discarding roughly 62% of trades from a population whose edge it does
+  not improve. H2 rejected.</p>
+  <p class="note">This is why a backtest of the model alone settles nothing. Model #2
+  posts t = +5.14 on hourly data — a number that looks like vindication until the control
+  posts +9.11 on the same bars with the count removed.</p>`;
+})();
+
+/* ------------------------------------------------------------- 07 FINDING 3 */
+(function(){
+  const rows=Object.entries(R.tdt_vs_rule).filter(([k])=>k.endsWith("test"))
+    .map(([k,v])=>[+k.split("|")[0],v]).sort((a,b)=>a[0]-b[0]);
+  const rowsTr=Object.fromEntries(Object.entries(R.tdt_vs_rule)
+    .filter(([k])=>k.endsWith("train")).map(([k,v])=>[+k.split("|")[0],v]));
+  let t='<div class="scroll"><table><thead><tr><th>swing k</th>'
+    +'<th>count 7 exp R</th><th>count k+1 exp R</th><th>difference</th><th>t</th>'
+    +'<th>train t</th><th></th></tr></thead><tbody>';
+  for(const [k,v] of rows){
+    const tv=rowsTr[k]||{};
+    t+=`<tr class="${v.identical?"hi":""}"><td class="mono">k=${k} → count ${k+1}</td>`
+      +`<td class="num ${cls(v.count7_exp_r)}">${sg(v.count7_exp_r,4)}</td>`
+      +`<td class="num ${cls(v.countk1_exp_r)}">${sg(v.countk1_exp_r,4)}</td>`
+      +`<td class="num ${cls(v.diff)}">${sg(v.diff,4)}</td>`
+      +`<td class="num ${cls(v.t)}">${sg(v.t)}</td>`
+      +`<td class="num ${cls(tv.t)}">${sg(tv.t)}</td>`
+      +`<td>${v.identical?'<span class="tag warn">identical</span>'
+          :(v.diff<0?'<span class="tag bad">7 is worse</span>':"")}</td></tr>`;
+  }
+  t+="</tbody></table></div>";
+
+  let ks="";
+  if(H&&H.kscan){
+    const kk=[...new Set(H.kscan.map(r=>r.k))].sort((a,b)=>a-b);
+    const offs=[...new Set(H.kscan.map(r=>r.offset))].sort((a,b)=>a-b);
+    ks='<div class="scroll"><table><thead><tr><th>swing k</th>'
+      +offs.map(o=>`<th>${o+1}</th>`).join("")+'<th>peak</th></tr></thead><tbody>';
+    for(const k of kk){
+      const row=H.kscan.filter(r=>r.k===k), live=row.filter(r=>!r.masked);
+      const best=live.reduce((a,b)=>b.t>a.t?b:a,live[0]);
+      ks+=`<tr><td class="mono">${k}</td>`;
+      for(const o of offs){
+        const r=row.find(x=>x.offset===o);
+        ks+=r?`<td class="num ${r.masked?"dim":cls(r.t)}" style="${
+          r.offset===best.offset?"font-weight:700;background:color-mix(in srgb,var(--s2) 16%,transparent)":""
+        }">${r.masked?"·":sg(r.t)}</td>`:"<td></td>";
+      }
+      ks+=`<td class="mono"><b>count ${best.count}</b>${
+        best.offset===k?' <span class="tag warn">= k+1</span>':""}</td></tr>`;
+    }
+    ks+='</tbody></table></div><p class="note">Columns are the count. Dotted cells are'
+      +' masked: the pivot is not yet knowable, so those counts collapse onto k.</p>';
+  }
+
+  $("f3").innerHTML = `
+  <p>The search's strongest survivor was <code>reach 7, follow</code> on classic counting.
+  Classic counting numbers every candle, so "the count reaches 7" is arithmetically "six
+  candles after the pivot". Tested against a plain origin+6 entry, the contrast is
+  <b>+0.0000R at t = +0.00</b> — not near zero, the same trades. No counting occurs.</p>
+  <p>That leaves one question: is that offset better than its neighbours? It is, but only
+  at one swing strength. Scanning k, the peak lands on <b>count k+1</b> every time — the
+  first candle on which the pivot is knowable:</p>${ks}
+  <p>TDT's 7 coincides with the optimum only when the swing strength happens to be 6.
+  Comparing the two directly at each k:</p>${t}
+  <p>Where k ≥ 6 the two rules are the identical trade set, because count 7 falls inside
+  the confirmation mask. Where k &lt; 6, TDT's 7 is <em>significantly worse</em> — down to
+  t = −6.01 in sample. The number 7 is a property of the pivot filter you chose, not of
+  the market. H4 rejected as stated.</p>`;
+})();
+
+/* -------------------------------------------------------------- 08 ORIGINS */
+(function(){
+  const G = D.origins;
+  if(!G){ $("origins").innerHTML=""; return; }
+  const res=G.results||[];
+  const zs=res.map(r=>r.z).filter(z=>isFinite(z));
+  const mx=Math.max(...zs), mn=Math.min(...zs);
+  const exp=G.meta.expected_max_z_null;
+  const over=res.filter(r=>isFinite(r.z)&&r.z>=exp);
+
+  // grid: origin x mode, best key z
+  const orgs=[...new Set(res.map(r=>r.origin))];
+  const tfs=[...new Set(res.map(r=>r.tf))];
+  let t='<div class="scroll"><table><thead><tr><th>origin definition</th>'
+    + tfs.flatMap(tf=>["classic","wick","body"].map(m=>`<th>${tf} ${m}</th>`)).join("")
+    + '</tr></thead><tbody>';
+  for(const o of orgs){
+    t+=`<tr><td class="mono">${esc(o)}</td>`;
+    for(const tf of tfs) for(const m of ["classic","wick","body"]){
+      const cell=res.filter(r=>r.origin===o&&r.tf===tf&&r.mode===m&&isFinite(r.z));
+      if(!cell.length){t+="<td></td>";continue;}
+      const best=cell.reduce((a,b)=>b.z>a.z?b:a);
+      const hot=best.z>=exp;
+      t+=`<td class="num ${cls(best.z)}" style="${hot?"font-weight:700;background:color-mix(in srgb,var(--s2) 18%,transparent)":""}"
+        title="best key ${best.key}">${sg(best.z)}</td>`;
+    }
+    t+="</tr>";
+  }
+  t+="</tbody></table></div>";
+
+  // clock table
+  const ck=(G.clock||[]).slice(0,6), ckLo=(G.clock||[]).slice(-4);
+  let c='<div class="scroll"><table><thead><tr><th>NY time</th><th>turn rate</th>'
+    +'<th></th><th>NY time</th><th>turn rate</th></tr></thead><tbody>';
+  for(let i=0;i<Math.max(ck.length,ckLo.length);i++){
+    const a=ck[i], b=ckLo[i];
+    c+=`<tr><td class="mono">${a?a.time:""}</td><td class="num pos">${a?pc(a.p):""}</td>`
+      +`<td></td><td class="mono">${b?b.time:""}</td>`
+      +`<td class="num dim">${b?pc(b.p):""}</td></tr>`;
+  }
+  c+="</tbody></table></div>";
+
+  const sh=(G.htf_shift_control||[]).filter(r=>r.key===7);
+  let sct='<div class="scroll"><table><thead><tr><th>block grid</th><th>count 7 lands on</th>'
+    +'<th>turn rate</th><th>z</th></tr></thead><tbody>';
+  const lands=["09:30 — the cash open","10:30","11:30","12:30"];
+  sh.forEach((r,i)=>{
+    sct+=`<tr class="${r.shift_hours===0?"hi":""}"><td class="mono">${
+      r.shift_hours===0?"00/04/08/12/16/20":"shifted +"+r.shift_hours+"h"}</td>`
+      +`<td class="mono">${lands[i]||""}</td>`
+      +`<td class="num">${pc(r.p)}</td>`
+      +`<td class="num ${cls(r.z)}">${sg(r.z)}</td></tr>`;
+  });
+  sct+="</tbody></table></div>";
+
+  $("origins").innerHTML = `
+  <p>Everything above is conditional on one choice the slides never make: where the count
+  starts. I inferred a fractal swing pivot. If that is the wrong guess, the entire review
+  tests a method nobody teaches — which is the most likely way for it to be wrong.</p>
+  <p>So this stops guessing and tries the alternatives: ten origin definitions spanning
+  the readings a practitioner might plausibly mean, each counted three ways on two
+  timeframes, each asked whether the candle at count 7, 13 or 21 is unusually likely to be
+  a turn. The test is deliberately generous — a turn is a local extreme in
+  <em>either</em> direction, so it cannot fail by picking the wrong side, and there are no
+  costs, stops or execution assumptions to get wrong.</p>
+  <div class="kpi">
+   <div><div class="lab">tests run</div><div class="val">${G.meta.n_tests}</div>
+     <div class="sub">10 origins × 3 modes × 3 counts × 2 timeframes</div></div>
+   <div><div class="lab">largest z</div><div class="val">${sg(mx)}</div></div>
+   <div><div class="lab">expected largest, pure noise</div><div class="val">${sg(exp)}</div>
+     <div class="sub">√(2·ln N)</div></div>
+   <div><div class="lab">most negative z</div><div class="val">${sg(mn)}</div>
+     <div class="sub">symmetric — the signature of noise</div></div>
+  </div>
+  <p>Best key count per origin and mode. Anything at or above the noise threshold of
+  ${f(exp)} is highlighted.</p>${t}
+  <p><strong>One cell clears the threshold, and it is a clock artefact.</strong>
+  ${over.length===1?"":"Of the "+over.length+" that do, the largest is worth chasing: "}
+  H4 block open, classic counting, count 7. Classic count 7 is "six candles after the
+  origin", and with blocks on the 00/04/08/12/16/20 grid that lands — from the 08:00
+  block — on exactly 09:30 New York.</p>
+  <h4>Time of day dwarfs everything</h4>
+  <p>NQ has enormous clock structure. The highest and lowest turn rates by New York time:</p>${c}
+  <p>09:30, the cash open, turns three times as often as an average candle. Any origin on
+  a fixed clock grid can drop a key count on top of it and inherit the effect.</p>
+  <h4>The control that settles it</h4>
+  <p>Shift the block grid by an hour so count 7 lands somewhere else:</p>${sct}
+  <p><strong>The hit does not survive the shift.</strong> It was the equity open,
+  rediscovered through an arbitrary alignment of block boundaries, with nothing to do with
+  the number 7. Across ${G.meta.n_tests} tests spanning every plausible definition of
+  candle 1, nothing survives. The conclusion no longer depends on my choice of origin.</p>
+  <p class="note">This does not close the question completely. If TDT's origin is
+  something only a discretionary reader can identify — a structure they recognise rather
+  than a rule a machine can apply — then no automated test reaches it. That limitation is
+  real and is stated in section 16.</p>`;
+})();
+
+/* ------------------------------------------------------------- 09 STRATEGY */
+$("strategy").innerHTML = `
+<p>What the search actually found, stated as a specification. It is a momentum effect
+after a confirmed pivot; the counting is not part of it.</p>
+<div class="rule-box">
+<b>Universe</b>   NQ continuous, M15 candles<br>
+<b>Signal</b>     a swing pivot of strength k (high or low, strictly beyond the k candles
+ either side)<br>
+<b>Timing</b>     the pivot is confirmed k candles later; enter at the open of the next
+ candle<br>
+<b>Direction</b>  with the leg that just completed — long after a swing low, short after
+ a swing high<br>
+<b>Stop</b>       beyond that leg's extreme, padded by ${M.pad} × the leg's mean candle
+ range<br>
+<b>Target</b>     ${M.rr}R<br>
+<b>Timeout</b>    ${M.timeout} candles, exit at market<br>
+<b>Sizing</b>     ${pc(M.risk_frac,0)} of equity risked to the stop<br>
+<b>Concurrency</b> one position at a time
+</div>
+<p class="note">TDT's contribution to this specification is the claim that the entry
+belongs on count 7. Section 07 shows it belongs on count k+1, and that these coincide only
+at k=6.</p>`;
+
+/* ----------------------------------------------------------------- 09 PERF */
+(function(){
+  const ks=[...new Set(Object.keys(R.performance).map(x=>+x.split("|")[0]))].sort((a,b)=>a-b);
+  let t='<div class="scroll"><table><thead><tr><th>swing k</th><th>period</th>'
+    +'<th>trades</th><th>/yr</th><th>win</th><th>exp R</th><th>ann %</th><th>Sharpe</th>'
+    +'<th>Sortino</th><th>Calmar</th><th>max DD</th><th>DD days</th><th>PF</th><th>t</th>'
+    +'</tr></thead><tbody>';
+  for(const k of ks) for(const per of ["train","test"]){
+    const p=P(k,per); if(!p) continue;
+    t+=`<tr class="${k===K&&per==="test"?"hi":""}${per==="train"?" sep":""}">`
+      +`<td class="mono">k=${k}</td><td class="mono">${per}</td>`
+      +`<td class="num">${p.n_trades.toLocaleString()}</td>`
+      +`<td class="num">${f(p.trades_per_year,0)}</td>`
+      +`<td class="num">${pc(p.win_rate)}</td>`
+      +`<td class="num ${cls(p.exp_r)}">${sg(p.exp_r,4)}</td>`
+      +`<td class="num ${cls(p.ann_pct)}">${sg(p.ann_pct,1)}</td>`
+      +`<td class="num ${cls(p.sharpe)}">${f(p.sharpe)}</td>`
+      +`<td class="num">${f(p.sortino)}</td>`
+      +`<td class="num">${f(p.calmar)}</td>`
+      +`<td class="num">${usd(p.max_dd_usd)}</td>`
+      +`<td class="num">${p.dd_days}</td>`
+      +`<td class="num">${f(p.profit_factor)}</td>`
+      +`<td class="num ${cls(p.t)}">${sg(p.t)}</td></tr>`;
+  }
+  t+="</tbody></table></div>";
+
+  // equity + drawdown
+  let chart="";
+  if(te_&&te_.equity&&te_.equity.length){
+    const W=960,Hh=300,Pd={l:62,r:16,t:16,b:46},dh=70;
+    const eq=te_.equity, ddv=te_.dd_series||[];
+    const lo=Math.min(0,...eq), hi=Math.max(0,...eq), sp=(hi-lo)||1;
+    const y=v=>Pd.t+(hi-v)/sp*(Hh-Pd.t-Pd.b-dh);
+    const x=i=>Pd.l+i/(eq.length-1)*(W-Pd.l-Pd.r);
+    let d="",a="";
+    eq.forEach((v,i)=>{d+=(i?"L":"M")+x(i).toFixed(1)+" "+y(v).toFixed(1);});
+    a=d+`L${x(eq.length-1).toFixed(1)} ${y(0).toFixed(1)}L${x(0).toFixed(1)} ${y(0).toFixed(1)}Z`;
+    chart=`<svg viewBox="0 0 ${W} ${Hh}" role="img" aria-label="out-of-sample equity">`
+      +`<path d="${a}" fill="var(--s1)" opacity=".10"/>`
+      +`<path d="${d}" fill="none" stroke="var(--s1)" stroke-width="1.9"/>`
+      +`<line x1="${Pd.l}" y1="${y(0).toFixed(1)}" x2="${W-Pd.r}" y2="${y(0).toFixed(1)}"
+         stroke="var(--rule2)" stroke-dasharray="3 3"/>`;
+    for(let g=0;g<=3;g++){
+      const v=lo+(hi-lo)*g/3;
+      chart+=`<text x="${Pd.l-8}" y="${(y(v)+4).toFixed(1)}" text-anchor="end" font-size="10.5"
+        font-family="IBM Plex Mono,monospace" fill="var(--ink3)">${usd(v)}</text>`;
+    }
+    if(ddv.length){
+      const mx=Math.max(...ddv)||1, y2=v=>Hh-Pd.b+8+(v/mx)*(dh-14);
+      let dd2="";
+      ddv.forEach((v,i)=>{const xx=Pd.l+i/(ddv.length-1)*(W-Pd.l-Pd.r);
+        dd2+=(i?"L":"M")+xx.toFixed(1)+" "+y2(v).toFixed(1);});
+      chart+=`<path d="${dd2}L${(W-Pd.r).toFixed(1)} ${y2(0).toFixed(1)}L${Pd.l} ${y2(0).toFixed(1)}Z"
+        fill="var(--neg)" opacity=".22"/>`
+        +`<text x="${Pd.l-8}" y="${(y2(mx)).toFixed(1)}" text-anchor="end" font-size="10"
+          font-family="IBM Plex Mono,monospace" fill="var(--ink3)">${usd(-mx)}</text>`;
+    }
+    const dts=te_.equity_dates||[];
+    if(dts.length) [0,Math.floor(dts.length/2),dts.length-1].forEach(i=>{
+      chart+=`<text x="${x(i).toFixed(1)}" y="${Hh-4}" text-anchor="${i===0?"start":i===dts.length-1?"end":"middle"}"
+        font-size="10.5" font-family="IBM Plex Mono,monospace" fill="var(--ink3)">${dts[i]}</text>`;});
+    chart+="</svg>"+`<div class="legend"><span><i style="background:var(--s1)"></i>cumulative
+      P&L, out of sample</span><span><i style="background:var(--neg);opacity:.4"></i>drawdown
+      (lower panel)</span><span class="dim">${pc(M.risk_frac,0)} risk per trade on
+      $${(M.account/1000).toFixed(0)}k</span></div>`;
+  }
+
+  let yr='<h4>By year</h4><div class="scroll"><table><thead><tr><th>year</th>'
+    +'<th>period</th><th>trades</th><th>win</th><th>exp R</th><th>total R</th>'
+    +'<th>P&L</th></tr></thead><tbody>';
+  for(const [y,v] of Object.entries(R.by_year||{}))
+    yr+=`<tr><td class="mono">${y}</td><td class="mono dim">${v.period}</td>`
+      +`<td class="num">${v.n.toLocaleString()}</td><td class="num">${pc(v.win_rate)}</td>`
+      +`<td class="num ${cls(v.exp_r)}">${sg(v.exp_r,4)}</td>`
+      +`<td class="num ${cls(v.total_r)}">${sg(v.total_r,1)}</td>`
+      +`<td class="num ${cls(v.usd)}">${usd(v.usd)}</td></tr>`;
+  yr+="</tbody></table></div>";
+
+  $("perf").innerHTML = `<p>All five swing strengths, both periods. Sizing is constant
+  fractional at ${pc(M.risk_frac,0)} risk on a $${(M.account/1000).toFixed(0)}k nominal
+  account, non-compounding, costs charged. The highlighted row is the headline
+  configuration.</p>${t}
+  <p>Every k is positive in both periods, which is the first thing that separates an
+  effect from a fit. Sharpe rises with k while trade count falls — a stricter pivot filter
+  trades less and better. ${yr}</p>
+  <h4>Out-of-sample equity</h4>${chart}`;
+})();
+
+/* -------------------------------------------------------------- 10 ANATOMY */
+(function(){
+  const e=R.excursion||{};
+  const dec=(a,fmt)=>(a||[]).map((v,i)=>`<td class="num">${fmt(v)}</td>`).join("");
+  $("anatomy").innerHTML = `
+  <p>What a trade looks like from the inside, out of sample. MAE is the worst excursion
+  against the position before it resolved, MFE the best in favour — both in units of the
+  trade's own risk, so 1.0 MAE means price reached the stop.</p>
+  <div class="scroll"><table><thead><tr><th>decile</th>
+   ${[1,2,3,4,5,6,7,8,9].map(d=>`<th>${d}0%</th>`).join("")}</tr></thead><tbody>
+   <tr><td>MAE (R against)</td>${dec(e.mae_deciles,v=>f(v))}</tr>
+   <tr><td>MFE (R in favour)</td>${dec(e.mfe_deciles,v=>f(v))}</tr>
+   <tr><td>candles held</td>${dec(e.bars_deciles,v=>f(v,0))}</tr>
+  </tbody></table></div>
+  <div class="kpi">
+   <div><div class="lab">reached target</div><div class="val">${pc(te_.p_target)}</div>
+     <div class="sub">${M.rr}R</div></div>
+   <div><div class="lab">stopped out</div><div class="val">${pc(te_.p_stop)}</div></div>
+   <div><div class="lab">timed out</div><div class="val">${pc(te_.p_timeout)}</div>
+     <div class="sub">${M.timeout} candles</div></div>
+   <div><div class="lab">median hold</div><div class="val">${f(te_.bars_med,0)}</div>
+     <div class="sub">candles ≈ ${f(te_.bars_med*15/60,1)}h</div></div>
+   <div><div class="lab">median risk</div><div class="val">${f(te_.med_risk_pts,1)}</div>
+     <div class="sub">index points</div></div>
+   <div><div class="lab">long share</div><div class="val">${pc(te_.pct_long)}</div></div>
+  </div>
+  <p>The shape is a low-win-rate, positive-payoff profile: ${pc(te_.win_rate)} of trades
+  win, only ${pc(te_.p_target)} reach the ${M.rr}R target, and ${pc(te_.p_timeout)} are
+  closed by the clock. Median MAE of ${f(e.mae_deciles?e.mae_deciles[4]:NaN)}R means the
+  typical trade gives back most of its risk before working — a live trader would find this
+  uncomfortable to hold, which is itself a reason the effect may persist.</p>`;
+})();
+
+/* ------------------------------------------------------------- 11 OVERFIT */
+(function(){
+  const bt=R.dsr.by_trials||[];
+  const W=880,Hh=222,Pd={l:60,r:20,t:30,b:38};
+  const xs=bt.map((r,i)=>i), mx=Math.max(...bt.map(r=>r.dsr),1);
+  const x=i=>Pd.l+i/(Math.max(1,bt.length-1))*(W-Pd.l-Pd.r);
+  const y=v=>Pd.t+(1-v)*(Hh-Pd.t-Pd.b);
+  let g=`<svg viewBox="0 0 ${W} ${Hh}" role="img" aria-label="deflated Sharpe by trials">`;
+  g+=`<line x1="${Pd.l}" y1="${y(0.95).toFixed(1)}" x2="${W-Pd.r}" y2="${y(0.95).toFixed(1)}"
+      stroke="var(--pos)" stroke-dasharray="4 4"/>`
+    +`<text x="${W-Pd.r}" y="${(y(0.95)-6).toFixed(1)}" text-anchor="end" font-size="11"
+      font-family="IBM Plex Mono,monospace" fill="var(--pos)">0.95 significance bar</text>`;
+  let d="";
+  bt.forEach((r,i)=>{d+=(i?"L":"M")+x(i).toFixed(1)+" "+y(r.dsr).toFixed(1);});
+  g+=`<path d="${d}" fill="none" stroke="var(--s1)" stroke-width="2"/>`;
+  bt.forEach((r,i)=>{
+    g+=`<circle cx="${x(i).toFixed(1)}" cy="${y(r.dsr).toFixed(1)}" r="4.5"
+        fill="${r.dsr>=0.95?"var(--pos)":"var(--neg)"}"/>`
+      +`<text x="${x(i).toFixed(1)}" y="${Hh-22}" text-anchor="middle" font-size="10.5"
+        font-family="IBM Plex Mono,monospace" fill="var(--ink3)">${r.trials.toLocaleString()}</text>`
+      +`<text x="${x(i).toFixed(1)}" y="${(y(r.dsr)-11).toFixed(1)}" text-anchor="middle"
+        font-size="10.5" font-family="IBM Plex Mono,monospace"
+        fill="${r.dsr>=0.95?"var(--pos)":"var(--neg)"}">${f(r.dsr,3)}</text>`;});
+  g+=`<text x="${(W/2).toFixed(0)}" y="${Hh-5}" text-anchor="middle" font-size="11"
+      font-family="IBM Plex Mono,monospace" fill="var(--ink3)">configurations searched</text></svg>`;
+
+  let t='<div class="scroll"><table><thead><tr><th>trials admitted</th>'
+    +'<th>expected best Sharpe under null</th><th>observed Sharpe</th>'
+    +'<th>deflated Sharpe</th><th></th></tr></thead><tbody>';
+  for(const r of bt)
+    t+=`<tr><td class="mono">${r.trials.toLocaleString()}</td>`
+      +`<td class="num">${f(r.sr0_ann)}</td><td class="num">${f(r.sr_ann)}</td>`
+      +`<td class="num ${r.dsr>=0.95?"pos":"neg"}">${f(r.dsr,4)}</td>`
+      +`<td>${r.dsr>=0.95?'<span class="tag ok">passes</span>'
+          :'<span class="tag bad">fails</span>'}</td></tr>`;
+  t+="</tbody></table></div>";
+
+  $("overfit").innerHTML = `
+  <p>Two questions, and they do not have the same answer.</p>
+  <h4>Deflated Sharpe — is the magnitude big enough to have been found?</h4>
+  <p>A search over many configurations produces a maximum Sharpe that is high by
+  construction, even when nothing is there. The deflated Sharpe asks whether the observed
+  ${f(te_.sharpe)} beats what a null search of the same width would be expected to reach,
+  correcting for the skew and fat tails of the daily series.</p>${g}${t}
+  <p>The result depends entirely on how many trials one admits to. Specified in advance,
+  the rule would be convincing at ${f(bt[0].dsr,3)}. It survives roughly a dozen trials.
+  It does not survive the ${bt[bt.length-1].trials.toLocaleString()} actually run, where
+  the expected best-under-null Sharpe is ${f(bt[bt.length-1].sr0_ann)} — higher than the
+  ${f(te_.sharpe)} observed. <strong>By the conservative reading this strategy is not
+  established.</strong></p>
+  <h4>PBO — is the <em>selection</em> overfit?</h4>
+  <p>A different question: when the best configuration is chosen in one period, does it
+  stay good in another? Combinatorially symmetric cross-validation over the
+  ${R.pbo.n_configs} (k, offset) configurations, ${R.pbo.n_combos} balanced splits.</p>
+  <div class="kpi">
+   <div><div class="lab">PBO</div><div class="val pos">${f(R.pbo.pbo,3)}</div>
+     <div class="sub">chance the in-sample winner is below median out of sample</div></div>
+   <div><div class="lab">bar</div><div class="val">&lt; 0.50</div>
+     <div class="sub">0.50 = pure noise</div></div>
+   <div><div class="lab">configs</div><div class="val">${R.pbo.n_configs}</div>
+     <div class="sub">${R.pbo.n_splits} blocks, ${R.pbo.n_combos} splits</div></div>
+  </div>
+  <p><strong>These two results are in tension, and the tension is the finding.</strong>
+  PBO of ${f(R.pbo.pbo,3)} says the ranking is stable — picking a winner in one period
+  genuinely predicts the next, which noise does not do. Deflated Sharpe says the magnitude
+  is not large enough to stand out from a search this wide. Read together: the effect is
+  probably real, and this study is not powerful enough to have established it. That is a
+  case for a pilot, not an allocation.</p>`;
+})();
+
+/* -------------------------------------------------------------- 12 ROBUST */
+(function(){
+  const wf=R.walk_forward||[];
+  const pos=wf.filter(x=>x.total_r>0).length, tot=wf.reduce((a,b)=>a+b.total_r,0);
+  let w='<div class="scroll"><table><thead><tr><th>test year</th><th>train window</th>'
+    +'<th>k chosen</th><th>trades</th><th>win</th><th>exp R</th><th>total R</th>'
+    +'<th>t</th></tr></thead><tbody>';
+  for(const x of wf)
+    w+=`<tr><td class="mono">${x.test_year}</td><td class="mono dim">${x.train.join("–")}</td>`
+      +`<td class="num">${x.k}</td><td class="num">${x.n.toLocaleString()}</td>`
+      +`<td class="num">${pc(x.win_rate)}</td>`
+      +`<td class="num ${cls(x.exp_r)}">${sg(x.exp_r,4)}</td>`
+      +`<td class="num ${cls(x.total_r)}">${sg(x.total_r,1)}</td>`
+      +`<td class="num ${cls(x.t)}">${sg(x.t)}</td></tr>`;
+  w+="</tbody></table></div>";
+
+  let c='<div class="scroll"><table><thead><tr><th>cost, pts/round turn</th>'
+    +'<th>trades</th><th>exp R</th><th>t</th><th></th></tr></thead><tbody>';
+  for(const r of (R.cost_curve||[]))
+    c+=`<tr class="${Math.abs(r.cost_pts-M.cost_pts)<1e-9?"hi":""}">`
+      +`<td class="mono">${f(r.cost_pts,2)}</td><td class="num">${r.n.toLocaleString()}</td>`
+      +`<td class="num ${cls(r.exp_r)}">${sg(r.exp_r,4)}</td>`
+      +`<td class="num ${cls(r.t)}">${sg(r.t)}</td>`
+      +`<td>${Math.abs(r.cost_pts-M.cost_pts)<1e-9?'<span class="tag">assumed</span>':""}</td>`
+      +`</tr>`;
+  c+="</tbody></table></div>";
+
+  const reg=R.regimes||{};
+  const regTbl=(rows,title)=>{
+    if(!rows||!rows.length) return "";
+    let h=`<h4>${title}</h4><div class="scroll"><table><thead><tr><th>bucket</th>`
+      +'<th>trades</th><th>win</th><th>exp R</th><th>total R</th><th>t</th>'
+      +'</tr></thead><tbody>';
+    for(const r of rows)
+      h+=`<tr><td class="mono">${esc(r.group)}</td><td class="num">${r.n.toLocaleString()}</td>`
+        +`<td class="num">${pc(r.win_rate)}</td>`
+        +`<td class="num ${cls(r.exp_r)}">${sg(r.exp_r,4)}</td>`
+        +`<td class="num ${cls(r.total_r)}">${sg(r.total_r,1)}</td>`
+        +`<td class="num ${cls(r.t)}">${sg(r.t)}</td></tr>`;
+    return h+"</tbody></table></div>";
+  };
+
+  $("robust").innerHTML = `
+  <h4>Walk-forward — k re-selected at every step</h4>
+  <p>Three years train, one year test, rolling. The swing strength is re-chosen on each
+  training window and nothing else is re-fitted, which is the conservative choice.</p>${w}
+  <p><strong>${pos} of ${wf.length} out-of-sample years positive, ${sg(tot,0)}R
+  cumulative.</strong> The caution is in the third column: the chosen k jumps between
+  ${[...new Set(wf.map(x=>x.k))].sort().join(", ")} with no stability, so the parameter
+  is not being learned — the effect is broad enough that several k values work and the
+  training window picks between them close to arbitrarily.</p>
+  <h4>Cost sensitivity</h4>
+  <p>Where the edge dies. The assumed ${M.cost_pts} pts is one tick of slippage each way
+  plus commission.</p>${c}
+  <p>Break-even sits near 3.5 points per round turn, roughly ${f(3.5/M.cost_pts,1)}× the
+  assumption. That is real margin, and it matters because a 15-minute NQ strategy trading
+  ${f(te_.trades_per_year,0)} times a year is exposed to execution quality more than to
+  most other things.</p>
+  ${regTbl(reg.year,"By year (out of sample)")}
+  ${regTbl(reg.direction,"Long against short")}
+  ${regTbl(reg.session,"By session")}
+  ${regTbl(reg.volatility,"By realised volatility, measured before entry")}`;
+})();
+
+/* ----------------------------------------------------------------- 13 RISK */
+(function(){
+  const mc=(R.mc_dd||{}).test||{};
+  const cap=R.capacity||{};
+  const scale=v=>v*(M.account*0.0025)/(M.account*M.risk_frac);
+  $("risk").innerHTML = `
+  <h4>Drawdown is a distribution, not a number</h4>
+  <p>The realised drawdown is one draw from the distribution of orderings the same trades
+  could have arrived in. Order is the one thing a backtest cannot claim to have predicted,
+  so the tail of that distribution is what to size against — not the single path that
+  happened.</p>
+  <div class="kpi">
+   <div><div class="lab">realised</div><div class="val">${usd(mc.realised)}</div>
+     <div class="sub">the path that occurred</div></div>
+   <div><div class="lab">median</div><div class="val">${usd(mc.median)}</div></div>
+   <div><div class="lab">95th pct</div><div class="val">${usd(mc.p95)}</div></div>
+   <div><div class="lab">99th pct</div><div class="val neg">${usd(mc.p99)}</div>
+     <div class="sub">size against this</div></div>
+   <div><div class="lab">worst of 5,000</div><div class="val">${usd(mc.max)}</div></div>
+  </div>
+  <p><strong>At ${pc(M.risk_frac,0)} risk per trade the 99th-percentile drawdown is
+  ${usd(mc.p99)} on a $${(M.account/1000).toFixed(0)}k account — around
+  ${f(mc.p99/M.account*100,0)}% of capital.</strong> That is not a survivable sizing. To
+  hold the 99th percentile near 15% of capital the risk per trade has to come down to
+  roughly <b>${f(M.risk_frac*100*0.15*M.account/mc.p99,2)}%</b>, which scales the
+  headline return down with it. The Sharpe is unchanged by sizing; the survivability is
+  not.</p>
+  <h4>Capacity</h4>
+  <div class="card"><dl class="kv">
+   <dt>median volume in the entry candle</dt><dd>${cap.median_entry_volume
+     ?Math.round(cap.median_entry_volume).toLocaleString()+" contracts":"—"}</dd>
+   <dt>at ${pc(cap.participation||0.01,0)} participation</dt><dd>${cap.contracts_at_participation
+     ?f(cap.contracts_at_participation,0)+" contracts per entry":"—"}</dd>
+   <dt>notional per contract</dt><dd>${usd(cap.notional_per_contract)}</dd>
+   <dt>implied capacity</dt><dd>${cap.contracts_at_participation&&cap.notional_per_contract
+     ?usd(cap.contracts_at_participation*cap.notional_per_contract)+" of notional per entry":"—"}</dd>
+  </dl></div>
+  <p class="note">NQ is deep enough that capacity is not the binding constraint at any
+  size a single account would run. The binding constraints are the deflated Sharpe and the
+  drawdown tail.</p>`;
+})();
+
+/* ---------------------------------------------------------------- 14 FINAL */
+(function(){
+  const bt=R.dsr.by_trials, dsrFull=bt[bt.length-1];
+  const wf=R.walk_forward||[], pos=wf.filter(x=>x.total_r>0).length;
+  $("final").innerHTML = `
+  <div class="verdict">
+  <h3 style="margin-top:0">Recommendation</h3>
+  <ol style="margin-bottom:0">
+   <li><strong>Do not trade the TDT count.</strong> Three independent tests reject it: it
+   does not mark turns (largest |z| 1.56, wrong sign), it does not improve trade selection
+   (the legs it rejects pay as much), and its strongest configuration is arithmetically
+   identical to a fixed time delay containing no count. Where the two differ, TDT's 7 is
+   significantly <em>worse</em>.</li>
+   <li><strong>Do not allocate to the residual rule yet either.</strong> Sharpe
+   ${f(te_.sharpe)}, Calmar ${f(te_.calmar)} and ${pos}/${wf.length} positive
+   walk-forward years are encouraging, and PBO of ${f(R.pbo.pbo,3)} says the selection is
+   stable. But deflated Sharpe of ${f(dsrFull.dsr,3)} against the
+   ${dsrFull.trials.toLocaleString()} configurations actually searched says the magnitude
+   is inside what that search would produce from nothing.</li>
+   <li><strong>Do run it forward.</strong> The specific, falsifiable claim is now fixed and
+   costs nothing to test honestly: enter at pivot confirmation in the leg's direction, k
+   between 4 and 8, ${M.rr}R target, ${M.timeout}-candle timeout. Paper-trade it on data
+   that does not exist yet. Twelve months at ${f(te_.trades_per_year,0)} trades a year is
+   a real sample, and it is the only evidence that would settle this, because it is the
+   only evidence no search can contaminate.</li>
+   <li><strong>Size for the tail, not the path.</strong> If it is traded, ${pc(M.risk_frac,0)}
+   per trade implies a 99th-percentile drawdown near ${f((R.mc_dd.test||{}).p99/M.account*100,0)}%
+   of capital. Quarter that.</li>
+  </ol></div>
+  <h4>What would change the conclusion</h4>
+  <ul>
+   <li>A forward period of ${f(te_.trades_per_year,0)}+ trades holding Sharpe above 1.0 —
+   that alone would lift the deflated Sharpe past the bar, because forward data carries no
+   trial penalty.</li>
+   <li>The same effect on a second instrument (ES, or the FX pairs the material was taught
+   on). Cross-sectional confirmation is worth more than more NQ history.</li>
+   <li>A reason the effect should exist. Momentum decaying with delay after a confirmed
+   pivot is at least mechanically plausible, which is more than the count has.</li>
+  </ul>
+  <h4>What would not</h4>
+  <ul>
+   <li>More parameter search. The space is already searched past the point where finding
+   something means anything.</li>
+   <li>More NQ history before 2016 — the session coverage ramp makes those candles
+   incomparable.</li>
+   <li>A better backtest of Model #2 or #3. The counts have been tested three
+   independent ways and the mechanism is understood.</li>
+  </ul>`;
+})();
+
+/* -------------------------------------------------------------- 15 APPENDIX */
+(function(){
+  let t=`<p>The twelve finalists from the ${S.meta.configs_searched.toLocaleString()}-configuration
+  search — one per reading (signal timing × count × polarity), each selected purely on its
+  train t-statistic, then run once on held-out data.</p>`;
+  t+='<div class="scroll"><table><thead><tr><th>reading</th><th>configuration</th>'
+    +'<th>train n</th><th>train exp R</th><th>train t</th><th>test n</th>'
+    +'<th>test exp R</th><th>test t</th><th>verdict</th></tr></thead><tbody>';
+  for(const fi of (S.finalists||[])){
+    const c=fi.config,te=fi.test,tr=fi.train;
+    t+=`<tr><td class="mono">${c.signal} ${c.key} ${c.polarity}</td>`
+      +`<td class="mono dim" style="font-size:12px">${c.tf}/${c.mode} k=${c.k} rr=${c.rr}
+         to=${c.timeout} pad=${c.pad}</td>`
+      +`<td class="num">${tr.n.toLocaleString()}</td>`
+      +`<td class="num ${cls(tr.exp_r)}">${sg(tr.exp_r,4)}</td>`
+      +`<td class="num ${cls(tr.t)}">${sg(tr.t)}</td>`
+      +(te?`<td class="num">${te.n.toLocaleString()}</td>`
+        +`<td class="num ${cls(te.exp_r)}">${sg(te.exp_r,4)}</td>`
+        +`<td class="num ${cls(te.t)}">${sg(te.t)}</td>`
+        :'<td colspan="3" class="dim">no test trades</td>')
+      +`<td><span class="tag ${fi.verdict==="passes"?"ok":"bad"}">${esc(fi.verdict)}</span></td></tr>`;
+  }
+  t+="</tbody></table></div>";
+  t+=`<p class="note">Bar: |t| &gt; 2.87 on test (Bonferroni over 12 finalists) and beating
+  a matched control. ${S.meta.configs_scored.toLocaleString()} of
+  ${S.meta.configs_searched.toLocaleString()} configurations met the 100-trade floor.</p>`;
+  $("appendix").innerHTML=t;
+})();
+
+$("foot").innerHTML = `Time Dilation Theory research review · NQ continuous M15 ·
+ ${M.first.slice(0,10)}–${M.last.slice(0,10)} · costs ${M.cost_pts} pts round turn ·
+ sizing ${pc(M.risk_frac,0)} of $${(M.account/1000).toFixed(0)}k · reproduce with
+ <code>python sweep.py &amp;&amp; python holdtest.py &amp;&amp; python research.py &amp;&amp;
+ python build_research_report.py</code> · built ${esc(M.built)}.`;
+</script>

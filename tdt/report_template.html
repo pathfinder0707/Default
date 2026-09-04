@@ -1,0 +1,510 @@
+<title>TDT — Time Dilation Theory tested</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700&family=Source+Sans+3:ital,wght@0,300;0,400;0,500;0,600;1,400&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+:root{
+  color-scheme:light;
+  --ground:#FBFBFA; --raise:#FFFFFF; --sunk:#F1F1EE; --rail:#E7E7E2;
+  --ink:#15171A; --ink2:#4A4E52; --ink3:#7A7F84;
+  --rule:#DEDED8; --rule2:#C6C7C0;
+  --s1:#2a78d6; --s2:#eb6834; --s3:#1baf7a;
+  --pos:#0ca30c; --neg:#d03b3b; --warn:#fab219;
+  --shadow:0 1px 2px rgba(21,23,26,.06),0 4px 14px rgba(21,23,26,.05);
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    color-scheme:dark;
+    --ground:#131619; --raise:#1A1E22; --sunk:#20252A; --rail:#262C31;
+    --ink:#E8EAE7; --ink2:#B4B9BC; --ink3:#848A8F;
+    --rule:#2B3238; --rule2:#3B434A;
+    --s1:#3987e5; --s2:#d95926; --s3:#199e70;
+    --pos:#0ca30c; --neg:#d03b3b; --warn:#fab219;
+    --shadow:0 1px 2px rgba(0,0,0,.45),0 6px 22px rgba(0,0,0,.32);
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme:dark;
+  --ground:#131619; --raise:#1A1E22; --sunk:#20252A; --rail:#262C31;
+  --ink:#E8EAE7; --ink2:#B4B9BC; --ink3:#848A8F;
+  --rule:#2B3238; --rule2:#3B434A;
+  --s1:#3987e5; --s2:#d95926; --s3:#199e70;
+  --shadow:0 1px 2px rgba(0,0,0,.45),0 6px 22px rgba(0,0,0,.32);
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--ground);color:var(--ink);
+  font:400 16px/1.62 "Source Sans 3",system-ui,-apple-system,sans-serif;
+  -webkit-font-smoothing:antialiased}
+.wrap{max-width:1000px;margin:0 auto;padding:44px 22px 100px}
+h1{font:700 34px/1.16 Archivo,system-ui,sans-serif;letter-spacing:-.02em;margin:0 0 8px}
+h2{font:600 23px/1.25 Archivo,system-ui,sans-serif;letter-spacing:-.012em;
+  margin:52px 0 14px;padding-top:18px;border-top:1px solid var(--rule)}
+h3{font:600 16px/1.3 Archivo,system-ui,sans-serif;margin:26px 0 9px}
+p{margin:0 0 13px;max-width:70ch;color:var(--ink2)}
+p.lede{font-size:18px;color:var(--ink)}
+strong{color:var(--ink);font-weight:600}
+code,.mono{font-family:"IBM Plex Mono",ui-monospace,monospace;font-size:.9em}
+a{color:var(--s1)}
+.sub{color:var(--ink3);font-size:14px;margin:0 0 26px}
+.card{background:var(--raise);border:1px solid var(--rule);border-radius:11px;
+  padding:17px 19px;margin:16px 0;box-shadow:var(--shadow)}
+.banner{border-radius:11px;padding:15px 19px;margin:22px 0;
+  border:1px solid var(--warn);background:color-mix(in srgb,var(--warn) 11%,var(--raise))}
+.banner b{color:var(--ink)}
+.tag{display:inline-block;font:600 11px/1 "IBM Plex Mono",monospace;
+  letter-spacing:.07em;text-transform:uppercase;padding:4px 7px;border-radius:5px;
+  background:var(--sunk);color:var(--ink2);border:1px solid var(--rule)}
+.tag.ok{color:var(--pos);border-color:color-mix(in srgb,var(--pos) 40%,var(--rule))}
+.tag.bad{color:var(--neg);border-color:color-mix(in srgb,var(--neg) 40%,var(--rule))}
+table{border-collapse:collapse;width:100%;font-size:14.5px;margin:12px 0}
+th,td{text-align:right;padding:7px 9px;border-bottom:1px solid var(--rule)}
+th:first-child,td:first-child{text-align:left}
+th{font:600 12px/1.2 "IBM Plex Mono",monospace;letter-spacing:.04em;
+  text-transform:uppercase;color:var(--ink3);border-bottom:1px solid var(--rule2)}
+td.num{font-family:"IBM Plex Mono",monospace}
+tr.key td{background:color-mix(in srgb,var(--s2) 9%,transparent)}
+tr.thin td{color:var(--ink3)}
+.pos{color:var(--pos)} .neg{color:var(--neg)} .dim{color:var(--ink3)}
+.scroll{overflow-x:auto;-webkit-overflow-scrolling:touch}
+.tabs{display:flex;gap:5px;margin:16px 0 4px;flex-wrap:wrap}
+.tabs button{font:600 13px/1 "IBM Plex Mono",monospace;padding:8px 13px;
+  border-radius:7px;border:1px solid var(--rule);background:var(--raise);
+  color:var(--ink2);cursor:pointer}
+.tabs button[aria-selected="true"]{background:var(--s1);color:#fff;border-color:var(--s1)}
+svg{display:block;max-width:100%;height:auto}
+.legend{display:flex;gap:16px;flex-wrap:wrap;font-size:13px;color:var(--ink2);margin:8px 0 0}
+.legend i{display:inline-block;width:11px;height:11px;border-radius:3px;margin-right:5px;
+  vertical-align:-1px}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(310px,1fr));gap:16px}
+.kv{display:grid;grid-template-columns:auto 1fr;gap:4px 14px;font-size:14px;margin:0}
+.kv dt{color:var(--ink3);font-family:"IBM Plex Mono",monospace;font-size:12.5px}
+.kv dd{margin:0;color:var(--ink)}
+.foot{margin-top:60px;padding-top:18px;border-top:1px solid var(--rule);
+  color:var(--ink3);font-size:13px}
+ul{color:var(--ink2);max-width:70ch}li{margin:5px 0}
+</style>
+
+<div class="wrap">
+<h1>Time Dilation Theory, tested</h1>
+<p class="sub" id="sub"></p>
+
+<div id="banner"></div>
+
+<p class="lede">TDT counts candles from a swing and treats the numbers <strong>7</strong>,
+<strong>13</strong> and <strong>21</strong> as decision points. This page takes that
+literally and asks the only question that matters: does a leg turn at 7 more often than
+it turns at 6 or 8?</p>
+
+<h2 id="verdict">The result</h2>
+<p>Hold the entry, stop, target and timeout fixed and change only <em>which legs get
+traded</em>: the ones TDT selects, every leg regardless, and the ones TDT explicitly
+rejects. If the count is doing work, the TDT set wins.</p>
+<div id="filter"></div>
+<p class="sub">This is the comparison that decides what every other number here means. A
+backtest of the model alone can show a healthy t-statistic whether or not the counting
+contributes anything — because the entry, the stop and the target are also doing work.
+Only the contrast separates them.</p>
+
+<h2>What the material actually specifies</h2>
+<p>Three counting modes, read off the <em>Advanced Counting Examples</em> slides. A count
+starts at a swing candle numbered 1 and runs forward.</p>
+<div class="card">
+<dl class="kv">
+<dt>classic</dt><dd>Every candle takes the next number.</dd>
+<dt>wick</dt><dd>A candle takes the next number only if it expands the leg — its high
+(up leg) exceeds the last numbered candle's high. Otherwise it is marked <code>x</code>
+and skipped.</dd>
+<dt>body</dt><dd>The same test on the body extreme, <code>max(o,c)</code> up /
+<code>min(o,c)</code> down.</dd>
+</dl>
+</div>
+<p>Contraction counting therefore always reaches a given number at or later than classic
+does. That is exactly the disagreement the slides draw: on the EURUSD M1 example the
+candle classic calls 13, contraction-by-wick calls 12.</p>
+
+<h3>The two models</h3>
+<div class="card">
+<dl class="kv">
+<dt>Model&nbsp;#2</dt><dd>Counts on D1, execution on H1. <code>[1-7]</code> = continuation
+of the previous fractal; <code>[1-13]</code> = reversal inside the previous fractal.</dd>
+<dt>Model&nbsp;#3</dt><dd>The same count at three nested swing degrees, giving a
+signature. The conclusion slide grades <code>13-7-7</code> and <code>7-13-7</code> good,
+<code>7-7-7</code> acceptable, and refuses anything containing a <strong>21</strong>.</dd>
+</dl>
+</div>
+
+<h2>Leg census</h2>
+<p>Before any claim can be tested there has to be something to count. This is where legs
+actually terminate, per mode — and how many land near a key count at all.</p>
+<div id="census"></div>
+
+<h2>The hazard curve — the central test</h2>
+<p>Given a leg that has <em>already</em> reached count <span class="mono">n</span>, how
+often does it turn there? If 7 is special the curve spikes at 7. If it runs smooth
+through 7, the number is doing no work: legs simply have a length distribution and 7 sits
+inside it.</p>
+<div class="tabs" id="hztabs"></div>
+<div id="hazard"></div>
+<p class="sub">Bar height is the turn rate at that count. The pale bars behind are how
+many legs were still running — a spike off a handful of legs is noise, and the table
+below gives the sample for each.</p>
+<div id="neighbour"></div>
+
+<h2>Does it matter where the count starts?</h2>
+<p>The same legs, renumbered from an origin displaced a few candles off the swing. The leg
+and its endpoint are held fixed, so the only thing varying is the alignment TDT says is
+meaningful. For <span class="mono">classic</span> this is the neighbour test by another
+route — displacing the origin just renumbers every candle — so it earns its keep on the
+contraction modes, where a displaced origin also changes which candles get skipped.</p>
+<div id="offset"></div>
+
+<h2>Model #2 — does the read pay?</h2>
+<p>Every leg terminating on 7 or 13, traded against the leg that just counted. Entry is
+the open after the swing could have been confirmed, stop beyond the terminal extreme,
+target a multiple of risk.</p>
+<div id="m2"></div>
+
+<h2>Model #3 — testing the conclusion slide</h2>
+<p>The slide's own claim, made falsifiable: signatures it calls good against the ones it
+calls not advised. If the grading carries information, <span class="tag ok">ok</span>
+beats <span class="tag bad">not advised</span>.</p>
+<div id="m3"></div>
+
+<h2>Reward multiple sweep</h2>
+<p>Both models across the reward-to-risk grid. A result that only exists at one multiple
+is a result about that multiple.</p>
+<div id="sweep"></div>
+
+<h2>How to read this, and what it cannot tell you</h2>
+<ul>
+<li><strong>Entry timing is the load-bearing assumption.</strong> A swing of strength
+<span class="mono">k</span> is not knowable until <span class="mono">k</span> candles
+later. Entering at the turn itself would manufacture an edge nobody could take, so entry
+is the open after confirmation.</li>
+<li><strong>Terminal counts rarely land exactly on 7 or 13.</strong> A tolerance snaps a
+count to the nearest key; every table states the tolerance used. Widen it and more legs
+qualify but the claim gets weaker.</li>
+<li><strong>Sample thins fast at 21.</strong> Few legs survive that long, so the 21 row
+is the one most likely to show a large z off almost nothing. Read the at-risk column
+first.</li>
+<li><strong>Swing degree is a choice, not a given.</strong> Model #3's three degrees are
+parameters here; the slides draw them by eye.</li>
+<li>This measures whether the counting numbers predict turns in this data. It says
+nothing about the discretionary judgement a trader adds on top.</li>
+</ul>
+
+<div class="foot" id="foot"></div>
+</div>
+
+<script>
+const D = {{DATA}};
+const M = ["classic","wick","body"];
+const fmt = (v,d=3) => (v===null||v===undefined||!isFinite(v)) ? "—" : v.toFixed(d);
+const sign = (v,d=3) => (v===null||v===undefined||!isFinite(v)) ? "—"
+  : (v>=0?"+":"") + v.toFixed(d);
+const cls = v => !isFinite(v) ? "dim" : v>0 ? "pos" : v<0 ? "neg" : "";
+const esc = s => String(s).replace(/[&<>]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;"}[c]));
+
+/* ---------------------------------------------------------------- header */
+const m = D.meta;
+document.getElementById("sub").textContent =
+  `${m.bars.toLocaleString()} candles · counts on ${m.tf}`
+  + (m.exec_tf && m.exec_tf !== m.tf ? ` · execution on ${m.exec_tf}` : "")
+  + (m.from_year ? ` · ${m.from_year}\u2013${m.to_year||"now"}` : "")
+  + ` · swing k=${m.k} · Model #3 degrees ${m.ks.join("/")}`
+  + ` · key-count tolerance ±${m.tol} · built ${m.built}`;
+
+if (m.synthetic) {
+  document.getElementById("banner").innerHTML =
+    `<div class="banner"><b>These numbers are from a random walk, not the market.</b>
+     No price feed was present when this was built, so the study ran on synthetic
+     structure-free data to exercise the pipeline. Every figure below is a null: it shows
+     what the tests return when there is provably nothing to find. Rebuild with
+     <code>python run_all.py</code> against a real <code>bars.npz</code> for results
+     about the market.</div>`;
+}
+
+/* ---------------------------------------------------------------- census */
+function census() {
+  let h = '<div class="scroll"><table><thead><tr><th>mode</th><th>legs</th>'
+    + '<th>near a key count</th><th>share</th><th>median terminal</th>'
+    + '<th>mean terminal</th></tr></thead><tbody>';
+  for (const mode of M) {
+    const r = D.legs[mode]; if (!r) continue;
+    h += `<tr><td class="mono">${mode}</td><td class="num">${r.legs.toLocaleString()}</td>`
+      + `<td class="num">${r.keyed.toLocaleString()}</td>`
+      + `<td class="num">${r.legs ? (100*r.keyed/r.legs).toFixed(1) : "—"}%</td>`
+      + `<td class="num">${r.median_terminal}</td>`
+      + `<td class="num">${fmt(r.mean_terminal,1)}</td></tr>`;
+  }
+  h += "</tbody></table></div>";
+  h += histSVG();
+  document.getElementById("census").innerHTML = h;
+}
+
+function histSVG() {
+  const W=940,H=200,P={l:44,r:14,t:14,b:30}, NMAX=26;
+  const series = M.map(mode => (D.legs[mode]||{}).hist||[]).map(a=>a.slice(0,NMAX+1));
+  const max = Math.max(1, ...series.flat());
+  const bw = (W-P.l-P.r)/(NMAX-1), col=["var(--s1)","var(--s2)","var(--s3)"];
+  let s = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="terminal count distribution">`;
+  for (let n=2;n<=NMAX;n++){
+    const x = P.l+(n-2)*bw;
+    if ([7,13,21].includes(n))
+      s += `<rect x="${x-bw/2}" y="${P.t}" width="${bw}" height="${H-P.t-P.b}"
+             fill="var(--s2)" opacity=".10"/>`;
+    if (n%2===0||[7,13,21].includes(n))
+      s += `<text x="${x}" y="${H-10}" text-anchor="middle" font-size="11"
+             font-family="IBM Plex Mono,monospace"
+             fill="${[7,13,21].includes(n)?"var(--s2)":"var(--ink3)"}">${n}</text>`;
+  }
+  series.forEach((hist,si)=>{
+    let d="";
+    for(let n=2;n<=NMAX;n++){
+      const x=P.l+(n-2)*bw, y=H-P.b-((hist[n]||0)/max)*(H-P.t-P.b);
+      d += (n===2?"M":"L")+x.toFixed(1)+" "+y.toFixed(1);
+    }
+    s += `<path d="${d}" fill="none" stroke="${col[si]}" stroke-width="2"
+           stroke-linejoin="round"/>`;
+  });
+  s += `<line x1="${P.l-8}" y1="${H-P.b}" x2="${W-P.r}" y2="${H-P.b}"
+         stroke="var(--rule2)"/>`;
+  s += `<text x="6" y="${P.t+10}" font-size="11" fill="var(--ink3)"
+         font-family="IBM Plex Mono,monospace">legs</text></svg>`;
+  return s + `<div class="legend">${M.map((mo,i)=>
+    `<span><i style="background:${col[i]}"></i>${mo}</span>`).join("")}
+    <span><i style="background:var(--s2);opacity:.25"></i>key counts</span></div>`;
+}
+
+/* ---------------------------------------------------------------- hazard */
+let hzMode = "classic";
+function hazardTabs(){
+  const el=document.getElementById("hztabs");
+  el.innerHTML = M.map(mo=>`<button data-m="${mo}"
+    aria-selected="${mo===hzMode}">${mo}</button>`).join("");
+  el.querySelectorAll("button").forEach(b=>b.onclick=()=>{
+    hzMode=b.dataset.m; hazardTabs(); drawHazard(); drawNeighbour();});
+}
+
+function drawHazard(){
+  const hz = D.null.hazard[hzMode];
+  if(!hz){document.getElementById("hazard").innerHTML="";return;}
+  const rows = hz.rows, W=940,H=290,P={l:48,r:16,t:16,b:34};
+  const maxH = Math.max(0.001,...rows.map(r=>isFinite(r.hazard)?r.hazard:0));
+  const maxR = Math.max(1,...rows.map(r=>r.at_risk));
+  const bw=(W-P.l-P.r)/rows.length;
+  let s=`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="hazard by count">`;
+  for(let g=0;g<=4;g++){
+    const y=P.t+(H-P.t-P.b)*g/4;
+    s+=`<line x1="${P.l}" y1="${y}" x2="${W-P.r}" y2="${y}" stroke="var(--rule)"/>`
+      +`<text x="${P.l-7}" y="${y+4}" text-anchor="end" font-size="11"
+        font-family="IBM Plex Mono,monospace" fill="var(--ink3)">
+        ${(maxH*(1-g/4)*100).toFixed(0)}%</text>`;
+  }
+  rows.forEach((r,i)=>{
+    const x=P.l+i*bw;
+    const hr=(r.at_risk/maxR)*(H-P.t-P.b);
+    s+=`<rect x="${x+1}" y="${H-P.b-hr}" width="${bw-2}" height="${hr}"
+         fill="var(--ink3)" opacity=".13"/>`;
+    if(isFinite(r.hazard)){
+      const hh=(r.hazard/maxH)*(H-P.t-P.b);
+      s+=`<rect x="${x+2.5}" y="${H-P.b-hh}" width="${bw-5}" height="${hh}"
+           fill="${r.key?"var(--s2)":"var(--s1)"}" opacity="${r.key?1:.72}"
+           ><title>count ${r.n}: ${(r.hazard*100).toFixed(1)}% of ${r.at_risk} legs turned here</title></rect>`;
+    }
+    if(r.n%2===1||r.key)
+      s+=`<text x="${x+bw/2}" y="${H-12}" text-anchor="middle" font-size="11"
+           font-family="IBM Plex Mono,monospace"
+           fill="${r.key?"var(--s2)":"var(--ink3)"}"
+           font-weight="${r.key?600:400}">${r.n}</text>`;
+  });
+  s+=`<text x="6" y="${P.t+9}" font-size="11" fill="var(--ink3)"
+       font-family="IBM Plex Mono,monospace">turn rate</text></svg>`;
+  document.getElementById("hazard").innerHTML = s
+    + `<div class="legend"><span><i style="background:var(--s2)"></i>7 / 13 / 21</span>
+       <span><i style="background:var(--s1);opacity:.72"></i>every other count</span>
+       <span><i style="background:var(--ink3);opacity:.2"></i>legs still running</span>
+       <span class="dim">${hz.legs.toLocaleString()} legs, mode <b>${hzMode}</b></span></div>`;
+}
+
+function drawNeighbour(){
+  const rows = D.null.neighbour[hzMode]||[];
+  let h='<h3>Each key count against its own neighbours</h3>'
+    + '<p>The baseline skips the counts immediately either side, so a genuine spike at 7'
+    + ' cannot flatter itself through 6 and 8.</p>'
+    + '<div class="scroll"><table><thead><tr><th>count</th><th>turn rate</th>'
+    + '<th>neighbour baseline</th><th>z</th><th>rank</th><th>legs at risk</th>'
+    + '</tr></thead><tbody>';
+  for(const r of rows){
+    const thin = (r.at_risk||0) < 30;
+    h += `<tr class="key${thin?" thin":""}"><td class="mono">${r.key}</td>`
+      + `<td class="num">${isFinite(r.hazard)?(r.hazard*100).toFixed(1)+"%":"—"}</td>`
+      + `<td class="num">${isFinite(r.baseline)?(r.baseline*100).toFixed(1)+"%":"—"}</td>`
+      + `<td class="num ${cls(r.z)}">${sign(r.z,2)}</td>`
+      + `<td class="num">${r.rank?r.rank+"/"+(r.n_baseline+1):"—"}</td>`
+      + `<td class="num">${(r.at_risk||0).toLocaleString()}`
+      + `${thin?' <span class="tag bad">thin</span>':""}</td></tr>`;
+  }
+  h+="</tbody></table></div>";
+  document.getElementById("neighbour").innerHTML=h;
+}
+
+/* ---------------------------------------------------------------- origin */
+function drawOffset(){
+  let h='<div class="scroll"><table><thead><tr><th>mode</th><th>count</th>'
+    + '<th>on the swing</th><th>displaced mean</th><th>displaced sd</th><th>z</th>'
+    + '<th>rank</th><th>legs at risk</th></tr></thead><tbody>';
+  for(const mode of M){
+    const o=D.null.offset[mode]; if(!o||!o.rows) continue;
+    for(const r of o.rows){
+      const thin=(r.at_risk||0)<30;
+      h+=`<tr class="${thin?"thin":""}"><td class="mono">${mode}</td>`
+        +`<td class="mono">${r.key}</td>`
+        +`<td class="num">${isFinite(r.real)?(r.real*100).toFixed(1)+"%":"—"}</td>`
+        +`<td class="num">${isFinite(r.null_mean)?(r.null_mean*100).toFixed(1)+"%":"—"}</td>`
+        +`<td class="num">${isFinite(r.null_sd)?(r.null_sd*100).toFixed(1)+"%":"—"}</td>`
+        +`<td class="num ${cls(r.z)}">${sign(r.z,2)}</td>`
+        +`<td class="num">${r.rank?r.rank+"/"+(r.offsets+1):"—"}</td>`
+        +`<td class="num">${(r.at_risk||0).toLocaleString()}`
+        +`${thin?' <span class="tag bad">thin</span>':""}</td></tr>`;
+    }
+  }
+  document.getElementById("offset").innerHTML=h+"</tbody></table></div>";
+}
+
+/* ------------------------------------------------------------- backtests */
+function statRow(label,s){
+  return `<tr><td class="mono">${esc(label)}</td>`
+    + `<td class="num">${(s.n||0).toLocaleString()}</td>`
+    + `<td class="num">${isFinite(s.win_rate)?(s.win_rate*100).toFixed(1)+"%":"—"}</td>`
+    + `<td class="num ${cls(s.exp_r)}">${sign(s.exp_r)}</td>`
+    + `<td class="num ${cls(s.total_r)}">${sign(s.total_r,1)}</td>`
+    + `<td class="num">${fmt(s.pf,2)}</td>`
+    + `<td class="num ${cls(s.t)}">${sign(s.t,2)}</td>`
+    + `<td class="num">${fmt(s.max_dd_r,1)}</td></tr>`;
+}
+const STATHEAD = '<thead><tr><th></th><th>trades</th><th>win</th><th>exp R</th>'
+  + '<th>total R</th><th>PF</th><th>t</th><th>max DD</th></tr></thead>';
+
+function drawM2(){
+  let h='<div class="scroll"><table>'+STATHEAD+'<tbody>';
+  for(const mode of M){
+    const b=D.backtest.model2[mode]; if(!b) continue;
+    h+=statRow(mode+" — all",b.stats);
+    for(const r of b.by_key||[]) h+=statRow(`${mode} — count ${r.value}`,r);
+  }
+  document.getElementById("m2").innerHTML=h+"</tbody></table></div>"
+    + equitySVG(M.map(mo=>[mo,(D.backtest.model2[mo]||{}).equity||[]]));
+}
+
+function drawM3(){
+  let h='<div class="scroll"><table>'+STATHEAD+'<tbody>';
+  for(const mode of M){
+    const b=D.backtest.model3[mode]; if(!b) continue;
+    for(const r of b.by_verdict||[]){
+      const tag = r.value==="ok" ? '<span class="tag ok">ok</span>'
+        : r.value==="not advised" ? '<span class="tag bad">not advised</span>'
+        : `<span class="tag">${esc(r.value)}</span>`;
+      h+=statRow(mode+" — "+r.value,r).replace(
+        `<td class="mono">${esc(mode+" — "+r.value)}</td>`,
+        `<td class="mono">${mode} ${tag}</td>`);
+    }
+  }
+  h+="</tbody></table></div>";
+
+  h+='<h3>By signature</h3><p>Every three-part signature that occurred, most frequent'
+    + ' first. <code>?</code> marks a degree whose terminal count landed nowhere near'
+    + ' 7, 13 or 21.</p><div class="scroll"><table>'+STATHEAD+'<tbody>';
+  const seen=new Set();
+  for(const mode of M){
+    const b=D.backtest.model3[mode]; if(!b) continue;
+    for(const r of (b.by_sig||[]).slice(0,12)){
+      const k=mode+r.value; if(seen.has(k)) continue; seen.add(k);
+      h+=statRow(mode+" · "+r.value,r);
+    }
+  }
+  document.getElementById("m3").innerHTML=h+"</tbody></table></div>";
+}
+
+function equitySVG(series){
+  const W=940,H=210,P={l:44,r:14,t:14,b:24};
+  const all=series.flatMap(s=>s[1]); if(!all.length) return "";
+  const lo=Math.min(0,...all), hi=Math.max(0,...all), span=(hi-lo)||1;
+  const n=Math.max(...series.map(s=>s[1].length),2);
+  const col=["var(--s1)","var(--s2)","var(--s3)"];
+  const y0=H-P.b-((0-lo)/span)*(H-P.t-P.b);
+  let s=`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="equity in R">`;
+  s+=`<line x1="${P.l}" y1="${y0}" x2="${W-P.r}" y2="${y0}" stroke="var(--rule2)"
+       stroke-dasharray="3 3"/>`;
+  series.forEach(([name,eq],si)=>{
+    if(!eq.length) return;
+    let d="";
+    eq.forEach((v,i)=>{
+      const x=P.l+(i/(n-1))*(W-P.l-P.r);
+      const y=H-P.b-((v-lo)/span)*(H-P.t-P.b);
+      d+=(i?"L":"M")+x.toFixed(1)+" "+y.toFixed(1);
+    });
+    s+=`<path d="${d}" fill="none" stroke="${col[si]}" stroke-width="1.8"/>`;
+  });
+  s+=`<text x="6" y="${P.t+9}" font-size="11" fill="var(--ink3)"
+       font-family="IBM Plex Mono,monospace">R</text></svg>`;
+  return s+`<div class="legend">${series.map((s2,i)=>
+    `<span><i style="background:${col[i]}"></i>${s2[0]}</span>`).join("")}
+    <span class="dim">cumulative R, 2R target</span></div>`;
+}
+
+/* ----------------------------------------------------------------- sweep */
+function drawFilter(){
+  const F = D.null.filter || {};
+  const NAME = {tdt:"TDT selects (terminal 7 or 13)", all:"every leg, no count filter",
+                rejected:"legs TDT rejects (no key count)"};
+  let h = "";
+  for (const mode of M){
+    const f = F[mode]; if (!f) continue;
+    const by = {}; for (const r of f.rows||[]) by[r.set]=r;
+    const c = f.contrast||{};
+    const bad = /worse/.test(f.verdict), none = /no detectable/.test(f.verdict);
+    h += `<div class="card"><h3 style="margin-top:0">${mode}</h3>`
+      + '<div class="scroll"><table><thead><tr><th></th><th>trades</th><th>win</th>'
+      + '<th>exp R</th><th>t</th></tr></thead><tbody>';
+    for (const k of ["tdt","all","rejected"]){
+      const r = by[k]; if (!r) continue;
+      h += `<tr${k==="tdt"?' class="key"':""}><td class="mono">${NAME[k]}</td>`
+        + `<td class="num">${(r.n||0).toLocaleString()}</td>`
+        + `<td class="num">${isFinite(r.win_rate)?(r.win_rate*100).toFixed(1)+"%":"—"}</td>`
+        + `<td class="num ${cls(r.exp_r)}">${sign(r.exp_r,4)}</td>`
+        + `<td class="num ${cls(r.t)}">${sign(r.t,2)}</td></tr>`;
+    }
+    h += "</tbody></table></div>"
+      + `<p class="sub" style="margin:10px 0 0">TDT minus rejected: `
+      + `<b class="${cls(c.diff_r)}">${sign(c.diff_r,4)}R</b>`
+      + ` &middot; t = <b class="${cls(c.t)}">${sign(c.t,2)}</b> &rarr; `
+      + `<span class="tag ${bad?"bad":none?"":"ok"}">${esc(f.verdict)}</span></p></div>`;
+  }
+  document.getElementById("filter").innerHTML = h;
+}
+
+function drawSweep(){
+  const rows=D.backtest.sweep||[];
+  let h='<div class="scroll"><table><thead><tr><th>model</th><th>mode</th><th>R:R</th>'
+    +'<th>trades</th><th>win</th><th>exp R</th><th>t</th></tr></thead><tbody>';
+  for(const r of rows){
+    if(!r.n) continue;
+    h+=`<tr><td class="mono">${esc(r.model)}</td><td class="mono">${esc(r.mode)}</td>`
+      +`<td class="num">${fmt(r.rr,1)}</td><td class="num">${r.n.toLocaleString()}</td>`
+      +`<td class="num">${(r.win_rate*100).toFixed(1)}%</td>`
+      +`<td class="num ${cls(r.exp_r)}">${sign(r.exp_r)}</td>`
+      +`<td class="num ${cls(r.t)}">${sign(r.t,2)}</td></tr>`;
+  }
+  document.getElementById("sweep").innerHTML=h+"</tbody></table></div>";
+}
+
+census(); drawFilter(); hazardTabs(); drawHazard(); drawNeighbour(); drawOffset();
+drawM2(); drawM3(); drawSweep();
+const p=D.backtest.params;
+document.getElementById("foot").innerHTML =
+  `Source: ${esc(m.source)} · ${m.bars.toLocaleString()} candles · stop pad ${p.pad}× leg ATR`
+  + ` · timeout ${p.timeout} bars · cost ${p.cost} pts/round turn`
+  + ` · built ${esc(m.built)}. Rebuild with <code>python run_all.py &amp;&amp;`
+  + ` python build_report.py</code>.`;
+</script>
